@@ -166,6 +166,11 @@ details.sec>summary .sum{font-family:var(--body);font-size:.8rem;color:var(--mut
 .fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
 .field{display:flex;flex-direction:column;gap:4px;min-width:0}
 .field label,.flabel{font-size:.76rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.sync-box{width:100%;min-height:84px;border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:8px 9px;font:inherit;font-size:16px;color:inherit;resize:vertical}
+.sync-msg{font-size:.88rem;display:flex;flex-direction:column;gap:8px}
+.sync-msg:empty{display:none}
+.sync-msg.ok{color:var(--ok)}
+.sync-msg.err{color:var(--berry)}
 .field input,.field select{border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:8px 9px;width:100%;min-width:0;font-size:16px}
 .checks{display:flex;flex-direction:column;gap:6px}
 .check{display:flex;gap:9px;align-items:flex-start;font-size:.92rem}
@@ -1051,6 +1056,12 @@ function renderForm(){
   const P=st.players, f=st.farm, u=st.unl;
   const skillOpts=[...Array(11).keys()].map(n=>[n,n]);
   let h=`<div class="card-h"><h2>Nossa fazenda</h2><span class="save" id="saveState"></span></div>`;
+  h+=sec('sync','Passar para outro aparelho','Copiar e colar',`
+    <p class="small muted" style="margin:0">No aparelho que está com o dia certo, toquem em <b>Copiar dados</b> e mandem o texto para o outro aparelho (WhatsApp, e-mail ou Notas). No outro aparelho, colem o texto aqui embaixo e toquem em <b>Carregar</b>.</p>
+    <div class="actions"><button type="button" class="btn primary" id="copyData">Copiar dados</button>${navigator.share?'<button type="button" class="btn" id="shareData">Enviar…</button>':''}</div>
+    <textarea class="sync-box" id="pasteBox" placeholder="Colem aqui o texto copiado (começa com SDV1:)" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+    <div class="actions"><button type="button" class="btn" id="loadData">Carregar</button></div>
+    <div class="sync-msg" id="syncMsg" role="status"></div>`);
   h+=sec('dia','Dia de hoje',`${SEASONS[st.season]} ${st.day}`,`
     <div class="fields">
      <div class="field"><label for="f-year">Ano</label>${num('year',st.year,1,99,'f-year')}</div>
@@ -1152,6 +1163,8 @@ document.addEventListener('focusout',e=>{
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-cc]');
   if(b){ const k=b.dataset.cc; if(st.cc[k]) delete st.cc[k]; else st.cc[k]=true; commit(); return; }
+  const sid=e.target.closest&&e.target.closest('#copyData,#shareData,#loadData,#confirmImport,#cancelImport');
+  if(sid){ ({copyData,shareData,loadData,confirmImport,cancelImport:()=>{pendingImport=null;syncMsg('')}})[sid.id](); return; }
   if(e.target.id==='resetBtn'){ showToast('Apagar tudo e começar do Ano 1, Primavera 1?','Apagar',()=>{
      st=normalize({example:false,year:1,season:0,day:1,weather:'sol',forecast:'',luck:'',money:500,mine:0,cc:{},
        players:[{name:'Jogador 1',farming:0,mining:0,foraging:0,fishing:0,combat:0,tools:clone(TOOL0)},{name:'Jogador 2',farming:0,mining:0,foraging:0,fishing:0,combat:0,tools:clone(TOOL0)}],
@@ -1172,7 +1185,50 @@ function selectTab(t){
   window.scrollTo(0,0);
 }
 
-let undoState=null, toastTimer=null;
+let undoState=null, toastTimer=null, pendingImport=null;
+function exportCode(){
+  const json=JSON.stringify({v:1,at:Date.now(),state:st});
+  return 'SDV1:'+btoa(unescape(encodeURIComponent(json)));
+}
+function importCode(text){
+  const m=String(text||'').replace(/\s+/g,'').match(/SDV1:([A-Za-z0-9+/=]+)/);
+  if(!m) return null;
+  try{
+    const data=JSON.parse(decodeURIComponent(escape(atob(m[1]))));
+    if(!data||!data.state||!Array.isArray(data.state.players)||data.state.season==null||data.state.day==null) return null;
+    return data;
+  }catch(e){ return null; }
+}
+function syncMsg(html,cls){ const el=$('#syncMsg'); if(!el) return; el.className='sync-msg '+(cls||''); el.innerHTML=html; }
+function describe(s){ return `Ano ${s.year}, ${SEASONS[s.season]} ${s.day}, de ${esc((s.players[0]||{}).name)} e ${esc((s.players[1]||{}).name)}`; }
+function copyData(){
+  const code=exportCode(), box=$('#pasteBox');
+  const fallback=()=>{ if(box){ box.value=code; box.focus(); box.select(); }
+    syncMsg('Não deu para copiar sozinho. O texto está na caixa abaixo e já está selecionado: copiem e mandem para o outro aparelho.','err'); };
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code).then(()=>syncMsg(`Copiado (${describe(st)}). Agora colem no outro aparelho.`,'ok'),fallback);
+  } else fallback();
+}
+function shareData(){
+  const code=exportCode();
+  navigator.share({title:'Stardew Hoje',text:code}).then(()=>syncMsg('Enviado. No outro aparelho, colem o texto e toquem em Carregar.','ok')).catch(e=>{ if(e&&e.name!=='AbortError') copyData(); });
+}
+function loadData(){
+  const box=$('#pasteBox'); const data=importCode(box&&box.value);
+  if(!data){ pendingImport=null; syncMsg('Esse texto não é um código válido. Copiem de novo no outro aparelho e colem inteiro: ele começa com <b>SDV1:</b>.','err'); return; }
+  pendingImport=data;
+  const when=new Date(data.at||Date.now()).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  syncMsg(`<span>Encontrado: <b>${describe(data.state)}</b>, copiado em ${when}. Isso substitui os dados deste aparelho (${describe(st)}).</span>
+    <span class="actions"><button type="button" class="btn primary" id="confirmImport">Substituir os dados deste aparelho</button><button type="button" class="btn" id="cancelImport">Cancelar</button></span>`);
+}
+function confirmImport(){
+  if(!pendingImport) return;
+  undoState=clone(st);
+  st=normalize(pendingImport.state); st.example=false; pendingImport=null;
+  commit();
+  syncMsg(`Dados carregados: ${describe(st)}.`,'ok');
+  showToast('Dados carregados do outro aparelho.','Desfazer',()=>{st=undoState;commit()});
+}
 function showToast(msg,btnLabel,fn){
   const t=$('#toast'); t.innerHTML=`<span>${esc(msg)}</span>${btnLabel?`<button type="button" id="toastBtn">${esc(btnLabel)}</button>`:''}`; t.hidden=false;
   if(btnLabel) $('#toastBtn').onclick=()=>{t.hidden=true;fn()};
