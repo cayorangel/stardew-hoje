@@ -1,0 +1,1068 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2E6B3A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Stardew Hoje">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
+<title>O Que Fazer Hoje em Stardew</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,800&display=swap">
+<style>
+/* Layout: almanaque da fazenda. Faixa de data no topo, plano do dia à esquerda, caderno da fazenda à direita (abas no celular). */
+:root{
+  --bg:#EAF0E1; --panel:#FAFCF5; --panel2:#F1F5EA; --ink:#1D2A1F; --muted:#5A6A5B; --line:#CAD6BF;
+  --accent:#2E6B3A; --accent-ink:#FFFFFF; --gold:#B87A06; --gold-soft:#F6E7BF; --berry:#A3305A; --berry-soft:#F5DCE5;
+  --sky:#2D6AA3; --sky-soft:#DCE8F4; --ok:#2E7D46;
+  --s0:#4A9440; --s1:#C88A0C; --s2:#BE561E; --s3:#3C74A4;
+  --display:"Pixelify Sans", "Courier New", monospace;
+  --body:"Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111813; --panel:#19221C; --panel2:#1F2A22; --ink:#E2EADC; --muted:#9BAB99; --line:#2D3B31;
+  --accent:#6DC27B; --accent-ink:#0E1A11; --gold:#F0B53A; --gold-soft:#3A2F15; --berry:#E9799F; --berry-soft:#3A1E29;
+  --sky:#7DB2E4; --sky-soft:#1B2C3C; --ok:#6DC27B;
+  --s0:#7CC46F; --s1:#F0B53A; --s2:#EE8A52; --s3:#7DB2E4; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#111813; --panel:#19221C; --panel2:#1F2A22; --ink:#E2EADC; --muted:#9BAB99; --line:#2D3B31;
+  --accent:#6DC27B; --accent-ink:#0E1A11; --gold:#F0B53A; --gold-soft:#3A2F15; --berry:#E9799F; --berry-soft:#3A1E29;
+  --sky:#7DB2E4; --sky-soft:#1B2C3C; --ok:#6DC27B;
+  --s0:#7CC46F; --s1:#F0B53A; --s2:#EE8A52; --s3:#7DB2E4; color-scheme:dark }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--display);font-weight:700;margin:0;text-wrap:balance;letter-spacing:.01em}
+h2{font-size:1.2rem}
+h3{font-size:1rem}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+.en{color:var(--muted);font-size:.78em}
+
+/* Faixa de data */
+.dateband{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center;justify-content:space-between;
+  border-top:6px solid var(--season)}
+.datebig{display:flex;flex-direction:column;gap:2px;min-width:0}
+.datebig .eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.datebig h1{font-size:clamp(1.8rem,5vw,2.6rem);line-height:1.05;color:var(--season)}
+.datebig .sub{font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel2);padding:5px 11px;border-radius:999px;font-size:.88rem;font-weight:600;white-space:nowrap}
+.chip.rain{background:var(--sky-soft);border-color:transparent;color:var(--sky)}
+.chip.fest{background:var(--berry-soft);border-color:transparent;color:var(--berry)}
+.chip.luckg{background:var(--gold-soft);border-color:transparent;color:var(--gold)}
+.chip.luckb{background:var(--berry-soft);border-color:transparent;color:var(--berry)}
+.btn{border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:8px 14px;font-weight:700}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.08)}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+
+.banner{background:var(--gold-soft);color:var(--ink);border-radius:var(--r);padding:10px 14px;font-size:.92rem;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.banner b{color:var(--gold)}
+
+/* Abas (só celular) */
+.tabs{display:none;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:4px}
+.tabs button{flex:1;border:0;background:transparent;border-radius:7px;padding:8px;font-weight:700;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .12)}
+
+.grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:980px){
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .tabs{display:flex}
+  .grid[data-tab="plano"] #farmCol{display:none}
+  .grid[data-tab="fazenda"] #planCol{display:none}
+}
+.col{display:flex;flex-direction:column;gap:16px;min-width:0}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+
+/* Festival */
+.fest-card{background:var(--berry-soft);border-color:transparent}
+.fest-card h2{color:var(--berry)}
+
+/* Missões dos jogadores */
+.missions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:620px){.missions{grid-template-columns:minmax(0,1fr)}}
+.mission{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--panel2);min-width:0}
+.mission .who{display:flex;align-items:center;gap:8px;font-weight:800}
+.avatar{width:26px;height:26px;border-radius:6px;display:grid;place-items:center;font-family:var(--display);font-size:.9rem;color:var(--accent-ink);background:var(--accent);flex:none}
+.avatar.p2{background:var(--berry)}
+.mission .goal{font-family:var(--display);font-size:1.15rem;line-height:1.2}
+.mission .why{font-size:.85rem;color:var(--muted)}
+
+/* Listas de tarefas */
+.tasks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.task{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;padding:8px 6px;border-radius:8px}
+.task:hover{background:var(--panel2)}
+.task input{margin-top:4px;width:18px;height:18px;accent-color:var(--accent)}
+.task .t{font-weight:700}
+.mission .task .t{font-weight:600}
+.task .d{font-size:.88rem;color:var(--muted)}
+.task.done .t,.task.done .d{text-decoration:line-through;opacity:.55}
+.prio{display:inline-block;font-size:.66rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:1px 7px;border-radius:999px;white-space:nowrap;margin-left:6px;vertical-align:2px}
+.prio.p1{background:var(--accent);color:var(--accent-ink)}
+.prio.p2{background:var(--gold-soft);color:var(--gold)}
+.prio.p3{background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
+.group-label{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--muted);margin-top:6px}
+
+/* CC hoje */
+.cc-list{display:flex;flex-direction:column;gap:8px}
+.cc-item{display:flex;flex-direction:column;gap:4px;padding:10px 12px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);min-width:0}
+.cc-top{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;justify-content:space-between}
+.cc-item .n{font-weight:800}
+.cc-item .h{font-size:.86rem;color:var(--muted)}
+.tag{font-size:.72rem;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--sky-soft);color:var(--sky)}
+.tag.last{background:var(--berry-soft);color:var(--berry)}
+.tag.lock{background:var(--panel);color:var(--muted);border:1px solid var(--line)}
+
+/* Tabela de plantio */
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td.num,th.num{text-align:right}
+.pill{display:inline-block;font-size:.7rem;font-weight:800;padding:1px 7px;border-radius:999px;background:var(--gold-soft);color:var(--gold);margin-left:6px}
+
+/* Calendário */
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+@media (max-width:620px){.cal{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.cal-d{border:1px solid var(--line);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:4px;min-height:84px;background:var(--panel2);min-width:0}
+.cal-d.today{border-color:var(--season);box-shadow:inset 0 0 0 1px var(--season)}
+.cal-d .dn{font-family:var(--display);font-size:1.05rem}
+.cal-d .wd{font-size:.72rem;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.cal-d .ev{font-size:.76rem;line-height:1.25;overflow-wrap:anywhere}
+.cal-d .ev.f{color:var(--berry);font-weight:800}
+.cal-d .ev.b{color:var(--gold);font-weight:700}
+
+/* Claude */
+.ai-out{white-space:normal;font-size:.95rem;background:var(--panel2);border-radius:10px;padding:12px 14px;border:1px solid var(--line)}
+.ai-out h4{font-family:var(--display);font-size:1rem;margin:10px 0 4px}
+.ai-out h4:first-child{margin-top:0}
+.ai-out ul{margin:4px 0;padding-left:20px}
+.ai-out p{margin:4px 0}
+
+/* Formulário */
+details.sec{border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+details.sec>summary{list-style:none;cursor:pointer;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-family:var(--display);font-size:1.02rem}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::after{content:"+";font-family:var(--display);color:var(--muted)}
+details.sec[open]>summary::after{content:"–"}
+details.sec>summary .sum{font-family:var(--body);font-size:.8rem;color:var(--muted);font-weight:600;margin-left:auto}
+.sec-body{padding:0 16px 16px;display:flex;flex-direction:column;gap:12px}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label,.flabel{font-size:.76rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.field input,.field select{border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:8px 9px;width:100%;min-width:0;font-size:16px}
+.checks{display:flex;flex-direction:column;gap:6px}
+.check{display:flex;gap:9px;align-items:flex-start;font-size:.92rem}
+.check input{width:17px;height:17px;margin-top:3px;accent-color:var(--accent);flex:none}
+.pl{border-top:1px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:10px}
+.pl:first-child{border-top:0;padding-top:0}
+.room{display:flex;flex-direction:column;gap:8px;border-top:1px dashed var(--line);padding-top:10px}
+.room:first-child{border-top:0;padding-top:0}
+.room-h{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.room-h b{font-family:var(--display);font-weight:500}
+.bundle{display:flex;flex-direction:column;gap:6px}
+.bundle-h{display:flex;justify-content:space-between;gap:8px;font-size:.88rem;font-weight:700}
+.bundle-h .cnt{font-variant-numeric:tabular-nums;color:var(--muted)}
+.bundle-h .cnt.ok{color:var(--ok)}
+.items{display:flex;flex-wrap:wrap;gap:6px}
+.it{border:1px solid var(--line);background:var(--panel2);border-radius:999px;padding:3px 10px;font-size:.8rem;font-weight:600}
+.it[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.save{font-size:.8rem;color:var(--muted)}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom, 0px));background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:10px;display:flex;gap:12px;align-items:center;font-weight:600;z-index:20;max-width:calc(100% - 32px)}
+.toast button{background:transparent;border:1px solid currentColor;color:inherit;border-radius:6px;padding:3px 10px;font-weight:800}
+.plants{display:flex;flex-direction:column}
+.plant{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:9px 2px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.plant:last-child{border-bottom:0}
+.plant .pn{font-weight:800}
+.plant .pp{font-weight:800;text-align:right;color:var(--ok)}
+.plant .pd{grid-column:1 / -1;font-size:.84rem;color:var(--muted)}
+.loading{padding:24px;text-align:center}
+@media (max-width:980px){
+  body{padding-bottom:calc(88px + env(safe-area-inset-bottom, 0px))}
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:15;border-radius:0;border-width:1px 0 0;background:var(--panel);
+    padding:8px max(16px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+  .tabs button{padding:11px}
+  .tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+  .toast{bottom:calc(80px + env(safe-area-inset-bottom, 0px))}
+}
+@media (max-width:620px){
+  body{font-size:15px;padding-block:12px}
+  .wrap{gap:12px}
+  .card{padding:14px;gap:10px;border-radius:12px}
+  .card-h{flex-direction:column;align-items:flex-start;gap:2px}
+  .dateband{padding:14px;gap:10px}
+  .dateband .actions{width:100%}
+  .dateband .actions .btn{width:100%;padding:11px}
+  .mission{padding:12px 0 4px;background:transparent;border:0;border-top:1px solid var(--line);border-radius:0}
+  .mission:first-child{border-top:0;padding-top:0}
+  .missions{gap:8px}
+  .task{padding:7px 0;gap:9px}
+  .task input{width:20px;height:20px;margin-top:2px}
+  .cc-item{padding:9px 11px}
+  details.sec>summary{padding:14px}
+  .sec-body{padding:0 14px 14px}
+  .fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .it{padding:6px 11px;font-size:.84rem}
+}
+@media (prefers-reduced-motion:no-preference){.task,.it,.btn{transition:background .15s,border-color .15s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="dateband" id="dateband"></header>
+  <div class="banner" id="exampleBanner" hidden><span><b>Exemplo.</b> Estes dados são só para mostrar como funciona. Abram <b>Nossa fazenda</b> e coloquem os dados de vocês.</span></div>
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-plano" aria-selected="true" data-tab="plano">Plano do dia</button>
+    <button role="tab" id="tab-fazenda" aria-selected="false" data-tab="fazenda">Nossa fazenda</button>
+  </div>
+  <div class="grid" id="grid" data-tab="plano">
+    <main class="col" id="planCol"><div class="card loading"><b>Carregando…</b><span class="small muted">Se esta mensagem não sumir, o app que abriu o arquivo não roda páginas. Abram o arquivo no Chrome (Android) ou no Safari (iPhone).</span></div></main>
+    <aside class="col" id="farmCol"></aside>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* ============ DADOS DO JOGO (versão 1.6) ============ */
+const SEASONS=['Primavera','Verão','Outono','Inverno'];
+const WEEK=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
+const WEATHER={sol:'Ensolarado',chuva:'Chuva',tempestade:'Tempestade',vento:'Ventando',neve:'Neve'};
+const LUCK={'':'Não vimos','2':'Muito boa','1':'Boa','0':'Neutra','-1':'Ruim','-2':'Muito ruim'};
+const SKILLS=[['farming','Cultivo'],['mining','Mineração'],['foraging','Coleta'],['fishing','Pesca'],['combat','Combate']];
+
+const BIRTHDAYS={
+ 0:{4:'Kent',7:'Lewis',10:'Vincent',14:'Haley',18:'Pam',20:'Shane',26:'Pierre',27:'Emily'},
+ 1:{4:'Jas',8:'Gus',10:'Maru',13:'Alex',17:'Sam',19:'Demetrius',22:'Anão',24:'Willy',26:'Leo'},
+ 2:{2:'Penny',5:'Elliott',11:'Jodi',13:'Abigail',15:'Sandy',18:'Marnie',21:'Robin',24:'George'},
+ 3:{1:'Krobus',3:'Linus',7:'Caroline',10:'Sebastian',14:'Harvey',17:'Mago',20:'Evelyn',23:'Leah',26:'Clint'}
+};
+// [estação, dia inicial, dia final, nome, horário, dica]
+const FESTIVALS=[
+ [0,13,13,'Festival do Ovo','9h–14h na praça','Comprem sementes de morango na barraca do Pierre: só vendem aqui. Plantem logo, dá para colher 2 vezes antes do verão.'],
+ [0,15,17,'Festival do Deserto','10h–23h no deserto','Só com o ônibus consertado. Tem lojinhas e o desafio do Calico.'],
+ [0,24,24,'Dança das Flores','9h–14h na floresta','Para dançar, a pessoa precisa de 4 corações com vocês. Vocês podem dançar juntos!'],
+ [1,11,11,'Luau','9h–14h na praia','Coloquem o melhor item que tiverem na sopa (ouro/iridium ou algo caro). Nada de lixo!'],
+ [1,20,21,'Torneio da Truta','6h–2h no rio','Peixes do rio podem vir com etiquetas douradas para trocar por prêmios.'],
+ [1,28,28,'Dança das Águas-vivas','22h–0h na praia','Só assistir. Façam o trabalho da fazenda antes.'],
+ [2,16,16,'Feira do Vale','9h–15h na praça','Levem 9 itens variados e de boa qualidade para a exposição do grange. Joguem para ganhar fichas estrela.'],
+ [2,27,27,'Véspera dos Espíritos','22h–23h50 na praça','Achem a abóbora dourada no fim do labirinto.'],
+ [3,8,8,'Festival do Gelo','9h–14h na floresta','Concurso de pesca. Comprem a isca de pesca se quiserem treinar.'],
+ [3,12,13,'Festa da Lula','6h–2h na praia','Pesquem lulas no mar durante o evento.'],
+ [3,15,17,'Mercado Noturno','17h–2h na praia','Submarino de pesca, show das sereias e barcos de comerciantes.'],
+ [3,25,25,'Banquete da Estrela de Inverno','9h–14h na praça','Troca de presentes secreta: a carta diz para quem dar o presente.']
+];
+
+// Pacotes do Centro Comunitário (padrão). k: tipo (fish/forage/mine/crop/long), s: estações, w: clima, req: desbloqueio
+const ALL=[0,1,2,3];
+const ROOMS=[
+ {id:'crafts',name:'Sala de Artesanato',en:'Crafts Room',reward:'Conserta a ponte para a pedreira',bundles:[
+  {id:'sf',name:'Coleta da Primavera',need:4,items:[
+   {n:'Raiz-forte selvagem',en:'Wild Horseradish',k:'forage',s:[0],h:'Chão da fazenda, floresta e cidade'},
+   {n:'Narciso',en:'Daffodil',k:'forage',s:[0],h:'Cidade e floresta'},
+   {n:'Alho-poró',en:'Leek',k:'forage',s:[0],h:'Montanha e floresta'},
+   {n:'Dente-de-leão',en:'Dandelion',k:'forage',s:[0],h:'Floresta e ponto de ônibus'}]},
+  {id:'uf',name:'Coleta do Verão',need:3,items:[
+   {n:'Uva',en:'Grape',k:'forage',s:[1],h:'Montanha e floresta'},
+   {n:'Baga picante',en:'Spice Berry',k:'forage',s:[1],h:'Floresta, montanha, fazenda'},
+   {n:'Ervilha-de-cheiro',en:'Sweet Pea',k:'forage',s:[1],h:'Cidade e floresta'}]},
+  {id:'ff',name:'Coleta do Outono',need:4,items:[
+   {n:'Cogumelo comum',en:'Common Mushroom',k:'forage',s:[2],h:'Floresta e montanha'},
+   {n:'Ameixa selvagem',en:'Wild Plum',k:'forage',s:[2],h:'Montanha e floresta'},
+   {n:'Avelã',en:'Hazelnut',k:'forage',s:[2],h:'Montanha e floresta'},
+   {n:'Amora',en:'Blackberry',k:'forage',s:[2],h:'Arbustos em todo lugar, muitas do dia 8 ao 11'}]},
+  {id:'wf',name:'Coleta do Inverno',need:4,items:[
+   {n:'Raiz de inverno',en:'Winter Root',k:'forage',s:[3],h:'Usem a enxada na terra (fazenda, floresta)'},
+   {n:'Fruta de cristal',en:'Crystal Fruit',k:'forage',s:[3],h:'Montanha, floresta, cidade'},
+   {n:'Inhame da neve',en:'Snow Yam',k:'forage',s:[3],h:'Usem a enxada na terra'},
+   {n:'Açafrão',en:'Crocus',k:'forage',s:[3],h:'Floresta e cidade'}]},
+  {id:'con',name:'Construção',need:4,items:[
+   {n:'Madeira ×99',en:'Wood',k:'forage',h:'Cortem árvores e galhos'},
+   {n:'Madeira ×99 (2ª)',en:'Wood',k:'forage',h:'Mais 99'},
+   {n:'Pedra ×99',en:'Stone',k:'mine',h:'Quebrem pedras na fazenda ou nas minas'},
+   {n:'Madeira de lei ×10',en:'Hardwood',k:'forage',req:'woods',h:'Tocos grandes (machado de cobre) e Bosque Secreto'}]},
+  {id:'ex',name:'Coleta Exótica',need:5,items:[
+   {n:'Coco',en:'Coconut',k:'forage',req:'bus',h:'Deserto'},
+   {n:'Fruta de cacto',en:'Cactus Fruit',k:'forage',req:'bus',h:'Deserto'},
+   {n:'Cenoura da caverna',en:'Cave Carrot',k:'mine',h:'Quebrando pedras nas minas'},
+   {n:'Cogumelo vermelho',en:'Red Mushroom',k:'forage',s:[1,2],h:'Bosque Secreto ou minas'},
+   {n:'Cogumelo roxo',en:'Purple Mushroom',k:'mine',req:'mine80',h:'Minas, andares 81+'},
+   {n:'Xarope de bordo',en:'Maple Syrup',k:'long',h:'Torneira (Coleta nv. 3) num bordo'},
+   {n:'Resina de carvalho',en:'Oak Resin',k:'long',h:'Torneira num carvalho'},
+   {n:'Piche de pinheiro',en:'Pine Tar',k:'long',h:'Torneira num pinheiro'},
+   {n:'Cogumelo morel',en:'Morel',k:'forage',s:[0],req:'woods',h:'Bosque Secreto'}]}
+ ]},
+ {id:'pantry',name:'Despensa',en:'Pantry',reward:'Conserta a estufa',bundles:[
+  {id:'sc',name:'Plantações da Primavera',need:4,items:[
+   {n:'Pastinaca',en:'Parsnip',k:'crop',s:[0],h:'Plantar: 4 dias'},
+   {n:'Feijão-verde',en:'Green Bean',k:'crop',s:[0],h:'Plantar: 10 dias'},
+   {n:'Couve-flor',en:'Cauliflower',k:'crop',s:[0],h:'Plantar: 12 dias'},
+   {n:'Batata',en:'Potato',k:'crop',s:[0],h:'Plantar: 6 dias'}]},
+  {id:'uc',name:'Plantações do Verão',need:4,items:[
+   {n:'Tomate',en:'Tomato',k:'crop',s:[1],h:'Plantar: 11 dias'},
+   {n:'Pimenta',en:'Hot Pepper',k:'crop',s:[1],h:'Plantar: 5 dias'},
+   {n:'Mirtilo',en:'Blueberry',k:'crop',s:[1],h:'Plantar: 13 dias'},
+   {n:'Melão',en:'Melon',k:'crop',s:[1],h:'Plantar: 12 dias'}]},
+  {id:'fc',name:'Plantações do Outono',need:4,items:[
+   {n:'Milho',en:'Corn',k:'crop',s:[1,2],h:'Plantar: 14 dias'},
+   {n:'Berinjela',en:'Eggplant',k:'crop',s:[2],h:'Plantar: 5 dias'},
+   {n:'Abóbora',en:'Pumpkin',k:'crop',s:[2],h:'Plantar: 13 dias'},
+   {n:'Inhame',en:'Yam',k:'crop',s:[2],h:'Plantar: 10 dias'}]},
+  {id:'qc',name:'Colheita de Qualidade',need:3,items:[
+   {n:'5 Pastinacas de ouro',en:'Gold Parsnip',k:'crop',s:[0],h:'Use fertilizante; Cultivo alto ajuda'},
+   {n:'5 Melões de ouro',en:'Gold Melon',k:'crop',s:[1],h:'Use fertilizante'},
+   {n:'5 Abóboras de ouro',en:'Gold Pumpkin',k:'crop',s:[2],h:'Use fertilizante'},
+   {n:'5 Milhos de ouro',en:'Gold Corn',k:'crop',s:[1,2],h:'Use fertilizante'}]},
+  {id:'an',name:'Animais',need:5,items:[
+   {n:'Leite grande',en:'Large Milk',k:'long',req:'barn',h:'Vaca feliz'},
+   {n:'Ovo marrom grande',en:'Large Brown Egg',k:'long',req:'coop',h:'Galinha marrom feliz'},
+   {n:'Ovo branco grande',en:'Large Egg',k:'long',req:'coop',h:'Galinha branca feliz'},
+   {n:'Leite de cabra grande',en:'Large Goat Milk',k:'long',req:'barn',h:'Cabra (estábulo grande)'},
+   {n:'Lã',en:'Wool',k:'long',req:'barn',h:'Ovelha ou coelho'},
+   {n:'Ovo de pata',en:'Duck Egg',k:'long',req:'coop',h:'Pata (galinheiro grande)'}]},
+  {id:'ar',name:'Artesão',need:6,items:[
+   {n:'Óleo de trufa',en:'Truffle Oil',k:'long',h:'Porco + prensa de óleo'},
+   {n:'Tecido',en:'Cloth',k:'long',h:'Lã no tear'},
+   {n:'Queijo de cabra',en:'Goat Cheese',k:'long',h:'Leite de cabra na prensa'},
+   {n:'Queijo',en:'Cheese',k:'long',h:'Leite na prensa de queijo'},
+   {n:'Mel',en:'Honey',k:'long',h:'Colmeia (Cultivo nv. 3)'},
+   {n:'Geleia',en:'Jelly',k:'long',h:'Fruta no pote de conserva'},
+   {n:'Maçã',en:'Apple',k:'long',h:'Árvore frutífera (outono)'},
+   {n:'Damasco',en:'Apricot',k:'long',h:'Árvore frutífera (primavera)'},
+   {n:'Laranja',en:'Orange',k:'long',h:'Árvore frutífera (verão)'},
+   {n:'Pêssego',en:'Peach',k:'long',h:'Árvore frutífera (verão)'},
+   {n:'Romã',en:'Pomegranate',k:'long',h:'Árvore frutífera (outono)'},
+   {n:'Cereja',en:'Cherry',k:'long',h:'Árvore frutífera (primavera)'}]}
+ ]},
+ {id:'fish',name:'Aquário',en:'Fish Tank',reward:'Remove a pedra brilhante da montanha',bundles:[
+  {id:'rv',name:'Peixes de Rio',need:4,items:[
+   {n:'Peixe-sol',en:'Sunfish',k:'fish',s:[0,1],w:'sun',h:'Rio da cidade ou floresta, 6h–19h, sem chuva'},
+   {n:'Bagre',en:'Catfish',k:'fish',s:[0,2],w:'rain',h:'Rio (cidade/floresta), 6h–0h, só com chuva. Difícil!'},
+   {n:'Sável',en:'Shad',k:'fish',s:[0,1,2],w:'rain',h:'Rio, 9h–2h, só com chuva'},
+   {n:'Truta-tigre',en:'Tiger Trout',k:'fish',s:[2,3],h:'Rio, 6h–19h'}]},
+  {id:'lk',name:'Peixes de Lago',need:4,items:[
+   {n:'Achigã',en:'Largemouth Bass',k:'fish',h:'Lago da montanha, 6h–19h'},
+   {n:'Carpa',en:'Carp',k:'fish',s:[0,1,2],h:'Lago da montanha, qualquer hora'},
+   {n:'Bagre-cabeçudo',en:'Bullhead',k:'fish',h:'Lago da montanha, qualquer hora'},
+   {n:'Esturjão',en:'Sturgeon',k:'fish',s:[1,3],h:'Lago da montanha, 6h–19h'}]},
+  {id:'oc',name:'Peixes do Mar',need:4,items:[
+   {n:'Sardinha',en:'Sardine',k:'fish',s:[0,2,3],h:'Praia, 6h–19h'},
+   {n:'Atum',en:'Tuna',k:'fish',s:[1,3],h:'Praia, 6h–19h'},
+   {n:'Pargo',en:'Red Snapper',k:'fish',s:[1,2],w:'rain',h:'Praia, 6h–19h, só com chuva'},
+   {n:'Tilápia',en:'Tilapia',k:'fish',s:[1,2],h:'Praia, 6h–14h'}]},
+  {id:'nf',name:'Pesca Noturna',need:3,items:[
+   {n:'Lúcio-perca',en:'Walleye',k:'fish',s:[2],w:'rain',h:'Rio ou lago, 12h–2h, com chuva'},
+   {n:'Brema',en:'Bream',k:'fish',h:'Rio, 18h–2h'},
+   {n:'Enguia',en:'Eel',k:'fish',s:[0,2],w:'rain',h:'Praia, 16h–2h, com chuva'}]},
+  {id:'cp',name:'Covos',need:5,items:[
+   {n:'Lagosta',en:'Lobster',k:'crab',h:'Covo no mar'},{n:'Lagostim',en:'Crayfish',k:'crab',h:'Covo em água doce'},
+   {n:'Caranguejo',en:'Crab',k:'crab',h:'Covo no mar'},{n:'Berbigão',en:'Cockle',k:'crab',h:'Covo no mar ou praia'},
+   {n:'Mexilhão',en:'Mussel',k:'crab',h:'Covo no mar ou praia'},{n:'Camarão',en:'Shrimp',k:'crab',h:'Covo no mar'},
+   {n:'Caracol',en:'Snail',k:'crab',h:'Covo em água doce'},{n:'Litorina',en:'Periwinkle',k:'crab',h:'Covo em água doce'},
+   {n:'Ostra',en:'Oyster',k:'crab',h:'Covo no mar ou praia'},{n:'Amêijoa',en:'Clam',k:'crab',h:'Covo no mar ou praia'}]},
+  {id:'sp',name:'Peixes Especiais',need:4,items:[
+   {n:'Baiacu',en:'Pufferfish',k:'fish',s:[1],w:'sun',h:'Praia, 12h–16h, dia de sol'},
+   {n:'Peixe-fantasma',en:'Ghostfish',k:'fish',req:'mine20',h:'Lagos das minas, andares 20 e 60'},
+   {n:'Peixe-areia',en:'Sandfish',k:'fish',req:'bus',h:'Deserto'},
+   {n:'Peixe-bosque',en:'Woodskip',k:'fish',req:'woods',h:'Lago do Bosque Secreto'}]}
+ ]},
+ {id:'boiler',name:'Sala da Caldeira',en:'Boiler Room',reward:'Conserta os carrinhos de mina',bundles:[
+  {id:'bs',name:'Ferreiro',need:3,items:[
+   {n:'Barra de cobre',en:'Copper Bar',k:'mine',h:'5 minérios de cobre + 1 carvão na fornalha'},
+   {n:'Barra de ferro',en:'Iron Bar',k:'mine',req:'mine40',h:'Minério de ferro: andares 40+'},
+   {n:'Barra de ouro',en:'Gold Bar',k:'mine',req:'mine80',h:'Minério de ouro: andares 80+'}]},
+  {id:'ge',name:'Geólogo',need:4,items:[
+   {n:'Quartzo',en:'Quartz',k:'mine',h:'Qualquer andar das minas'},
+   {n:'Cristal da terra',en:'Earth Crystal',k:'mine',h:'Minas, andares 1–39'},
+   {n:'Lágrima congelada',en:'Frozen Tear',k:'mine',req:'mine40',h:'Minas, andares 40–79'},
+   {n:'Quartzo de fogo',en:'Fire Quartz',k:'mine',req:'mine80',h:'Minas, andares 80–119'}]},
+  {id:'ad',name:'Aventureiro',need:2,items:[
+   {n:'Gosma ×99',en:'Slime',k:'mine',h:'Derrotando gosmas'},
+   {n:'Asa de morcego ×10',en:'Bat Wing',k:'mine',req:'mine40',h:'Morcegos, andares 30+'},
+   {n:'Essência solar',en:'Solar Essence',k:'mine',req:'mine40',h:'Fantasmas, andares 40–79'},
+   {n:'Essência do vazio',en:'Void Essence',k:'mine',req:'mine80',h:'Sombras, andares 80+'}]}
+ ]},
+ {id:'board',name:'Mural de Avisos',en:'Bulletin Board',reward:'Amizade com a cidade toda',bundles:[
+  {id:'ch',name:'Chef',need:6,items:[
+   {n:'Xarope de bordo',en:'Maple Syrup',k:'long',h:'Torneira num bordo'},
+   {n:'Samambaia',en:'Fiddlehead Fern',k:'forage',s:[1],req:'woods',h:'Bosque Secreto no verão'},
+   {n:'Trufa',en:'Truffle',k:'long',req:'barn',h:'Porco'},
+   {n:'Papoula',en:'Poppy',k:'crop',s:[1],h:'Plantar no verão: 7 dias'},
+   {n:'Maki',en:'Maki Roll',k:'long',h:'Cozinhar (casa com cozinha)'},
+   {n:'Ovo frito',en:'Fried Egg',k:'long',h:'Cozinhar: 1 ovo'}]},
+  {id:'dy',name:'Tinturas',need:6,items:[
+   {n:'Cogumelo vermelho',en:'Red Mushroom',k:'forage',s:[1,2],h:'Bosque Secreto ou minas'},
+   {n:'Ouriço-do-mar',en:'Sea Urchin',k:'forage',req:'beach',h:'Poças da praia, depois da ponte consertada'},
+   {n:'Girassol',en:'Sunflower',k:'crop',s:[1,2],h:'Plantar: 8 dias'},
+   {n:'Pena de pato',en:'Duck Feather',k:'long',req:'coop',h:'Pato feliz'},
+   {n:'Água-marinha',en:'Aquamarine',k:'mine',h:'Minas'},
+   {n:'Repolho-roxo',en:'Red Cabbage',k:'crop',s:[1],req:'y2',h:'Sementes só no ano 2 (ou carroça)'}]},
+  {id:'fr',name:'Pesquisa de Campo',need:4,items:[
+   {n:'Cogumelo roxo',en:'Purple Mushroom',k:'mine',req:'mine80',h:'Minas, andares 81+'},
+   {n:'Concha de náutilo',en:'Nautilus Shell',k:'forage',s:[3],h:'Praia no inverno'},
+   {n:'Cabeçudo',en:'Chub',k:'fish',h:'Lago da montanha ou rio da floresta'},
+   {n:'Geodo congelado',en:'Frozen Geode',k:'mine',req:'mine40',h:'Minas, andares 40–79'}]},
+  {id:'fo',name:'Forragem',need:3,items:[
+   {n:'Trigo ×10',en:'Wheat',k:'crop',s:[1,2],h:'Plantar: 4 dias'},
+   {n:'Feno ×10',en:'Hay',k:'long',h:'Foice no capim com silo, ou compre na Marnie'},
+   {n:'Maçã ×3',en:'Apple',k:'long',h:'Árvore de maçã'}]},
+  {id:'en',name:'Encantador',need:4,items:[
+   {n:'Resina de carvalho',en:'Oak Resin',k:'long',h:'Torneira num carvalho'},
+   {n:'Vinho',en:'Wine',k:'long',h:'Fruta no barril'},
+   {n:'Pé de coelho',en:"Rabbit's Foot",k:'long',req:'barn',h:'Coelho (galinheiro grande)'},
+   {n:'Romã',en:'Pomegranate',k:'long',h:'Árvore de romã'}]}
+ ]},
+ {id:'vault',name:'Cofre',en:'Vault',reward:'Conserta o ônibus (vai ao deserto)',bundles:[
+  {id:'v1',name:'2.500 ouros',need:1,items:[{n:'2.500g',en:'',k:'gold',g:2500,h:'Paguem no cofre'}]},
+  {id:'v2',name:'5.000 ouros',need:1,items:[{n:'5.000g',en:'',k:'gold',g:5000,h:'Paguem no cofre'}]},
+  {id:'v3',name:'10.000 ouros',need:1,items:[{n:'10.000g',en:'',k:'gold',g:10000,h:'Paguem no cofre'}]},
+  {id:'v4',name:'25.000 ouros',need:1,items:[{n:'25.000g',en:'',k:'gold',g:25000,h:'Paguem no cofre'}]}
+ ]}
+];
+
+// Plantações: [nome, inglês, dias, rebrota, semente, venda, extra]
+const CROPS={
+ 0:[['Pastinaca','Parsnip',4,0,20,35],['Batata','Potato',6,0,50,80],['Couve-flor','Cauliflower',12,0,80,175],['Feijão-verde','Green Bean',10,3,60,40,'treliça'],
+    ['Couve','Kale',6,0,70,110],['Alho','Garlic',4,0,40,60,'y2'],['Morango','Strawberry',8,4,100,120,'fest'],['Tulipa','Tulip',6,0,20,30],['Jazz-azul','Blue Jazz',7,0,30,50],['Ruibarbo','Rhubarb',13,0,100,220,'oasis']],
+ 1:[['Mirtilo','Blueberry',13,4,80,150],['Melão','Melon',12,0,80,250],['Pimenta','Hot Pepper',5,3,40,40],['Tomate','Tomato',11,4,50,60],['Rabanete','Radish',6,0,40,90],
+    ['Trigo','Wheat',4,0,10,25,'multi'],['Milho','Corn',14,4,150,50,'multi'],['Lúpulo','Hops',11,1,60,25,'treliça'],['Girassol','Sunflower',8,0,200,80,'multi'],['Papoula','Poppy',7,0,100,140],
+    ['Repolho-roxo','Red Cabbage',9,0,100,260,'y2'],['Carambola','Starfruit',13,0,400,750,'oasis']],
+ 2:[['Oxicoco','Cranberries',7,5,240,150],['Abóbora','Pumpkin',13,0,100,320],['Berinjela','Eggplant',5,5,20,60],['Inhame','Yam',10,0,60,160],['Couve-chinesa','Bok Choy',4,0,50,80],
+    ['Amaranto','Amaranth',7,0,70,150],['Uva','Grape',10,3,60,80,'treliça'],['Alcachofra','Artichoke',8,0,30,160,'y2'],['Milho','Corn',14,4,150,50],['Trigo','Wheat',4,0,10,25],
+    ['Girassol','Sunflower',8,0,200,80],['Beterraba','Beet',6,0,20,100,'oasis'],['Rosa-de-fada','Fairy Rose',12,0,200,290]],
+ 3:[]
+};
+
+/* ============ ESTADO ============ */
+const EXAMPLE={
+ example:true, year:1, season:0, day:9, weather:'chuva', forecast:'sol', luck:'1', money:1450,
+ players:[
+  {name:'Jogador 1',farming:2,mining:1,foraging:2,fishing:0,combat:1,mine:12},
+  {name:'Jogador 2',farming:1,mining:0,foraging:1,fishing:2,combat:0,mine:5}
+ ],
+ farm:{crops:'poucas',sprinklers:false,coop:false,barn:false,silo:false,furnace:true,crab:false,greenhouse:false},
+ unl:{cc:true,beach:false,woods:false,bus:false,minecart:false,quarry:false,skull:false,island:false},
+ cc:{'sf:0':true,'sf:2':true,'sc:0':true,'con:2':true,'ge:0':true},
+ done:{}
+};
+const LS_KEY='sdv-hoje-v1';
+const clone=o=>JSON.parse(JSON.stringify(o));
+function lsGet(){try{const v=localStorage.getItem(LS_KEY);return v?JSON.parse(v):null}catch(e){return null}}
+function lsSet(v){try{localStorage.setItem(LS_KEY,JSON.stringify(v))}catch(e){}}
+function normalize(s){
+  const b=clone(EXAMPLE); s=s||{};
+  const out=Object.assign(b,s);
+  out.players=[0,1].map(i=>Object.assign(clone(EXAMPLE.players[i]),(s.players||[])[i]||{}));
+  out.farm=Object.assign(clone(EXAMPLE.farm),s.farm||{});
+  out.unl=Object.assign(clone(EXAMPLE.unl),s.unl||{});
+  out.cc=s.cc||(s.example===false?{}:out.cc); out.done=s.done||{};
+  return out;
+}
+let st=normalize(lsGet());
+let dbDoc=null, saveTimer=null, myRev=null, writing=Promise.resolve(), lastEdit=0, pendingRemote=null;
+let saveMode='local';
+
+function commit(opts={}){
+  if(st.example && !opts.keepExample){ st.example=false; }
+  lastEdit=Date.now();
+  lsSet(st);
+  render(opts);
+  scheduleRemote();
+}
+function scheduleRemote(){
+  if(!dbDoc) return;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    const rev=Math.random().toString(36).slice(2); myRev=rev;
+    const data={state:clone(st),rev,at:Date.now()};
+    writing=writing.then(()=>dbDoc.set(data)).then(()=>{setSave('shared')}).catch(()=>{setSave('local')});
+  },700);
+}
+
+/* ============ MOTOR DE SUGESTÕES ============ */
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function dot(t){return /[.!?]$/.test(t)?t:t+'.'}
+function weekday(day){return (day-1)%7}
+function festOn(season,day){return FESTIVALS.filter(f=>f[0]===season&&day>=f[1]&&day<=f[2])}
+function addDays(season,day,year,n){let d=day+n,s=season,y=year;while(d>28){d-=28;s++;if(s>3){s=0;y++}}return {season:s,day:d,year:y}}
+function itemKey(b,i){return b+':'+i}
+function bundleCount(b){return b.items.filter((_,i)=>st.cc[itemKey(b.id,i)]).length}
+function bundleDone(b){return bundleCount(b)>=b.need}
+function roomDone(r){return r.bundles.every(bundleDone)}
+
+function ctxOf(s){
+  const rain=s.weather==='chuva'||s.weather==='tempestade';
+  const maxMine=Math.max(s.players[0].mine||0,s.players[1].mine||0);
+  const minesOpen=!(s.year===1&&s.season===0&&s.day<5);
+  const rodOk=!(s.year===1&&s.season===0&&s.day<2);
+  return {S:s.season,D:s.day,Y:s.year,wd:weekday(s.day),rain,storm:s.weather==='tempestade',
+    luck:s.luck===''?null:+s.luck,daysLeft:28-s.day,maxMine,minesOpen,rodOk,
+    tomorrowRain:s.forecast==='chuva'||s.forecast==='tempestade',
+    newbie:s.year===1&&s.season===0&&s.day<=7};
+}
+function reqOk(req,c){
+  if(!req) return true;
+  const m={bus:st.unl.bus,woods:st.unl.woods,beach:st.unl.beach,coop:st.farm.coop,barn:st.farm.barn,y2:st.year>=2,
+    mine20:c.maxMine>=20,mine40:c.maxMine>=40,mine80:c.maxMine>=80};
+  return !!m[req];
+}
+const REQ_LABEL={bus:'precisa do ônibus',woods:'precisa do Bosque Secreto (machado de aço)',beach:'precisa da ponte da praia',coop:'precisa de galinheiro',barn:'precisa de estábulo',y2:'só no ano 2',
+  mine20:'chegar ao andar 20',mine40:'chegar ao andar 40',mine80:'chegar ao andar 80'};
+
+// Itens que faltam e que dá para pegar hoje
+function ccToday(c){
+  const res=[];
+  ROOMS.forEach(r=>r.bundles.forEach(b=>{
+    if(bundleDone(b)) return;
+    b.items.forEach((it,i)=>{
+      if(st.cc[itemKey(b.id,i)]) return;
+      if(!['fish','forage','mine','crab','gold'].includes(it.k)) return;
+      if(it.k==='gold'){ if(st.money>=it.g) res.push({it,b,r,score:5,tag:'Dá pra pagar'}); return; }
+      if(it.s && !it.s.includes(c.S)) return;
+      if(it.w==='rain' && !c.rain) return;
+      if(it.w==='sun' && c.rain) return;
+      if(it.k==='fish' && !c.rodOk) return;
+      if(it.k==='mine' && !c.minesOpen) return;
+      if(it.k==='crab' && !st.farm.crab) return;
+      const ok=reqOk(it.req,c);
+      let score=ok?3:0, tag=null;
+      if(it.w==='rain'){score+=3;tag='Só na chuva';}
+      if(it.w==='sun'){score+=1;}
+      if(it.s && it.s.length===1 && c.daysLeft<=7){score+=3;tag='Última semana';}
+      else if(it.s && it.s.length===1){score+=1;tag=tag||'Só nesta estação';}
+      if(!ok) tag=REQ_LABEL[it.req];
+      res.push({it,b,r,score,tag,ok});
+    });
+  }));
+  return res.sort((a,b)=>b.score-a.score);
+}
+
+function plantList(c){
+  if(c.S===3 && !st.farm.greenhouse) return [];
+  const list=(CROPS[c.S]||[]).map(([n,en,g,rg,seed,sell,x])=>{
+    let dl=c.daysLeft; if(x==='multi'&&c.S===1) dl+=28;
+    if(c.S===3) dl=99;
+    if(g>dl) return null;
+    let harvests, profit;
+    if(rg){harvests=1+Math.floor((dl-g)/rg); profit=harvests*sell-seed;}
+    else {harvests=Math.floor(dl/g); profit=harvests*(sell-seed);}
+    const bundleNeed=ROOMS.some(r=>r.bundles.some(b=>!bundleDone(b)&&b.items.some((it,i)=>it.k==='crop'&&!st.cc[itemKey(b.id,i)]&&it.en.replace('Gold ','')===en)));
+    let note='';
+    if(x==='y2'&&c.Y<2) return null;
+    if(x==='oasis'&&!st.unl.bus) return null;
+    if(x==='fest'&&!(c.D>13||c.Y>1)) return null;
+    if(x==='oasis') note='Oásis (deserto)';
+    if(x==='fest') note='Só do Festival do Ovo';
+    if(x==='multi'&&c.S===1) note='Continua no outono';
+    if(x==='treliça') note='Treliça: bloqueia passagem';
+    return {n,en,g,rg,seed,sell,harvests,profit,bundleNeed,note};
+  }).filter(Boolean);
+  return list.sort((a,b)=>(b.bundleNeed-a.bundleNeed)||(b.profit-a.profit)).slice(0,6);
+}
+
+function buildPlan(){
+  const c=ctxOf(st), P=st.players, home=[], farm=[], night=[];
+  const fests=festOn(c.S,c.D);
+  const bday=BIRTHDAYS[c.S][c.D];
+  const cc=ccToday(c);
+  const T=(id,prio,t,d)=>({id,prio,t,d});
+
+  // Casa
+  home.push(T('tv',1,'Ligar a TV',(st.luck===''?'Vejam a previsão de amanhã e a sorte do dia (cartomante) e marquem aqui. A sorte muda o plano das minas. ':'')+
+    (c.wd===6?'Domingo: a Rainha do Molho ensina uma receita nova.':c.wd===0||c.wd===3?'Hoje passa "Vivendo da Terra", com dicas para iniciantes.':'')));
+  home.push(T('mail',2,'Abrir a caixa de correio',c.newbie&&c.D===2?'Hoje chega a carta do Willy: vão à praia pegar a vara de pesca!':c.newbie&&c.D===5?'Hoje chega a carta avisando que as minas abriram.':'Cartas trazem missões, receitas e presentes.'));
+  if(bday) home.push(T('bday',2,`Aniversário de ${bday}`,'Presente de aniversário vale 8× mais amizade. Algo coletado da estação costuma agradar.'));
+  if(c.wd===4||c.wd===6) home.push(T('cart',3,'Carroça viajante na floresta','Hoje (sexta e domingo), 6h–20h, ao sul da casa da Marnie. Às vezes vende itens dos pacotes.'));
+  if(c.wd===2) home.push(T('pierre',0,'O Pierre fecha às quartas','Se precisarem de sementes, comprem na JojaMart ou amanhã.'));
+  if((c.wd===0||c.wd===1)) home.push(T('marnie',0,'A Marnie fecha segunda e terça','Animais e feno: comprem outro dia.'));
+
+  // Fazenda
+  const hasCrops=st.farm.crops!=='nenhuma';
+  const outdoors=c.S!==3;
+  const farmerIdx=P[0].farming>=P[1].farming?0:1;
+  if(c.newbie && c.D<=3 && st.farm.crops==='nenhuma'){
+    farm.push(T('plant15',1,'Plantar as 15 sementes de pastinaca','Limpem um pedaço perto da casa com a enxada, plantem e reguem. Ficam prontas em 4 dias.'));
+  }
+  if(hasCrops && outdoors){
+    if(c.rain) farm.push(T('water',0,'Não precisa regar','A chuva rega tudo. Dia livre para pescar ou explorar.'));
+    else farm.push(T('water',1,st.farm.crops==='muitas'&&!st.farm.sprinklers?'Regar tudo (os dois juntos)':`Regar as plantações (${esc(P[farmerIdx].name)})`,
+      st.farm.sprinklers?'Os irrigadores cuidam da parte deles. Reguem o resto.':'Façam logo de manhã. Encham o regador em água próxima.'));
+    farm.push(T('harvest',1,'Colher o que estiver pronto','Pronto quando aparece a mão ao passar o cursor. Replantem o espaço vazio se ainda der tempo.'));
+  }
+  if(st.farm.greenhouse && c.S===3) farm.push(T('gh',1,'Regar a estufa','No inverno só a estufa produz.'));
+  if(st.farm.coop||st.farm.barn) farm.push(T('animals',1,'Cuidar dos animais','Fazer carinho todo dia, coletar ovos/leite. '+(st.farm.silo?'O feno sai sozinho do silo para o comedouro.':'Sem silo: comprem feno com a Marnie.')));
+  if(c.storm && hasCrops && outdoors) farm.push(T('storm',3,'Tempestade','Raios podem queimar plantações. Para-raios (Coleta nv. 6) protegem e dão baterias.'));
+  if(outdoors && c.D===28) farm.push(T('last',1,'Último dia da estação','Colham tudo hoje: amanhã as plantações desta estação morrem. Milho, trigo e girassol passam do verão para o outono.'));
+  else if(outdoors && c.daysLeft<=6 && c.S<3) farm.push(T('late',2,`Faltam ${c.daysLeft} dias na estação`,'Só plantem o que cresce rápido (veja a tabela). Dia 1 da próxima estação: comprem sementes novas logo cedo.'));
+  if(c.S===3 && !st.farm.greenhouse) farm.push(T('winter',2,'Inverno: nada cresce lá fora','Usem a enxada na terra da fazenda e da floresta: aparecem Raiz de Inverno e Inhame da Neve.'));
+  if(!st.farm.sprinklers && st.farm.crops==='muitas' && Math.max(P[0].farming,P[1].farming)>=2) farm.push(T('sprink',2,'Fazer irrigadores','Com Cultivo nível 2 vocês já sabem fazer: 1 barra de cobre + 1 de ferro. Economiza energia todo dia.'));
+  if(!st.farm.furnace && c.minesOpen) farm.push(T('furnace',2,'Pegar a receita da fornalha','Tragam minério de cobre das minas: o Clint ensina a fazer a fornalha. Ela transforma minério em barras.'));
+  if(c.tomorrowRain && !c.rain && st.money>=2000) farm.push(T('upgrade',2,'Melhorar o regador no Clint hoje','Amanhã chove, então ficar sem regador não faz falta. Leva 2 dias e custa 2.000g + 5 barras de cobre.'));
+  if(c.S===3 && st.money>=2000) farm.push(T('upgradew',2,'Bom momento para melhorar ferramentas','No inverno não há o que regar. Levem o regador ou a enxada ao Clint.'));
+  if(!st.unl.cc && !(c.newbie&&c.D<3)) farm.push(T('cc',1,'Ver a cena do Centro Comunitário','Entrem na cidade pelo caminho do ponto de ônibus de manhã (8h–13h), num dia sem chuva.'));
+
+  night.push(T('ship',1,'Vender na caixa de envio','Tudo que vai para a caixa é pago durante a noite. Guardem 1 de cada item dos pacotes!'));
+  night.push(T('sleep',1,'Dormir antes da meia-noite','Depois da 0h vocês acordam com menos energia; às 2h desmaiam e perdem dinheiro.'));
+
+  // Atividades candidatas
+  const fishToday=cc.filter(x=>x.it.k==='fish'&&x.ok);
+  const mineToday=cc.filter(x=>x.it.k==='mine'&&x.ok);
+  const forageToday=cc.filter(x=>x.it.k==='forage'&&x.ok);
+  const acts=[];
+  if(c.minesOpen){
+    let s=3+(c.luck??0)*1.5+Math.min(mineToday.length,3)*0.7+(c.maxMine<120?1:0);
+    if(c.rain) s-=0.5;
+    acts.push({id:'mines',base:s,skill:p=>p.mining*0.35+p.combat*0.25,build:p=>mineMission(p,c,mineToday)});
+  }
+  if(st.unl.skull && (c.luck??0)>=1) acts.push({id:'skull',base:5+(c.luck??0),skill:p=>p.combat*0.4,build:p=>({goal:'Caverna da Caveira',why:'Sorte boa e acesso liberado: é o melhor dia para descer fundo.',tasks:['Levem muita comida e bombas.','Escadas ajudam a pular andares.','Voltem antes das 2h.']})});
+  if(c.rodOk){
+    let s=2+(c.rain?3:0)+Math.min(fishToday.length,3)*1.2+(c.newbie?0.5:0);
+    acts.push({id:'fish',base:s,skill:p=>p.fishing*0.45,build:p=>fishMission(p,c,fishToday)});
+  }
+  {
+    const berry=(c.S===0&&c.D>=15&&c.D<=18)||(c.S===2&&c.D>=8&&c.D<=11);
+    let s=1.5+(berry?3:0)+Math.min(forageToday.length,3)*0.9+(c.newbie?0.5:0);
+    acts.push({id:'forage',base:s,skill:p=>p.foraging*0.4,build:p=>forageMission(p,c,forageToday,berry)});
+  }
+  if(outdoors && c.daysLeft>=4 && st.farm.crops!=='muitas'){
+    let s=1.8+(st.farm.crops==='nenhuma'?2:0.8)+(c.D<=7?1:0)+(c.newbie?1.5:0);
+    acts.push({id:'farm',base:s,skill:p=>p.farming*0.4,build:p=>farmMission(p,c)});
+  }
+  {
+    let s=1+(bday?1.5:0)+(c.newbie&&c.D<=4?2:0);
+    acts.push({id:'social',base:s,skill:p=>0.2,build:p=>socialMission(p,c,bday)});
+  }
+
+  // Distribuir: cada jogador pega a melhor atividade para si, sem repetir
+  const assign=[null,null];
+  const scored=[];
+  acts.forEach(a=>[0,1].forEach(i=>scored.push({a,i,v:a.base+a.skill(P[i])})));
+  scored.sort((x,y)=>y.v-x.v);
+  const used=new Set();
+  for(const s of scored){ if(assign[s.i]||used.has(s.a.id)) continue; assign[s.i]=s.a; used.add(s.a.id); if(assign[0]&&assign[1]) break; }
+  const missions=assign.map((a,i)=>a?Object.assign({id:a.id},a.build(P[i])):null);
+  const together=fests.length>0;
+
+  return {c,fests,bday,home,farm,night,missions,together,cc,plants:plantList(c)};
+}
+
+function mineMission(p,c,items){
+  const lvl=p.mine||0; const target=Math.min(120,Math.floor((lvl+10)/5)*5);
+  const ore=lvl<40?'cobre':lvl<80?'ferro':'ouro';
+  const tasks=[`Vocês estão no andar ${lvl}. Meta: chegar ao ${target} (o elevador salva a cada 5 andares).`,
+    `Nesta profundidade sai minério de ${ore}. Guardem carvão para a fornalha.`];
+  const want=items.slice(0,3).map(x=>x.it.n);
+  if(want.length) tasks.push('Para o Centro Comunitário: '+want.join(', ')+'.');
+  if(lvl>=15&&lvl<25 || lvl>=55&&lvl<65) tasks.push('No andar 20 e 60 tem lago: dá para pescar o Peixe-fantasma.');
+  tasks.push('Levem comida (coletas ou ovos) para recuperar energia.');
+  let why=c.luck===null?'Bom para subir de nível e conseguir minério.':c.luck>=1?'A sorte está boa hoje: mais minério e mais escadas.':c.luck<=-1?'A sorte está ruim, mas ainda vale descer um pouco.':'Sorte neutra: um dia normal de mina.';
+  if(c.rain) why+=' A chuva não atrapalha lá embaixo.';
+  return {goal:`Minas: do andar ${lvl} ao ${target}`,why,tasks};
+}
+function fishMission(p,c,items){
+  const tasks=[];
+  if(items.length){
+    items.slice(0,3).forEach(x=>tasks.push(`${x.it.n}: ${dot(x.it.h)}`));
+  } else {
+    tasks.push(c.S===3?'Praia ou lago da montanha: peixes de inverno vendem bem.':'Praia de manhã, rio da cidade à tarde.');
+  }
+  if(p.fishing<2) tasks.push('Ao lançar, segurem o botão para ir mais longe. Na barra verde, toques curtos.');
+  else if(p.fishing<4) tasks.push('Com Pesca 2, a vara de fibra de vidro do Willy (1.800g) usa isca.');
+  if(p.fishing>=3 && !st.farm.crab) tasks.push('Pesca 3 libera o covo: façam alguns para o pacote de covos.');
+  const why=c.rain?'Dia de chuva é o melhor para pescar: aparecem peixes raros.':items.length?'Tem peixe dos pacotes disponível hoje.':'Peixe dá dinheiro rápido e treina a habilidade.';
+  return {goal:items.length?`Pescar ${items[0].it.n}`:'Dia de pesca',why,tasks};
+}
+function forageMission(p,c,items,berry){
+  const tasks=[];
+  if(berry) tasks.push(c.S===0?'Época de framboesa (dias 15–18): os arbustos estão carregados. Ótima comida grátis.':'Época de amora (dias 8–11): arbustos carregados por todo lado.');
+  items.slice(0,3).forEach(x=>tasks.push(`${x.it.n}: ${dot(x.it.h)}`));
+  tasks.push('Rota: floresta (sul) → cidade → montanha. Guardem 1 de cada item para os pacotes.');
+  if(!st.unl.woods) tasks.push('Cortem árvores para juntar madeira (Construção pede 198).');
+  return {goal:berry?'Colher frutinhas e coletas':'Coletar pela cidade',why:items.length?'Faltam itens de coleta nos pacotes desta estação.':'Coletas viram comida e dinheiro grátis.',tasks};
+}
+function farmMission(p,c){
+  const tasks=[];
+  if(c.newbie && c.D<=3) tasks.push('Comprem mais sementes no Pierre (pastinaca e batata são ótimas).');
+  tasks.push('Limpem mais um pedaço da fazenda: madeira, pedra e fibra vão servir.');
+  tasks.push('Vejam a tabela "O que plantar hoje" abaixo.');
+  if(p.foraging>=1) tasks.push('Façam um espantalho (Cultivo nv. 1) para os corvos não comerem as plantas.');
+  return {goal:'Expandir a plantação',why:`Faltam ${c.daysLeft} dias na estação: ainda dá tempo de colher.`,tasks};
+}
+function socialMission(p,c,bday){
+  const tasks=[];
+  if(bday) tasks.push(`Deem um presente para ${bday} (aniversário: vale 8×).`);
+  tasks.push('Conversem com quem encontrarem: cada conversa dá amizade.');
+  tasks.push('Vejam o quadro de avisos no Pierre: pedidos dão dinheiro e amizade.');
+  if(c.newbie) tasks.push('Ainda não conhecem todos? Visitem as casas da cidade.');
+  return {goal:bday?`Aniversário de ${bday}`:'Fazer amizades na cidade',why:'Amizade libera receitas, cenas e presentes.',tasks};
+}
+
+/* ============ RENDER ============ */
+const $=s=>document.querySelector(s);
+function seasonVar(s){return `var(--s${s})`}
+
+function renderHeader(plan){
+  const c=plan.c;
+  document.documentElement.style.setProperty('--season',seasonVar(c.S));
+  const luckCls=c.luck===null?'':c.luck>=1?'luckg':c.luck<=-1?'luckb':'';
+  $('#dateband').innerHTML=`
+   <div class="datebig">
+     <span class="eyebrow">Ano ${st.year} · ${WEEK[c.wd]}</span>
+     <h1>${SEASONS[c.S]} ${c.D}</h1>
+     <span class="sub muted small">${c.S<3||st.farm.greenhouse?`Faltam ${c.daysLeft} dias para acabar a estação`:'Inverno: tempo de minas, pesca e amizades'}</span>
+   </div>
+   <div class="chips">
+     <span class="chip ${c.rain?'rain':''}">Hoje: ${WEATHER[st.weather]}</span>
+     ${st.forecast?`<span class="chip">Amanhã: ${WEATHER[st.forecast]}</span>`:''}
+     <span class="chip ${luckCls}">Sorte: ${LUCK[st.luck]}</span>
+     ${plan.fests.map(f=>`<span class="chip fest">${esc(f[3])}</span>`).join('')}
+   </div>
+   <div class="actions">
+     <button class="btn primary" id="nextDay">Próximo dia →</button>
+   </div>`;
+  $('#nextDay').onclick=nextDay;
+}
+
+function taskHTML(t){
+  const done=!!st.done[t.id];
+  const pl=['','Essencial','Ótimo','Se der'][t.prio];
+  const badge=t.prio&&!t.nob?`<span class="prio p${t.prio}">${pl}</span>`:'';
+  return `<li class="task ${done?'done':''}"><input type="checkbox" id="t-${t.id}" data-done="${t.id}" ${done?'checked':''} aria-label="${esc(t.t)}">
+   <label for="t-${t.id}"><div class="t">${t.t}${badge}</div>${t.d?`<div class="d">${t.d}</div>`:''}</label></li>`;
+}
+
+function renderPlan(){
+  const plan=buildPlan(), c=plan.c, P=st.players;
+  renderHeader(plan);
+  $('#exampleBanner').hidden=!st.example;
+  let h='';
+
+  if(plan.fests.length){
+    plan.fests.forEach(f=>{
+      const locked=f[3]==='Festival do Deserto'&&!st.unl.bus;
+      h+=`<section class="card fest-card"><div class="card-h"><h2>Hoje: ${esc(f[3])}</h2><span class="small">${esc(f[4])}</span></div>
+      <p style="margin:0">${locked?'Vocês ainda não têm o ônibus, então podem ignorar este evento.':esc(f[5])}</p>
+      ${!locked?'<p class="small muted" style="margin:0">Façam as tarefas da fazenda antes. Durante o festival o tempo para, e vocês voltam para casa no fim.</p>':''}</section>`;
+    });
+  }
+
+  // Missões
+  h+=`<section class="card"><div class="card-h"><h2>Missões de hoje</h2><span class="small muted">Cada um faz uma coisa, cobrindo mais do jogo</span></div><div class="missions">`;
+  plan.missions.forEach((m,i)=>{
+    if(!m) return;
+    h+=`<div class="mission"><div class="who"><span class="avatar ${i?'p2':''}">${esc((P[i].name||'?').trim()[0]||'?')}</span>${esc(P[i].name)}</div>
+      <div class="goal">${esc(m.goal)}</div><div class="why">${esc(m.why)}</div>
+      <ul class="tasks">${m.tasks.map((t,j)=>taskHTML({id:`m${i}-${m.id}-${j}`,prio:1,nob:true,t:esc(t)})).join('')}</ul></div>`;
+  });
+  h+=`</div></section>`;
+
+  // Rotina
+  h+=`<section class="card"><div class="card-h"><h2>Rotina do dia</h2><span class="small muted">Marquem conforme forem fazendo</span></div>
+    <div class="group-label">Antes de sair de casa</div><ul class="tasks">${plan.home.map(taskHTML).join('')}</ul>
+    ${plan.farm.length?`<div class="group-label">Na fazenda</div><ul class="tasks">${plan.farm.map(taskHTML).join('')}</ul>`:''}
+    <div class="group-label">No fim do dia</div><ul class="tasks">${plan.night.map(taskHTML).join('')}</ul></section>`;
+
+  // CC
+  const ccOk=plan.cc.filter(x=>x.ok!==false).slice(0,6), ccLocked=plan.cc.filter(x=>x.ok===false).slice(0,4);
+  h+=`<section class="card"><div class="card-h"><h2>Centro Comunitário: dá pra pegar hoje</h2><span class="small muted">${countRoomsDone()} de 6 salas completas</span></div>`;
+  if(!ccOk.length && !ccLocked.length) h+=`<p class="muted" style="margin:0">Nada de pesca, coleta ou mina disponível hoje para os pacotes que faltam. Foquem em dinheiro e na fazenda.</p>`;
+  else h+=`<div class="cc-list">${ccOk.map(ccItemHTML).join('')}</div>`;
+  if(ccLocked.length) h+=`<details><summary class="small muted" style="cursor:pointer;font-weight:700">Mais ${ccLocked.length} itens desta estação que ainda estão bloqueados</summary><div class="cc-list" style="margin-top:8px">${ccLocked.map(ccItemHTML).join('')}</div></details>`;
+  h+=`<p class="small muted" style="margin:0">Marquem o que já entregaram em <b>Nossa fazenda → Centro Comunitário</b>. Pacotes de plantação aparecem na tabela de plantio.</p></section>`;
+
+  // Plantio
+  if(plan.plants.length){
+    h+=`<section class="card"><div class="card-h"><h2>O que plantar hoje</h2><span class="small muted">Só o que fica pronto antes do dia 28</span></div>
+     <div class="plants">${plan.plants.map(p=>`<div class="plant"><span class="pn">${esc(p.n)} <span class="en">${esc(p.en)}</span>${p.bundleNeed?'<span class="pill">Pacote</span>':''}</span><span class="pp">+${p.profit}g</span>
+       <span class="pd">${p.g} dias${p.rg?`, depois a cada ${p.rg}`:''} · ${p.harvests} ${p.harvests>1?'colheitas':'colheita'} · semente ${p.seed}g${p.note?' · '+esc(p.note):''}</span></div>`).join('')}</div><p class="small muted" style="margin:0">O valor verde é o lucro aproximado por semente até o fim da estação. Plantas com <span class="pill" style="margin:0">Pacote</span> servem para o Centro Comunitário: guardem 1.</p></section>`;
+  }
+
+  // Calendário
+  h+=`<section class="card"><div class="card-h"><h2>Próximos 7 dias</h2></div><div class="cal">`;
+  for(let n=0;n<7;n++){
+    const d=addDays(st.season,st.day,st.year,n);
+    const fs=festOn(d.season,d.day), b=BIRTHDAYS[d.season][d.day], wd=weekday(d.day);
+    let ev='';
+    fs.forEach(f=>ev+=`<span class="ev f">${esc(f[3])}</span>`);
+    if(b) ev+=`<span class="ev b">Aniv. ${esc(b)}</span>`;
+    if(wd===4||wd===6) ev+=`<span class="ev">Carroça</span>`;
+    if(d.day===28) ev+=`<span class="ev">Fim da estação</span>`;
+    h+=`<div class="cal-d ${n===0?'today':''}"><span class="wd">${n===0?'Hoje':WEEK[wd].slice(0,3)}</span><span class="dn">${d.day}${d.season!==st.season?` <span class="small muted">${SEASONS[d.season].slice(0,3)}</span>`:''}</span>${ev}</div>`;
+  }
+  h+=`</div></section>`;
+
+  // Claude
+  h+=`<section class="card" id="aiCard" ${sampleApi?'':'hidden'}><div class="card-h"><h2>Pedir um plano ao Claude</h2><span class="small muted">Um plano escrito, com base em tudo acima</span></div>
+    <div class="actions"><button class="btn primary" id="askAi">Montar plano para hoje</button></div>
+    <div class="ai-out" id="aiOut" hidden></div></section>`;
+
+  $('#planCol').innerHTML=h;
+  if(aiText){ $('#aiOut').hidden=false; $('#aiOut').innerHTML=md(aiText); }
+  const ab=$('#askAi'); if(ab) ab.onclick=askClaude;
+}
+function countRoomsDone(){return ROOMS.filter(roomDone).length}
+function ccItemHTML(x){
+  return `<div class="cc-item"><div class="cc-top"><span class="n">${esc(x.it.n)} <span class="en">${esc(x.it.en)}</span></span>
+   ${x.tag?`<span class="tag ${x.ok===false?'lock':x.tag==='Última semana'?'last':''}">${esc(x.tag)}</span>`:''}</div>
+   <span class="h">${esc(x.it.h)} · ${esc(x.r.name)} → ${esc(x.b.name)}</span></div>`;
+}
+
+/* ---------- Formulário ---------- */
+let openSecs=lsOpen();
+function lsOpen(){try{return JSON.parse(localStorage.getItem(LS_KEY+'-open'))||{dia:true}}catch(e){return {dia:true}}}
+function opt(v,label,cur){return `<option value="${v}" ${String(cur)===String(v)?'selected':''}>${label}</option>`}
+function sel(path,options,cur,id){return `<select id="${id}" data-k="${path}">${options.map(([v,l])=>opt(v,l,cur)).join('')}</select>`}
+function num(path,cur,min,max,id){return `<input type="number" id="${id}" data-k="${path}" value="${cur}" min="${min}" max="${max}" inputmode="numeric">`}
+function chk(path,cur,label,id){return `<label class="check" for="${id}"><input type="checkbox" id="${id}" data-k="${path}" ${cur?'checked':''}><span>${label}</span></label>`}
+function sec(id,title,sum,body){return `<details class="sec" data-sec="${id}" ${openSecs[id]?'open':''}><summary>${title}<span class="sum">${sum}</span></summary><div class="sec-body">${body}</div></details>`}
+
+function renderForm(){
+  const P=st.players, f=st.farm, u=st.unl;
+  const skillOpts=[...Array(11).keys()].map(n=>[n,n]);
+  let h=`<div class="card-h"><h2>Nossa fazenda</h2><span class="save" id="saveState"></span></div>`;
+  h+=sec('dia','Dia de hoje',`${SEASONS[st.season]} ${st.day}`,`
+    <div class="fields">
+     <div class="field"><label for="f-year">Ano</label>${num('year',st.year,1,99,'f-year')}</div>
+     <div class="field"><label for="f-season">Estação</label>${sel('season',SEASONS.map((s,i)=>[i,s]),st.season,'f-season')}</div>
+     <div class="field"><label for="f-day">Dia</label>${num('day',st.day,1,28,'f-day')}</div>
+     <div class="field"><label for="f-weather">Clima hoje</label>${sel('weather',Object.entries(WEATHER),st.weather,'f-weather')}</div>
+     <div class="field"><label for="f-forecast">Previsão amanhã</label>${sel('forecast',[['','Não vimos'],...Object.entries(WEATHER)],st.forecast,'f-forecast')}</div>
+     <div class="field"><label for="f-luck">Sorte (TV)</label>${sel('luck',Object.entries(LUCK),st.luck,'f-luck')}</div>
+     <div class="field"><label for="f-money">Ouro</label>${num('money',st.money,0,99999999,'f-money')}</div>
+    </div>
+    <p class="small muted" style="margin:0">A previsão e a sorte aparecem na TV da casa. Sorte é a cartomante: "os espíritos estão muito felizes" é muito boa.</p>`);
+  let pl='';
+  P.forEach((p,i)=>{
+    pl+=`<div class="pl"><div class="fields">
+      <div class="field" style="grid-column:1 / -1"><label for="p${i}-name">Nome do jogador ${i+1}</label><input type="text" id="p${i}-name" data-k="players.${i}.name" value="${esc(p.name)}" maxlength="24"></div>
+      ${SKILLS.map(([k,l])=>`<div class="field"><label for="p${i}-${k}">${l}</label>${sel(`players.${i}.${k}`,skillOpts,p[k],`p${i}-${k}`)}</div>`).join('')}
+      <div class="field"><label for="p${i}-mine">Andar das minas</label>${num(`players.${i}.mine`,p.mine,0,120,`p${i}-mine`)}</div>
+    </div></div>`;
+  });
+  h+=sec('jog','Jogadores',`${esc(P[0].name)} e ${esc(P[1].name)}`,pl+`<p class="small muted" style="margin:0">Os níveis aparecem no menu, aba de habilidades. O andar é o mais fundo que cada um já chegou (o elevador mostra).</p>`);
+  h+=sec('faz','Fazenda',{nenhuma:'Sem plantações',poucas:'Poucas plantações',muitas:'Muitas plantações'}[f.crops],`
+    <div class="fields"><div class="field" style="grid-column:1 / -1"><label for="f-crops">Plantações lá fora</label>${sel('farm.crops',[['nenhuma','Nenhuma'],['poucas','Poucas (até ~40)'],['muitas','Muitas']],f.crops,'f-crops')}</div></div>
+    <div class="checks">
+     ${chk('farm.sprinklers',f.sprinklers,'Temos irrigadores','f-spr')}
+     ${chk('farm.furnace',f.furnace,'Temos fornalha','f-fur')}
+     ${chk('farm.coop',f.coop,'Temos galinheiro','f-coop')}
+     ${chk('farm.barn',f.barn,'Temos estábulo','f-barn')}
+     ${chk('farm.silo',f.silo,'Temos silo','f-silo')}
+     ${chk('farm.crab',f.crab,'Temos covos na água','f-crab')}
+     ${chk('farm.greenhouse',f.greenhouse,'Estufa consertada','f-gh')}
+    </div>`);
+  h+=sec('lib','Lugares liberados',`${Object.values(u).filter(Boolean).length} de 8`,`<div class="checks">
+     ${chk('unl.cc',u.cc,'Já vimos a cena do Centro Comunitário','u-cc')}
+     ${chk('unl.beach',u.beach,'Ponte da praia consertada (leste da praia)','u-beach')}
+     ${chk('unl.woods',u.woods,'Bosque Secreto (precisa de machado de aço)','u-woods')}
+     ${chk('unl.bus',u.bus,'Ônibus consertado (deserto)','u-bus')}
+     ${chk('unl.minecart',u.minecart,'Carrinhos de mina','u-mc')}
+     ${chk('unl.quarry',u.quarry,'Pedreira','u-q')}
+     ${chk('unl.skull',u.skull,'Caverna da Caveira','u-skull')}
+     ${chk('unl.island',u.island,'Ilha Gengibre','u-island')}
+    </div>`);
+  let cc='';
+  ROOMS.forEach(r=>{
+    cc+=`<div class="room"><div class="room-h"><b>${esc(r.name)}</b><span class="small muted">${roomDone(r)?'Completa':esc(r.reward)}</span></div>`;
+    r.bundles.forEach(b=>{
+      const n=bundleCount(b), ok=n>=b.need;
+      cc+=`<div class="bundle"><div class="bundle-h"><span>${esc(b.name)}</span><span class="cnt ${ok?'ok':''}">${Math.min(n,b.need)}/${b.need}${b.items.length>b.need?` de ${b.items.length}`:''}</span></div>
+       <div class="items">${b.items.map((it,i)=>{const k=itemKey(b.id,i);return `<button type="button" class="it" data-cc="${k}" aria-pressed="${!!st.cc[k]}" title="${esc(it.h)}">${esc(it.n)}</button>`}).join('')}</div></div>`;
+    });
+    cc+=`</div>`;
+  });
+  h+=sec('cc','Centro Comunitário',`${countRoomsDone()} de 6 salas`,`<p class="small muted" style="margin:0">Toquem nos itens que vocês já entregaram. Usamos os pacotes padrão (não os "remixados").</p>`+cc);
+  h+=`<div class="actions"><button class="btn" id="resetBtn">Recomeçar do zero</button></div>`;
+  $('#farmCol').innerHTML=h;
+  setSave(saveMode);
+}
+
+function setByPath(path,val){
+  const ks=path.split('.'); let o=st;
+  for(let i=0;i<ks.length-1;i++) o=o[ks[i]];
+  o[ks[ks.length-1]]=val;
+}
+function onFormInput(e){
+  const el=e.target;
+  if(el.dataset.k){
+    let v;
+    if(el.type==='checkbox') v=el.checked;
+    else if(el.type==='number'){ v=parseInt(el.value,10); if(isNaN(v)) return; v=Math.max(+el.min||0,Math.min(+el.max||1e9,v)); }
+    else if(el.tagName==='SELECT' && ['season','players'].some(p=>el.dataset.k.startsWith(p))) v=parseInt(el.value,10);
+    else v=el.value;
+    setByPath(el.dataset.k,v);
+    commit({form:el.type==='text'||el.type==='number'?false:true});
+  }
+}
+function render(opts={}){
+  renderPlan();
+  if(opts.form!==false) renderForm();
+}
+
+/* ---------- Eventos ---------- */
+document.addEventListener('change',e=>{
+  if(e.target.dataset.done){ st.done[e.target.dataset.done]=e.target.checked; if(!st.done[e.target.dataset.done]) delete st.done[e.target.dataset.done]; commit({keepExample:true,form:false}); return; }
+  if(e.target.closest('#farmCol')) onFormInput(e);
+});
+document.addEventListener('input',e=>{
+  if(e.target.closest('#farmCol') && (e.target.type==='text'||e.target.type==='number')) onFormInput(e);
+});
+document.addEventListener('focusout',e=>{
+  if(e.target.closest&&e.target.closest('#farmCol')){ setTimeout(()=>{ if(!document.activeElement||!document.activeElement.closest('#farmCol')){ if(pendingRemote){applyRemote(pendingRemote);pendingRemote=null}else renderForm(); } },50); }
+});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-cc]');
+  if(b){ const k=b.dataset.cc; if(st.cc[k]) delete st.cc[k]; else st.cc[k]=true; commit(); return; }
+  if(e.target.id==='resetBtn'){ showToast('Apagar tudo e começar do Ano 1, Primavera 1?','Apagar',()=>{
+     st=normalize({example:false,year:1,season:0,day:1,weather:'sol',forecast:'',luck:'',money:500,cc:{},
+       players:[{name:'Jogador 1',farming:0,mining:0,foraging:0,fishing:0,combat:0,mine:0},{name:'Jogador 2',farming:0,mining:0,foraging:0,fishing:0,combat:0,mine:0}],
+       farm:{crops:'nenhuma',sprinklers:false,coop:false,barn:false,silo:false,furnace:false,crab:false,greenhouse:false},
+       unl:{cc:false,beach:false,woods:false,bus:false,minecart:false,quarry:false,skull:false,island:false}});
+     commit(); }); return; }
+  const tab=e.target.closest('[data-tab]');
+  if(tab && tab.tagName==='BUTTON'){ selectTab(tab.dataset.tab); }
+});
+document.addEventListener('toggle',e=>{
+  const d=e.target; if(!d.dataset||!d.dataset.sec) return;
+  openSecs[d.dataset.sec]=d.open; try{localStorage.setItem(LS_KEY+'-open',JSON.stringify(openSecs))}catch(_){}
+},true);
+function selectTab(t){
+  $('#grid').dataset.tab=t;
+  document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));
+  try{sessionStorage.setItem(LS_KEY+'-tab',t)}catch(_){}
+  window.scrollTo(0,0);
+}
+
+let undoState=null, toastTimer=null;
+function showToast(msg,btnLabel,fn){
+  const t=$('#toast'); t.innerHTML=`<span>${esc(msg)}</span>${btnLabel?`<button type="button" id="toastBtn">${esc(btnLabel)}</button>`:''}`; t.hidden=false;
+  if(btnLabel) $('#toastBtn').onclick=()=>{t.hidden=true;fn()};
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.hidden=true,7000);
+}
+function nextDay(){
+  undoState=clone(st);
+  const d=addDays(st.season,st.day,st.year,1);
+  st.season=d.season; st.day=d.day; st.year=d.year;
+  st.weather=st.forecast||(d.season===3?'neve':'sol');
+  if(d.season===3&&st.weather==='chuva') st.weather='neve';
+  st.forecast=''; st.luck=''; st.done={};
+  aiText='';
+  if(d.day===1) showToast(`Bem-vindos ao ${SEASONS[d.season]}! Confiram o clima e a sorte na TV.`,'Desfazer',()=>{st=undoState;commit()});
+  else showToast(`${SEASONS[d.season]} ${d.day}. Confiram o clima e a sorte na TV.`,'Desfazer',()=>{st=undoState;commit()});
+  commit();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------- Claude ---------- */
+let sampleApi=null, aiText='', aiCtl=null;
+function md(t){
+  const lines=esc(t).split('\n'); let out='', inUl=false;
+  for(const raw of lines){
+    const l=raw.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+    if(/^#{1,4}\s/.test(l)){ if(inUl){out+='</ul>';inUl=false} out+=`<h4>${l.replace(/^#{1,4}\s/,'')}</h4>`; }
+    else if(/^\s*[-*•]\s/.test(l)){ if(!inUl){out+='<ul>';inUl=true} out+=`<li>${l.replace(/^\s*[-*•]\s/,'')}</li>`; }
+    else if(l.trim()){ if(inUl){out+='</ul>';inUl=false} out+=`<p>${l}</p>`; }
+  }
+  if(inUl) out+='</ul>';
+  return out;
+}
+async function askClaude(){
+  if(!sampleApi) return;
+  const out=$('#aiOut'), btn=$('#askAi');
+  out.hidden=false; out.innerHTML='<p class="muted">Pensando no dia de vocês…</p>'; btn.disabled=true;
+  const plan=buildPlan(), c=plan.c;
+  const summary={
+    data:`Ano ${st.year}, ${SEASONS[c.S]} dia ${c.D} (${WEEK[c.wd]})`, clima:WEATHER[st.weather], amanha:st.forecast?WEATHER[st.forecast]:'desconhecido', sorte:LUCK[st.luck], ouro:st.money,
+    jogadores:st.players.map(p=>({nome:p.name,cultivo:p.farming,mineracao:p.mining,coleta:p.foraging,pesca:p.fishing,combate:p.combat,andar_minas:p.mine})),
+    fazenda:st.farm, liberado:st.unl, festivais_hoje:plan.fests.map(f=>f[3]), aniversario:plan.bday||null,
+    salas_completas:ROOMS.filter(roomDone).map(r=>r.name),
+    pacotes_faltando:ROOMS.flatMap(r=>r.bundles.filter(b=>!bundleDone(b)).map(b=>`${b.name} (${bundleCount(b)}/${b.need}; faltam: ${b.items.filter((_,i)=>!st.cc[itemKey(b.id,i)]).map(i=>i.n).join(', ')})`)),
+    itens_do_cc_possiveis_hoje:plan.cc.filter(x=>x.ok!==false).slice(0,8).map(x=>`${x.it.n} (${x.it.h})`),
+    missoes_sugeridas:plan.missions.map((m,i)=>m&&`${st.players[i].name}: ${m.goal}`),
+    rotina:[...plan.home,...plan.farm].map(t=>t.t.replace(/<[^>]+>/g,'')),
+    plantar:plan.plants.map(p=>`${p.n} (${p.g} dias, lucro ~${p.profit}g)`)
+  };
+  const prompt=`Você é um amigo experiente em Stardew Valley (versão 1.6, Nintendo Switch) ajudando um casal de iniciantes que joga em tela dividida (co-op local).
+Com base no estado abaixo, escreva o plano do dia deles em português do Brasil, com tom leve e direto. Seja específico ao jogo (lugares, horários, itens). Não invente dados que contradigam o estado.
+Formato (texto simples, sem tabelas):
+## Manhã (6h–9h)
+- 2 a 4 itens
+## ${st.players[0].name}
+- 3 a 4 itens
+## ${st.players[1].name}
+- 3 a 4 itens
+## Antes de dormir
+- 1 a 2 itens
+## Dica do dia
+Uma frase com uma dica útil para iniciantes ligada à situação de hoje.
+Máximo de 230 palavras.
+
+ESTADO:
+${JSON.stringify(summary,null,1)}`;
+  try{
+    aiCtl=new AbortController();
+    const r=await sampleApi(prompt,{signal:aiCtl.signal,onText:({text})=>{aiText=text;out.innerHTML=md(text)}});
+    aiText=r.text; out.innerHTML=md(r.text);
+  }catch(e){
+    const code=e&&e.code;
+    if(code==='not_granted'){ $('#aiCard').hidden=true; }
+    else out.innerHTML=`<p>${code==='rate_limited'?'Muitos pedidos seguidos. Esperem um pouco e tentem de novo.':'Não foi possível montar o plano agora. O plano automático acima continua valendo.'}</p>`;
+  }finally{ btn.disabled=false; }
+}
+
+/* ---------- Salvamento ---------- */
+function setSave(mode){
+  saveMode=mode;
+  const el=$('#saveState'); if(!el) return;
+  el.textContent=mode==='shared'?'Salvo para vocês dois':'Salvo neste aparelho';
+}
+function applyRemote(data){
+  if(!data||!data.state) return;
+  st=normalize(data.state); lsSet(st); render();
+}
+
+(async function boot(){
+  try{ const t=sessionStorage.getItem(LS_KEY+'-tab'); if(t) selectTab(t); }catch(_){}
+  render();
+  if(!window.claude||!window.claude.use) return;
+  claude.use('sample').then(s=>{ if(s){ sampleApi=s; const c=$('#aiCard'); if(c) c.hidden=false; } }).catch(()=>{});
+  try{
+    const db=await claude.use('db');
+    if(!db) return;
+    dbDoc=db.doc('fazenda/estado');
+    let first=true;
+    dbDoc.onSnapshot(snap=>{
+      setSave('shared');
+      if(!snap.exists){
+        if(first && !st.example){ scheduleRemote(); }
+        first=false; return;
+      }
+      first=false;
+      const data=snap.data();
+      if(data.rev && data.rev===myRev) return;
+      const editing=document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#farmCol')&&Date.now()-lastEdit<4000;
+      if(editing){ pendingRemote=data; return; }
+      applyRemote(data);
+    },()=>{ setSave('local'); });
+  }catch(e){ setSave('local'); }
+})();
+</script>
+
+</body>
+</html>
