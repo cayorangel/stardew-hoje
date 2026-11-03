@@ -1057,7 +1057,7 @@ function renderForm(){
   const skillOpts=[...Array(11).keys()].map(n=>[n,n]);
   let h=`<div class="card-h"><h2>Nossa fazenda</h2><span class="save" id="saveState"></span></div>`;
   h+=sec('sync','Passar para outro aparelho','Copiar e colar',`
-    <p class="small muted" style="margin:0">No aparelho que está com o dia certo, toquem em <b>Copiar dados</b> e mandem o texto para o outro aparelho (WhatsApp, e-mail ou Notas). No outro aparelho, colem o texto aqui embaixo e toquem em <b>Carregar</b>.</p>
+    <p class="small muted" style="margin:0">No aparelho que está com o dia certo, toquem em <b>Copiar dados</b> e mandem o texto para o outro aparelho (WhatsApp, e-mail ou Notas). No outro aparelho, colem o texto aqui embaixo e toquem em <b>Carregar</b>: os dados deste aparelho são trocados na hora (dá para desfazer).</p>
     <div class="actions"><button type="button" class="btn primary" id="copyData">Copiar dados</button>${navigator.share?'<button type="button" class="btn" id="shareData">Enviar…</button>':''}</div>
     <textarea class="sync-box" id="pasteBox" placeholder="Colem aqui o texto copiado (começa com SDV1:)" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
     <div class="actions"><button type="button" class="btn" id="loadData">Carregar</button></div>
@@ -1158,13 +1158,13 @@ document.addEventListener('input',e=>{
   if(e.target.closest('#farmCol') && (e.target.type==='text'||e.target.type==='number')) onFormInput(e);
 });
 document.addEventListener('focusout',e=>{
-  if(e.target.closest&&e.target.closest('#farmCol')){ setTimeout(()=>{ if(!document.activeElement||!document.activeElement.closest('#farmCol')){ if(pendingRemote){applyRemote(pendingRemote);pendingRemote=null}else renderForm(); } },50); }
+  if(e.target.dataset&&e.target.dataset.k&&e.target.closest('#farmCol')){ setTimeout(()=>{ if(!document.activeElement||!document.activeElement.closest('#farmCol')){ if(pendingRemote){applyRemote(pendingRemote);pendingRemote=null}else renderForm(); } },50); }
 });
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-cc]');
   if(b){ const k=b.dataset.cc; if(st.cc[k]) delete st.cc[k]; else st.cc[k]=true; commit(); return; }
-  const sid=e.target.closest&&e.target.closest('#copyData,#shareData,#loadData,#confirmImport,#cancelImport');
-  if(sid){ ({copyData,shareData,loadData,confirmImport,cancelImport:()=>{pendingImport=null;syncMsg('')}})[sid.id](); return; }
+  const sid=e.target.closest&&e.target.closest('#copyData,#shareData,#loadData');
+  if(sid){ ({copyData,shareData,loadData})[sid.id](); return; }
   if(e.target.id==='resetBtn'){ showToast('Apagar tudo e começar do Ano 1, Primavera 1?','Apagar',()=>{
      st=normalize({example:false,year:1,season:0,day:1,weather:'sol',forecast:'',luck:'',money:500,mine:0,cc:{},
        players:[{name:'Jogador 1',farming:0,mining:0,foraging:0,fishing:0,combat:0,tools:clone(TOOL0)},{name:'Jogador 2',farming:0,mining:0,foraging:0,fishing:0,combat:0,tools:clone(TOOL0)}],
@@ -1215,19 +1215,13 @@ function shareData(){
 }
 function loadData(){
   const box=$('#pasteBox'); const data=importCode(box&&box.value);
-  if(!data){ pendingImport=null; syncMsg('Esse texto não é um código válido. Copiem de novo no outro aparelho e colem inteiro: ele começa com <b>SDV1:</b>.','err'); return; }
-  pendingImport=data;
-  const when=new Date(data.at||Date.now()).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-  syncMsg(`<span>Encontrado: <b>${describe(data.state)}</b>, copiado em ${when}. Isso substitui os dados deste aparelho (${describe(st)}).</span>
-    <span class="actions"><button type="button" class="btn primary" id="confirmImport">Substituir os dados deste aparelho</button><button type="button" class="btn" id="cancelImport">Cancelar</button></span>`);
-}
-function confirmImport(){
-  if(!pendingImport) return;
+  if(box) box.blur();
+  if(!data){ syncMsg('Esse texto não é um código válido. Copiem de novo no outro aparelho e colem inteiro: ele começa com <b>SDV1:</b>.','err'); return; }
   undoState=clone(st);
-  st=normalize(pendingImport.state); st.example=false; pendingImport=null;
+  st=normalize(data.state); st.example=false;
   commit();
-  syncMsg(`Dados carregados: ${describe(st)}.`,'ok');
-  showToast('Dados carregados do outro aparelho.','Desfazer',()=>{st=undoState;commit()});
+  selectTab('plano');
+  showToast(`Carregado: ${SEASONS[st.season]} ${st.day}, ano ${st.year}.`,'Desfazer',()=>{st=undoState;commit()});
 }
 function showToast(msg,btnLabel,fn){
   const t=$('#toast'); t.innerHTML=`<span>${esc(msg)}</span>${btnLabel?`<button type="button" id="toastBtn">${esc(btnLabel)}</button>`:''}`; t.hidden=false;
