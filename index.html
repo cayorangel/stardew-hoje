@@ -182,6 +182,7 @@ details.sec>summary .sum{font-family:var(--body);font-size:.8rem;color:var(--mut
 .bundle-h .cnt.ok{color:var(--ok)}
 .items{display:flex;flex-wrap:wrap;gap:6px}
 .it{border:1px solid var(--line);background:var(--panel2);border-radius:999px;padding:3px 10px;font-size:.8rem;font-weight:600}
+.it .it-en{font-size:.72rem;opacity:.65;font-weight:600}
 .it[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .save{font-size:.8rem;color:var(--muted)}
 
@@ -287,7 +288,7 @@ const ALL=[0,1,2,3];
 const ROOMS=[
  {id:'crafts',name:'Sala de Artesanato',en:'Crafts Room',reward:'Conserta a ponte para a pedreira',bundles:[
   {id:'sf',name:'Coleta da Primavera',need:4,items:[
-   {n:'Raiz-forte selvagem',en:'Wild Horseradish',k:'forage',s:[0],h:'Chão da fazenda, floresta e cidade'},
+   {n:'Raiz-forte',en:'Wild Horseradish',k:'forage',s:[0],h:'Chão da fazenda, floresta e cidade'},
    {n:'Narciso',en:'Daffodil',k:'forage',s:[0],h:'Cidade e floresta'},
    {n:'Alho-poró',en:'Leek',k:'forage',s:[0],h:'Montanha e floresta'},
    {n:'Dente-de-leão',en:'Dandelion',k:'forage',s:[0],h:'Floresta e ponto de ônibus'}]},
@@ -303,8 +304,8 @@ const ROOMS=[
   {id:'wf',name:'Coleta do Inverno',need:4,items:[
    {n:'Raiz de inverno',en:'Winter Root',k:'forage',s:[3],h:'Usem a enxada na terra (fazenda, floresta)'},
    {n:'Fruta de cristal',en:'Crystal Fruit',k:'forage',s:[3],h:'Montanha, floresta, cidade'},
-   {n:'Inhame da neve',en:'Snow Yam',k:'forage',s:[3],h:'Usem a enxada na terra'},
-   {n:'Açafrão',en:'Crocus',k:'forage',s:[3],h:'Floresta e cidade'}]},
+   {n:'Inhame da Neve',en:'Snow Yam',k:'forage',s:[3],h:'Usem a enxada na terra'},
+   {n:'Flor de açafrão',en:'Crocus',k:'forage',s:[3],h:'Floresta e cidade'}]},
   {id:'con',name:'Construção',need:4,items:[
    {n:'Madeira ×99',en:'Wood',k:'forage',h:'Cortem árvores e galhos'},
    {n:'Madeira ×99 (2ª)',en:'Wood',k:'forage',h:'Mais 99'},
@@ -313,18 +314,18 @@ const ROOMS=[
   {id:'ex',name:'Coleta Exótica',need:5,items:[
    {n:'Coco',en:'Coconut',k:'forage',req:'bus',h:'Deserto'},
    {n:'Fruta de cacto',en:'Cactus Fruit',k:'forage',req:'bus',h:'Deserto'},
-   {n:'Cenoura da caverna',en:'Cave Carrot',k:'mine',h:'Quebrando pedras nas minas'},
+   {n:'Cenoura subterrânea',en:'Cave Carrot',k:'mine',h:'Quebrando pedras nas minas'},
    {n:'Cogumelo vermelho',en:'Red Mushroom',k:'forage',s:[1,2],h:'Bosque Secreto ou minas'},
    {n:'Cogumelo roxo',en:'Purple Mushroom',k:'mine',req:'mine80',h:'Minas, andares 81+'},
    {n:'Xarope de bordo',en:'Maple Syrup',k:'long',h:'Torneira (Coleta nv. 3) num bordo'},
    {n:'Resina de carvalho',en:'Oak Resin',k:'long',h:'Torneira num carvalho'},
    {n:'Piche de pinheiro',en:'Pine Tar',k:'long',h:'Torneira num pinheiro'},
-   {n:'Cogumelo morel',en:'Morel',k:'forage',s:[0],req:'woods',h:'Bosque Secreto'}]}
+   {n:'Morel',en:'Morel',k:'forage',s:[0],req:'woods',h:'Bosque Secreto'}]}
  ]},
- {id:'pantry',name:'Despensa',en:'Pantry',reward:'Conserta a estufa',bundles:[
+ {id:'pantry',name:'Copa',en:'Pantry',reward:'Conserta a estufa',bundles:[
   {id:'sc',name:'Plantações da Primavera',need:4,items:[
-   {n:'Pastinaca',en:'Parsnip',k:'crop',s:[0],h:'Plantar: 4 dias'},
-   {n:'Feijão-verde',en:'Green Bean',k:'crop',s:[0],h:'Plantar: 10 dias'},
+   {n:'Chirívia',en:'Parsnip',k:'crop',s:[0],h:'Plantar: 4 dias'},
+   {n:'Vagem',en:'Green Bean',k:'crop',s:[0],h:'Plantar: 10 dias'},
    {n:'Couve-flor',en:'Cauliflower',k:'crop',s:[0],h:'Plantar: 12 dias'},
    {n:'Batata',en:'Potato',k:'crop',s:[0],h:'Plantar: 6 dias'}]},
   {id:'uc',name:'Plantações do Verão',need:4,items:[
@@ -338,7 +339,7 @@ const ROOMS=[
    {n:'Abóbora',en:'Pumpkin',k:'crop',s:[2],h:'Plantar: 13 dias'},
    {n:'Inhame',en:'Yam',k:'crop',s:[2],h:'Plantar: 10 dias'}]},
   {id:'qc',name:'Colheita de Qualidade',need:3,items:[
-   {n:'5 Pastinacas de ouro',en:'Gold Parsnip',k:'crop',s:[0],h:'Use fertilizante; Cultivo alto ajuda'},
+   {n:'5 Chirívias de ouro',en:'Gold Parsnip',k:'crop',s:[0],h:'Use fertilizante; Cultivo alto ajuda'},
    {n:'5 Melões de ouro',en:'Gold Melon',k:'crop',s:[1],h:'Use fertilizante'},
    {n:'5 Abóboras de ouro',en:'Gold Pumpkin',k:'crop',s:[2],h:'Use fertilizante'},
    {n:'5 Milhos de ouro',en:'Gold Corn',k:'crop',s:[1,2],h:'Use fertilizante'}]},
@@ -367,33 +368,33 @@ const ROOMS=[
   {id:'rv',name:'Peixes de Rio',need:4,items:[
    {n:'Peixe-sol',en:'Sunfish',k:'fish',s:[0,1],w:'sun',h:'Rio da cidade ou floresta, 6h–19h, sem chuva'},
    {n:'Bagre',en:'Catfish',k:'fish',s:[0,2],w:'rain',h:'Rio (cidade/floresta), 6h–0h, só com chuva. Difícil!'},
-   {n:'Sável',en:'Shad',k:'fish',s:[0,1,2],w:'rain',h:'Rio, 9h–2h, só com chuva'},
+   {n:'Alocine',en:'Shad',k:'fish',s:[0,1,2],w:'rain',h:'Rio, 9h–2h, só com chuva'},
    {n:'Truta-tigre',en:'Tiger Trout',k:'fish',s:[2,3],h:'Rio, 6h–19h'}]},
   {id:'lk',name:'Peixes de Lago',need:4,items:[
    {n:'Achigã',en:'Largemouth Bass',k:'fish',h:'Lago da montanha, 6h–19h'},
    {n:'Carpa',en:'Carp',k:'fish',s:[0,1,2],h:'Lago da montanha, qualquer hora'},
-   {n:'Bagre-cabeçudo',en:'Bullhead',k:'fish',h:'Lago da montanha, qualquer hora'},
+   {n:'Peixe-gato-cabeçudo',en:'Bullhead',k:'fish',h:'Lago da montanha, qualquer hora'},
    {n:'Esturjão',en:'Sturgeon',k:'fish',s:[1,3],h:'Lago da montanha, 6h–19h'}]},
   {id:'oc',name:'Peixes do Mar',need:4,items:[
    {n:'Sardinha',en:'Sardine',k:'fish',s:[0,2,3],h:'Praia, 6h–19h'},
    {n:'Atum',en:'Tuna',k:'fish',s:[1,3],h:'Praia, 6h–19h'},
-   {n:'Pargo',en:'Red Snapper',k:'fish',s:[1,2],w:'rain',h:'Praia, 6h–19h, só com chuva'},
+   {n:'Cioba',en:'Red Snapper',k:'fish',s:[1,2],w:'rain',h:'Praia, 6h–19h, só com chuva'},
    {n:'Tilápia',en:'Tilapia',k:'fish',s:[1,2],h:'Praia, 6h–14h'}]},
   {id:'nf',name:'Pesca Noturna',need:3,items:[
-   {n:'Lúcio-perca',en:'Walleye',k:'fish',s:[2],w:'rain',h:'Rio ou lago, 12h–2h, com chuva'},
+   {n:'Picão-verde',en:'Walleye',k:'fish',s:[2],w:'rain',h:'Rio ou lago, 12h–2h, com chuva'},
    {n:'Brema',en:'Bream',k:'fish',h:'Rio, 18h–2h'},
    {n:'Enguia',en:'Eel',k:'fish',s:[0,2],w:'rain',h:'Praia, 16h–2h, com chuva'}]},
   {id:'cp',name:'Covos',need:5,items:[
    {n:'Lagosta',en:'Lobster',k:'crab',h:'Covo no mar'},{n:'Lagostim',en:'Crayfish',k:'crab',h:'Covo em água doce'},
    {n:'Caranguejo',en:'Crab',k:'crab',h:'Covo no mar'},{n:'Berbigão',en:'Cockle',k:'crab',h:'Covo no mar ou praia'},
    {n:'Mexilhão',en:'Mussel',k:'crab',h:'Covo no mar ou praia'},{n:'Camarão',en:'Shrimp',k:'crab',h:'Covo no mar'},
-   {n:'Caracol',en:'Snail',k:'crab',h:'Covo em água doce'},{n:'Litorina',en:'Periwinkle',k:'crab',h:'Covo em água doce'},
-   {n:'Ostra',en:'Oyster',k:'crab',h:'Covo no mar ou praia'},{n:'Amêijoa',en:'Clam',k:'crab',h:'Covo no mar ou praia'}]},
-  {id:'sp',name:'Peixes Especiais',need:4,items:[
+   {n:'Lesma',en:'Snail',k:'crab',h:'Covo em água doce'},{n:'Caramujo',en:'Periwinkle',k:'crab',h:'Covo em água doce'},
+   {n:'Ostra',en:'Oyster',k:'crab',h:'Covo no mar ou praia'},{n:'Concha',en:'Clam',k:'crab',h:'Covo no mar ou praia'}]},
+  {id:'sp',name:'Peixes Especializados',need:4,items:[
    {n:'Baiacu',en:'Pufferfish',k:'fish',s:[1],w:'sun',h:'Praia, 12h–16h, dia de sol'},
    {n:'Peixe-fantasma',en:'Ghostfish',k:'fish',req:'mine20',h:'Lagos das minas, andares 20 e 60'},
-   {n:'Peixe-areia',en:'Sandfish',k:'fish',req:'bus',h:'Deserto'},
-   {n:'Peixe-bosque',en:'Woodskip',k:'fish',req:'woods',h:'Lago do Bosque Secreto'}]}
+   {n:'Areinha',en:'Sandfish',k:'fish',req:'bus',h:'Deserto'},
+   {n:'Madeirão',en:'Woodskip',k:'fish',req:'woods',h:'Lago do Bosque Secreto'}]}
  ]},
  {id:'boiler',name:'Sala da Caldeira',en:'Boiler Room',reward:'Conserta os carrinhos de mina',bundles:[
   {id:'bs',name:'Ferreiro',need:3,items:[
@@ -402,7 +403,7 @@ const ROOMS=[
    {n:'Barra de ouro',en:'Gold Bar',k:'mine',req:'mine80',h:'Minério de ouro: andares 80+'}]},
   {id:'ge',name:'Geólogo',need:4,items:[
    {n:'Quartzo',en:'Quartz',k:'mine',h:'Qualquer andar das minas'},
-   {n:'Cristal da terra',en:'Earth Crystal',k:'mine',h:'Minas, andares 1–39'},
+   {n:'Cristal de terra',en:'Earth Crystal',k:'mine',h:'Minas, andares 1–39'},
    {n:'Lágrima congelada',en:'Frozen Tear',k:'mine',req:'mine40',h:'Minas, andares 40–79'},
    {n:'Quartzo de fogo',en:'Fire Quartz',k:'mine',req:'mine80',h:'Minas, andares 80–119'}]},
   {id:'ad',name:'Aventureiro',need:2,items:[
@@ -428,8 +429,8 @@ const ROOMS=[
    {n:'Repolho-roxo',en:'Red Cabbage',k:'crop',s:[1],req:'y2',h:'Sementes só no ano 2 (ou carroça)'}]},
   {id:'fr',name:'Pesquisa de Campo',need:4,items:[
    {n:'Cogumelo roxo',en:'Purple Mushroom',k:'mine',req:'mine80',h:'Minas, andares 81+'},
-   {n:'Concha de náutilo',en:'Nautilus Shell',k:'forage',s:[3],h:'Praia no inverno'},
-   {n:'Cabeçudo',en:'Chub',k:'fish',h:'Lago da montanha ou rio da floresta'},
+   {n:'Concha de Nautilus',en:'Nautilus Shell',k:'forage',s:[3],h:'Praia no inverno'},
+   {n:'Chub',en:'Chub',k:'fish',h:'Lago da montanha ou rio da floresta'},
    {n:'Geodo congelado',en:'Frozen Geode',k:'mine',req:'mine40',h:'Minas, andares 40–79'}]},
   {id:'fo',name:'Forragem',need:3,items:[
    {n:'Trigo ×10',en:'Wheat',k:'crop',s:[1,2],h:'Plantar: 4 dias'},
@@ -451,12 +452,12 @@ const ROOMS=[
 
 // Plantações: [nome, inglês, dias, rebrota, semente, venda, extra]
 const CROPS={
- 0:[['Pastinaca','Parsnip',4,0,20,35],['Batata','Potato',6,0,50,80],['Couve-flor','Cauliflower',12,0,80,175],['Feijão-verde','Green Bean',10,3,60,40,'treliça'],
-    ['Couve','Kale',6,0,70,110],['Alho','Garlic',4,0,40,60,'y2'],['Morango','Strawberry',8,4,100,120,'fest'],['Tulipa','Tulip',6,0,20,30],['Jazz-azul','Blue Jazz',7,0,30,50],['Ruibarbo','Rhubarb',13,0,100,220,'oasis']],
+ 0:[['Chirívia','Parsnip',4,0,20,35],['Batata','Potato',6,0,50,80],['Couve-flor','Cauliflower',12,0,80,175],['Vagem','Green Bean',10,3,60,40,'treliça'],
+    ['Couve','Kale',6,0,70,110],['Alho','Garlic',4,0,40,60,'y2'],['Morango','Strawberry',8,4,100,120,'fest'],['Tulipa','Tulip',6,0,20,30],['Jasmim-azul','Blue Jazz',7,0,30,50],['Ruibarbo','Rhubarb',13,0,100,220,'oasis']],
  1:[['Mirtilo','Blueberry',13,4,80,150],['Melão','Melon',12,0,80,250],['Pimenta','Hot Pepper',5,3,40,40],['Tomate','Tomato',11,4,50,60],['Rabanete','Radish',6,0,40,90],
     ['Trigo','Wheat',4,0,10,25,'multi'],['Milho','Corn',14,4,150,50,'multi'],['Lúpulo','Hops',11,1,60,25,'treliça'],['Girassol','Sunflower',8,0,200,80,'multi'],['Papoula','Poppy',7,0,100,140],
     ['Repolho-roxo','Red Cabbage',9,0,100,260,'y2'],['Carambola','Starfruit',13,0,400,750,'oasis']],
- 2:[['Oxicoco','Cranberries',7,5,240,150],['Abóbora','Pumpkin',13,0,100,320],['Berinjela','Eggplant',5,5,20,60],['Inhame','Yam',10,0,60,160],['Couve-chinesa','Bok Choy',4,0,50,80],
+ 2:[['Oxicoco','Cranberries',7,5,240,150],['Abóbora','Pumpkin',13,0,100,320],['Berinjela','Eggplant',5,5,20,60],['Inhame','Yam',10,0,60,160],['Acelga chinesa','Bok Choy',4,0,50,80],
     ['Amaranto','Amaranth',7,0,70,150],['Uva','Grape',10,3,60,80,'treliça'],['Alcachofra','Artichoke',8,0,30,160,'y2'],['Milho','Corn',14,4,150,50],['Trigo','Wheat',4,0,10,25],
     ['Girassol','Sunflower',8,0,200,80],['Beterraba','Beet',6,0,20,100,'oasis'],['Rosa-de-fada','Fairy Rose',12,0,200,290]],
  3:[]
@@ -657,7 +658,7 @@ function buildPlan(){
   const waterBoth=st.farm.crops==='muitas'&&!st.farm.sprinklers;
 
   if(!st.unl.cc && !(c.newbie&&c.D<3)) tasks.push(T('cc',1,'Ver a cena do Centro Comunitário','Entrem na cidade pelo caminho do ponto de ônibus de manhã (8h–13h), num dia sem chuva.','both'));
-  if(c.newbie && c.D<=3 && st.farm.crops==='nenhuma') tasks.push(T('plant15',1,'Plantar as 15 sementes de pastinaca','Limpem um pedaço perto da casa com a enxada, plantem e reguem. Ficam prontas em 4 dias.',farmerIdx));
+  if(c.newbie && c.D<=3 && st.farm.crops==='nenhuma') tasks.push(T('plant15',1,'Plantar as 15 sementes de chirívia','Limpem um pedaço perto da casa com a enxada, plantem e reguem. Ficam prontas em 4 dias.',farmerIdx));
   if(hasCrops && outdoors && !c.rain) tasks.push(T('water',1,'Regar as plantações',
       waterBoth?'Dividam o campo ao meio: cada um rega uma parte.':st.farm.sprinklers?'Reguem o que os irrigadores não alcançam.':'Façam logo de manhã. Encham o regador na água mais próxima.',waterBoth?'both':farmerIdx));
   if(hasCrops && outdoors && c.D===28) tasks.push(T('last',1,'Colher tudo antes de dormir','Amanhã as plantações desta estação morrem. Milho, trigo e girassol passam do verão para o outono.',farmerIdx));
@@ -1004,11 +1005,11 @@ function renderForm(){
     r.bundles.forEach(b=>{
       const n=bundleCount(b), ok=n>=b.need;
       cc+=`<div class="bundle"><div class="bundle-h"><span>${esc(b.name)}</span><span class="cnt ${ok?'ok':''}">${Math.min(n,b.need)}/${b.need}${b.items.length>b.need?` de ${b.items.length}`:''}</span></div>
-       <div class="items">${b.items.map((it,i)=>{const k=itemKey(b.id,i);return `<button type="button" class="it" data-cc="${k}" aria-pressed="${!!st.cc[k]}" title="${esc(it.h)}">${it.en.startsWith('Gold ')?'★ ':''}${esc(it.n)}</button>`}).join('')}</div></div>`;
+       <div class="items">${b.items.map((it,i)=>{const k=itemKey(b.id,i);return `<button type="button" class="it" data-cc="${k}" aria-pressed="${!!st.cc[k]}" title="${esc(it.h)}">${it.en.startsWith('Gold ')?'★ ':''}${esc(it.n)}${it.en&&it.en!==it.n?` <span class="it-en">${esc(it.en.replace('Gold ',''))}</span>`:''}</button>`}).join('')}</div></div>`;
     });
     cc+=`</div>`;
   });
-  h+=sec('cc','Centro Comunitário',`${countRoomsDone()} de 6 salas`,`<p class="small muted" style="margin:0">Toquem nos itens que vocês já entregaram. Usamos os pacotes padrão (não os "remixados").</p>`+cc);
+  h+=sec('cc','Centro Comunitário',`${countRoomsDone()} de 6 salas`,`<p class="small muted" style="margin:0">Toquem nos itens que vocês já entregaram. Os nomes seguem o jogo em português, com o nome em inglês ao lado para conferir. Usamos os conjuntos padrão (não os "aleatórios"). ★ = precisa de estrela de ouro.</p>`+cc);
   h+=`<div class="actions"><button class="btn" id="resetBtn">Recomeçar do zero</button></div>`;
   $('#farmCol').innerHTML=h;
   setSave(saveMode);
