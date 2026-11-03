@@ -285,7 +285,7 @@ const FESTIVALS=[
 
 // Pacotes do Centro Comunitário (padrão). k: tipo (fish/forage/mine/crop/long), s: estações, w: clima, req: desbloqueio
 const ALL=[0,1,2,3];
-const ROOMS=[
+const ROOMS0=[
  {id:'crafts',name:'Sala de Artesanato',en:'Crafts Room',reward:'Conserta a ponte para a pedreira',bundles:[
   {id:'sf',name:'Coleta da Primavera',need:4,items:[
    {n:'Raiz-forte',en:'Wild Horseradish',k:'forage',s:[0],h:'Chão da fazenda, floresta e cidade'},
@@ -450,6 +450,93 @@ const ROOMS=[
  ]}
 ];
 
+// Onde ficam os lugares de pesca
+const RIO='Rio da cidade (atravessa a cidade, ao sul da praça) ou rio da Floresta Cinzaseiva (ao sul da fazenda)';
+const LAGO='Lago da montanha (ao norte da cidade, ao lado da casa da Robin e da entrada das minas)';
+const MAR='Praia (ao sul da cidade); da ponta do píer saem peixes melhores';
+const FISH_INFO={
+ 'Sunfish':`${RIO}. 6h–19h, sem chuva`,
+ 'Catfish':`${RIO}, ou o lago do Bosque Secreto. 6h–0h, só com chuva. É difícil de pegar`,
+ 'Shad':`${RIO}. 9h–2h, só com chuva`,
+ 'Tiger Trout':`${RIO}. 6h–19h`,
+ 'Largemouth Bass':`${LAGO}. 6h–19h`,
+ 'Carp':`${LAGO}. Qualquer hora`,
+ 'Bullhead':`${LAGO}. Qualquer hora`,
+ 'Sturgeon':`${LAGO}. 6h–19h`,
+ 'Sardine':`${MAR}. 6h–19h`,
+ 'Tuna':`${MAR}. 6h–19h`,
+ 'Red Snapper':`${MAR}. 6h–19h, só com chuva`,
+ 'Tilapia':`${MAR}. 6h–14h`,
+ 'Walleye':`${RIO}, lago da montanha ou lago da Floresta Cinzaseiva. 12h–2h, só com chuva`,
+ 'Bream':`${RIO}. 18h–2h`,
+ 'Eel':`${MAR}. 16h–2h, só com chuva`,
+ 'Pufferfish':`${MAR}. 12h–16h, dia de sol`,
+ 'Ghostfish':'Lagos dentro das minas, nos andares 20 e 60',
+ 'Sandfish':'Lago do deserto (precisa do ônibus)',
+ 'Woodskip':'Lago do Bosque Secreto (ao norte da Floresta Cinzaseiva; o tronco da entrada só sai com machado de aço)',
+ 'Chub':`${LAGO}, ou o rio da Floresta Cinzaseiva. Qualquer hora`
+};
+// Itens das minas: [andar mínimo, andar máximo, onde/como]
+const MINE_INFO={
+ 'Stone':[1,120,'Qualquer pedra das minas ou da fazenda'],
+ 'Copper Bar':[1,39,'Minério de cobre sai nos andares 1–39. Na fornalha: 5 minérios + 1 carvão = 1 barra',1],
+ 'Iron Bar':[40,79,'Minério de ferro sai nos andares 40–79. Na fornalha: 5 minérios + 1 carvão = 1 barra',1],
+ 'Gold Bar':[80,119,'Minério de ouro sai nos andares 80–119. Na fornalha: 5 minérios + 1 carvão = 1 barra',1],
+ 'Quartz':[1,119,'Pedras com cristal branco, em qualquer andar'],
+ 'Earth Crystal':[1,39,'Pedras com cristal marrom nos andares 1–39'],
+ 'Frozen Tear':[40,79,'Pedras com cristal azul-claro nos andares de gelo, 40–79'],
+ 'Fire Quartz':[80,119,'Pedras com cristal vermelho nos andares de lava, 80–119'],
+ 'Aquamarine':[40,79,'Pedras com joia azul-esverdeada nos andares 40–79'],
+ 'Cave Carrot':[1,119,'Quebrando pedras e cavando terra em qualquer andar'],
+ 'Purple Mushroom':[81,119,'No chão dos andares 81–119'],
+ 'Frozen Geode':[40,79,'Quebrando pedras nos andares 40–79'],
+ 'Slime':[1,119,'Derrotando gosmas, em qualquer andar'],
+ 'Bat Wing':[30,119,'Derrotando morcegos, a partir do andar 30'],
+ 'Solar Essence':[40,79,'Derrotando fantasmas nos andares de gelo, 40–79'],
+ 'Void Essence':[80,119,'Derrotando sombras nos andares 80–119']
+};
+// Presentes que cada morador ama: [item, como conseguir, exige]
+const GIFTS={
+ Kent:[['Avelãs torradas (Roasted Hazelnuts)','cozinhar com 3 avelãs'],['Risoto de samambaia (Fiddlehead Risotto)','cozinhar']],
+ Lewis:[['Pimenta','plantação de verão'],['Chá verde','folhas de chá no barril'],['Inhame glaceado (Glazed Yams)','cozinhar']],
+ Vincent:[['Uva','coleta de verão'],['Bolo rosa (Pink Cake)','cozinhar']],
+ Haley:[['Girassol','plantação de verão'],['Coco','deserto','bus'],['Salada de frutas (Fruit Salad)','cozinhar']],
+ Pam:[['Chirívia','plantação de primavera'],['Cerveja','Saloon do Gus, 400g'],['Fruta de cacto','deserto','bus']],
+ Shane:[['Cerveja','Saloon do Gus, 400g'],['Pizza','Saloon do Gus, 600g'],['Pimenta','plantação de verão']],
+ Pierre:[['Lula frita (Fried Calamari)','cozinhar']],
+ Emily:[['Lã','ovelha ou coelho'],['Tecido','lã no tear'],['Ametista','minas, qualquer andar']],
+ Jas:[['Rosa-de-fada','plantação de outono'],['Bolo rosa (Pink Cake)','cozinhar']],
+ Gus:[['Laranja','árvore de laranja'],['Taco de peixe (Fish Taco)','cozinhar'],['Diamante','minas, andar 50+','m50']],
+ Maru:[['Couve-flor','plantação de primavera'],['Morango','sementes no Festival do Ovo'],['Barra de ouro','minério dos andares 80+','m80']],
+ Alex:[['Café da manhã completo (Complete Breakfast)','cozinhar'],['Jantar de salmão (Salmon Dinner)','cozinhar']],
+ Sam:[['Pizza','Saloon do Gus, 600g'],['Fruta de cacto','deserto','bus']],
+ Demetrius:[['Morango','sementes no Festival do Ovo'],['Sorvete (Ice Cream)','barraca de sorvete perto do Pierre, no verão']],
+ 'Anão':[['Ametista','minas, qualquer andar'],['Topázio','minas, qualquer andar'],['Água-marinha','minas, andares 40–79','m40']],
+ Willy:[['Bagre','rio, com chuva'],['Esturjão','lago da montanha'],['Abóbora','plantação de outono']],
+ Leo:[['Pena de pato','pato'],['Manga (Mango)','Ilha Gengibre','island']],
+ Penny:[['Melão','plantação de verão'],['Papoula','plantação de verão'],['Areinha','lago do deserto','bus']],
+ Elliott:[['Lagosta','covo no mar'],['Pena de pato','pato'],['Romã','árvore de romã']],
+ Jodi:[['Panquecas (Pancakes)','cozinhar'],['Bolo de chocolate (Chocolate Cake)','cozinhar'],['Diamante','minas, andar 50+','m50']],
+ Abigail:[['Abóbora','plantação de outono'],['Ametista','minas, qualquer andar']],
+ Sandy:[['Narciso','coleta de primavera'],['Ervilha-de-cheiro','coleta de verão'],['Flor de açafrão','coleta de inverno']],
+ Marnie:[['Torta de abóbora (Pumpkin Pie)','cozinhar'],['Diamante','minas, andar 50+','m50']],
+ Robin:[['Pêssego','árvore de pêssego'],['Espaguete','Saloon do Gus'],['Queijo de cabra','leite de cabra na prensa']],
+ George:[['Alho-poró','coleta de primavera'],['Cogumelo frito (Fried Mushroom)','cozinhar']],
+ Krobus:[['Abóbora','plantação de outono'],['Raiz-forte','coleta de primavera'],['Diamante','minas, andar 50+','m50']],
+ Linus:[['Inhame','plantação de outono'],['Coco','deserto','bus'],['Fruta de cacto','deserto','bus']],
+ Caroline:[['Chá verde','folhas de chá no barril'],['Taco de peixe (Fish Taco)','cozinhar']],
+ Sebastian:[['Lágrima congelada','minas, andares 40–79','m40'],['Sashimi','cozinhar com qualquer peixe'],['Obsidiana','geodos de magma, andares 80+','m80']],
+ Harvey:[['Café','Saloon do Gus, 300g'],['Vinho','fruta no barril'],['Picles','legume no pote de conserva']],
+ Mago:[['Essência solar','fantasmas nas minas, andares 40–79','m40'],['Essência do vazio','sombras, andares 80+','m80'],['Cogumelo roxo','minas, andares 81+','m80']],
+ Evelyn:[['Tulipa','plantação de primavera'],['Rosa-de-fada','plantação de outono'],['Beterraba','sementes no oásis do deserto','bus']],
+ Leah:[['Salada','Saloon do Gus, 220g'],['Vinho','fruta no barril'],['Queijo de cabra','leite de cabra na prensa']],
+ Clint:[['Ametista','minas, qualquer andar'],['Topázio','minas, qualquer andar'],['Barra de ouro','minério dos andares 80+','m80']]
+};
+const ROOMS=ROOMS0;
+ROOMS.forEach(r=>r.bundles.forEach(b=>b.items.forEach(it=>{
+  if(FISH_INFO[it.en]) it.h=FISH_INFO[it.en];
+  const mi=MINE_INFO[it.en]; if(mi){ it.fl=[mi[0],mi[1]]; it.h=mi[2]; if(mi[3]) it.bar=1; }
+})));
 // Plantações: [nome, inglês, dias, rebrota, semente, venda, extra]
 const CROPS={
  0:[['Chirívia','Parsnip',4,0,20,35],['Batata','Potato',6,0,50,80],['Couve-flor','Cauliflower',12,0,80,175],['Vagem','Green Bean',10,3,60,40,'treliça'],
@@ -528,6 +615,12 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 function dot(t){return /[.!?]$/.test(t)?t:t+'.'}
 function tl(i,k){return (st.players[i].tools||{})[k]||0}
 function upgText(lv){const [g,bar]=UPG[lv];return `${g.toLocaleString('pt-BR')}g + 5 barras de ${bar}`}
+function giftOk(req){return !req||(req==='bus'?st.unl.bus:req==='island'?st.unl.island:req==='m40'?st.mine>=40:req==='m50'?st.mine>=50:req==='m80'?st.mine>=80:true)}
+function giftText(name){
+  const g=(GIFTS[name]||[]).filter(x=>giftOk(x[2]));
+  if(!g.length) return 'Presente que a pessoa ama no aniversário vale 8× mais amizade.';
+  return 'Ama: '+g.map(([n,h])=>`${n} (${h})`).join('; ')+'. No aniversário, um presente amado vale 8× mais amizade.';
+}
 function goldChance(level,fert){return 0.2*(level/10)+0.2*fert*((level+2)/12)+0.01}
 function weekday(day){return (day-1)%7}
 function festOn(season,day){return FESTIVALS.filter(f=>f[0]===season&&day>=f[1]&&day<=f[2])}
@@ -669,14 +762,15 @@ function buildPlan(){
   if(vault && spend(vault.items[0].g)) tasks.push(T('vault',2,`Pagar ${vault.items[0].n} no Cofre do Centro Comunitário`,'Completar o Cofre conserta o ônibus para o deserto.'));
   if(c.S===3 && !bundleDone(bundleById('wf'))) tasks.push(T('dig',2,'Cavar a terra com a enxada','Na fazenda e na floresta aparecem Raiz de Inverno e Inhame da Neve, do pacote de inverno.'));
   { const fl=Math.max(P[0].farming,P[1].farming), fi=P[0].farming>=P[1].farming?0:1;
-    if(!st.farm.sprinklers && st.farm.crops!=='nenhuma' && fl>=6) tasks.push(T('sprink',2,fl>=9?'Fazer irrigadores de irídio':'Fazer irrigadores de qualidade',
-      fl>=9?'Receita de Cultivo 9: 1 barra de ouro + 1 de irídio + 1 bateria. Rega 24 quadrados em volta.':'Receita de Cultivo 6: 1 barra de ferro + 1 de ouro + 1 quartzo refinado. Rega os 8 quadrados em volta.',fi)); }
+    if(!st.farm.sprinklers && st.farm.crops!=='nenhuma' && ((fl>=9&&st.unl.skull)||(fl>=6&&st.mine>=80))) tasks.push(T('sprink',2,fl>=9&&st.unl.skull?'Fazer irrigadores de irídio':'Fazer irrigadores de qualidade',
+      fl>=9&&st.unl.skull?'Receita de Cultivo 9: 1 barra de ouro + 1 de irídio + 1 bateria. Rega 24 quadrados em volta.':'Receita de Cultivo 6: 1 barra de ferro + 1 de ouro + 1 quartzo refinado. Rega os 8 quadrados em volta.',fi)); }
   if(!st.farm.furnace && c.minesOpen) tasks.push(T('furnace',2,'Levar minério de cobre para o Clint','Ele ensina a fazer a fornalha, que transforma minério em barras.','act:mines'));
   if(c.wd!==2) [0,1].filter(i=>tl(i,'pack')===0).forEach(i=>{ if(spend(2000)) tasks.push(T('pack-'+i,2,'Comprar a mochila grande no Pierre','2.000g. São 12 espaços a mais, menos viagens para casa.',i)); });
   { const i=tl(0,'wcan')<=tl(1,'wcan')?0:1, lv=tl(i,'wcan');
-    if(lv<4 && ((c.tomorrowRain&&!c.rain&&hasCrops)||c.S===3) && spend(UPG[lv][0])) tasks.push(T('upgrade',2,`Deixar o regador para virar de ${LV[lv+1].toLowerCase()} no Clint`,
+    const barOk=[st.farm.furnace,st.mine>=40,st.mine>=80,st.unl.skull][lv];
+    if(lv<4 && barOk && ((c.tomorrowRain&&!c.rain&&hasCrops)||c.S===3) && spend(UPG[lv][0])) tasks.push(T('upgrade',2,`Deixar o regador para virar de ${LV[lv+1].toLowerCase()} no Clint`,
       (c.S===3?'No inverno não há o que regar, então não vai fazer falta. ':'Amanhã chove, então não vai fazer falta. ')+`Custa ${upgText(lv)} e leva 2 dias.`,i)); }
-  if(!st.cc['con:3'] && Math.max(tl(0,'axe'),tl(1,'axe'))===0 && st.mine>0){
+  if(!st.cc['con:3'] && Math.max(tl(0,'axe'),tl(1,'axe'))===0 && st.farm.furnace){
     const i=P[0].foraging>=P[1].foraging?0:1;
     if(spend(UPG[0][0])) tasks.push(T('axe',2,'Deixar o machado para virar de cobre no Clint',`Machado de cobre corta os tocos grandes que dão madeira de lei (pacote de Construção). Custa ${upgText(0)}.`,i));
   }
@@ -727,7 +821,7 @@ function buildPlan(){
   const missions=assign.map((a,i)=>a?Object.assign({id:a.id},a.build(P[i],i)):null);
 
   // Tarefas que dependem das missões
-  if(bday && !used.has('social')) tasks.push(T('bday',1,`Dar um presente para ${bday}`,'É aniversário: o presente vale 8× mais amizade. Uma coleta da estação costuma agradar.'));
+  if(bday && !used.has('social')) tasks.push(T('bday',1,`Dar um presente de aniversário para ${bday}`,esc(giftText(bday))));
   if(!used.has('farm') && outdoors && st.farm.crops!=='muitas'){
     const top=plants.cc[0]||plants.money[0];
     if(top && c.daysLeft>=top.g) tasks.push(top.q&&top.bundle.quality
@@ -746,7 +840,7 @@ function buildPlan(){
   // Junta tudo numa lista só por jogador: tarefas da fazenda, recados, atividade principal e, no fim, o que é opcional
   perPlayer.forEach((l,i)=>{
     const m=missions[i];
-    const mt=m?m.tasks.map((t,j)=>({id:`m${i}-${m.id}-${j}`,prio:2,t:esc(t),d:j===0?[m.why,m.tip].filter(Boolean).map(esc).join(' '):'',ord:2})):[];
+    const mt=m?m.tasks.map((t,j)=>{ const o=typeof t==='string'?{t}:t; const extra=j===0?[m.why,m.tip].filter(Boolean).join(' '):''; return {id:`m${i}-${m.id}-${j}`,prio:2,t:esc(o.t),d:esc([o.d,extra].filter(Boolean).join(' ')),ord:2}; }):[];
     l.forEach(t=>t.ord=t.prio===1?0:t.prio===2?1:3);
     l.push(...mt); l.sort((a,b)=>a.ord-b.ord);
   });
@@ -755,33 +849,40 @@ function buildPlan(){
 }
 
 function mineMission(p,c,cc){
-  const lvl=st.mine||0;
-  const ore=lvl<40?'cobre':lvl<80?'ferro':'ouro';
-  const want=cc.filter(x=>x.it.k==='mine'&&x.ok).slice(0,3).map(x=>x.it.n);
+  const lvl=st.mine||0, deep=lvl>=120;
+  const target=deep?120:Math.min(120,Math.floor((lvl+10)/5)*5);
+  const lo=deep?80:lvl, hi=target;
+  const ore=lo<40?'cobre':lo<80?'ferro':'ouro';
+  const luck=c.luck===null?'Vejam a sorte na TV: com sorte boa sai mais minério e mais escadas.':c.luck>=1?'A sorte está boa hoje: sai mais minério e mais escadas.':c.luck<=-1?'A sorte está ruim, então não precisam ir tão fundo hoje.':'Sorte neutra: um dia normal de mina.';
+  const tasks=[{t:deep?'Descer pelo elevador até o andar 80 ou mais':`Descer do andar ${lvl} até o ${target}`,
+    d:`Nesses andares sai minério de ${ore} e carvão: juntem tudo pelo caminho. ${luck} O elevador salva a cada 5 andares.`}];
+  const items=cc.filter(x=>x.it.k==='mine'&&x.ok&&x.it.fl);
+  const here=[], back=[];
+  items.forEach(x=>{ const [a,b]=x.it.fl; if(x.it.bar){ if(st.farm.furnace && a<=Math.max(lvl,1)) here.push(x); } else if(b>=lo&&a<=hi) here.push(x); else if(b<lo) back.push(x); });
+  const w=x=>(x.it.bar?200:0)+(x.it.en==='Stone'?300:0)+(x.it.fl[1]-x.it.fl[0]);
+  here.sort((a,b)=>w(a)-w(b)); back.sort((a,b)=>w(a)-w(b));
+  [...here,...back].slice(0,3).forEach(x=>{
+    const it=x.it, [a,b]=it.fl;
+    if(it.en==='Stone') tasks.push({t:'Juntar 99 pedras para o Centro Comunitário',d:'Qualquer pedra das minas serve.'});
+    else if(it.bar) tasks.push({t:`Fazer 1 ${it.n.toLowerCase()} na fornalha`,d:`${it.h}. É para o Centro Comunitário.`});
+    else if(b>=lo&&a<=hi) tasks.push({t:`Pegar ${it.n} para o Centro Comunitário`,d:`${it.h}. Sai nos andares onde vocês vão passar hoje.`});
+    else { const el=Math.floor(a/5)*5; tasks.push({t:`Pegar ${it.n}: voltar pelo elevador ${el?`ao andar ${el}`:'para a entrada das minas'}`,d:`${it.h}. Não sai nos andares de hoje.`}); }
+  });
   const ghost=cc.find(x=>x.it.en==='Ghostfish'&&x.ok);
-  let tip=c.luck===null?'Vejam a sorte na TV: com sorte boa sai mais minério e mais escadas.':c.luck>=1?'A sorte está boa hoje: sai mais minério e mais escadas.':c.luck<=-1?'A sorte está ruim, então não precisam ir tão fundo hoje.':'Sorte neutra: um dia normal de mina.';
-  if(lvl>=120){
-    return {goal:'Minas: andares 80 a 120',why:'Vocês já chegaram ao fundo. Agora é juntar recursos.',
-      tasks:['Descer pelo elevador até o andar 80 ou mais','Minerar ouro e procurar Quartzo de fogo',...(want.length?[`Procurar para o Centro Comunitário: ${want.join(', ')}`]:[]),'Levar comida na mochila'],tip};
-  }
-  const target=Math.min(120,Math.floor((lvl+10)/5)*5);
-  const tasks=[`Descer do andar ${lvl} até o ${target}`,`Juntar minério de ${ore} e carvão`];
-  if(want.length) tasks.push(`Procurar para o Centro Comunitário: ${want.join(', ')}`);
-  if(ghost && ((lvl>=15&&lvl<25)||(lvl>=55&&lvl<65))) tasks.push(`Pescar o Peixe-fantasma no lago do andar ${lvl<40?20:60}`);
-  tasks.push('Levar comida na mochila (coletas ou ovos)');
-  return {goal:`Minas: do andar ${lvl} ao ${target}`,why:c.rain?'A chuva não atrapalha lá embaixo.':'Minério vira barras para ferramentas, irrigadores e pacotes.',tasks,tip:tip+' O elevador salva a cada 5 andares.'};
+  if(ghost && c.rodOk) tasks.push({t:'Pescar o Peixe-fantasma',d:`Nos lagos dos andares 20 e 60 (o elevador para no 20 e no 60). É para o Centro Comunitário.`});
+  return {goal:deep?'Minas: andares 80 a 120':`Minas: do andar ${lvl} ao ${target}`,why:'',tasks};
 }
 function fishMission(p,c,items,i){
   const tasks=[];
-  items.slice(0,3).forEach(x=>tasks.push(`Pescar ${x.it.n}: ${x.it.h}`));
-  if(!items.length) tasks.push(c.S===3?'Pescar na praia e no lago da montanha e vender os peixes':'Pescar na praia de manhã e no rio à tarde e vender os peixes');
+  items.slice(0,3).forEach(x=>tasks.push({t:`Pescar ${x.it.n}`,d:dot(x.it.h)}));
+  if(!items.length) tasks.push({t:'Pescar e vender os peixes',d:`De manhã: ${MAR}. À tarde: ${RIO}.`});
   const other=1-i;
   if(p.fishing>=6 && tl(i,'rod')===2 && (c.budget??st.money)>=7500){ c.budget=(c.budget??st.money)-7500; tasks.unshift('Comprar a vara de irídio no Willy (7.500g)'); }
   if(p.fishing>=2 && tl(i,'rod')<2){
     if(tl(other,'rod')>=2) tasks.unshift(`Pegar a vara de ${tl(other,'rod')===3?'irídio':'fibra de vidro'} de ${st.players[other].name} emprestada`);
     else if((c.budget??st.money)>=1800){ c.budget=(c.budget??st.money)-1800; tasks.unshift('Comprar a vara de fibra de vidro e isca no Willy (1.800g)'); }
   }
-  if(p.fishing>=3 && !st.farm.crab) tasks.push('Fazer 2 covos e colocar no mar');
+  if(p.fishing>=3 && !st.farm.crab && st.mine>=40) tasks.push({t:'Fazer 2 covos e colocar no mar',d:'Cada covo: 40 madeira + 3 barras de ferro (receita de Pesca 3). Coloquem isca dentro todo dia.'});
   const why=c.rain?'Dia de chuva é o melhor para pescar: aparecem peixes raros.':items.length?'Tem peixe dos pacotes disponível hoje.':'Peixe dá dinheiro rápido e treina a habilidade.';
   let tip=p.fishing<2?'Segurem o botão para lançar mais longe. Na barra verde, toques curtos seguram o peixe.':'Guardem 1 de cada peixe dos pacotes antes de vender.';
   if(p.fishing>=2 && tl(i,'rod')<2 && tl(other,'rod')>=2) tip='Para emprestar, quem tem a vara coloca ela num baú ou joga no chão perto do outro.';
@@ -790,8 +891,8 @@ function fishMission(p,c,items,i){
 function forageMission(p,c,items,berry,i){
   const tasks=[];
   if(berry) tasks.push(c.S===0?'Colher framboesas nos arbustos (época dos dias 15 a 18)':'Colher amoras nos arbustos (época dos dias 8 a 11)');
-  items.filter(x=>!/Madeira/.test(x.it.n)).slice(0,3).forEach(x=>tasks.push(`Coletar ${x.it.n}: ${x.it.h}`));
-  tasks.push('Fazer a rota floresta → cidade → montanha pegando tudo do chão');
+  items.filter(x=>!/Madeira/.test(x.it.n)).slice(0,3).forEach(x=>tasks.push({t:`Coletar ${x.it.n}`,d:dot(x.it.h)}));
+  tasks.push({t:'Fazer a rota floresta → cidade → montanha pegando tudo do chão',d:'Floresta Cinzaseiva fica ao sul da fazenda. A montanha fica ao norte da cidade, perto da casa da Robin.'});
   const con=bundleById('con');
   if(!bundleDone(con)){
     if(!st.cc['con:3'] && tl(i,'axe')>=1) tasks.push('Cortar tocos grandes para juntar 10 de madeira de lei');
@@ -811,7 +912,7 @@ function farmMission(p,c,plants){
 }
 function socialMission(p,c,bday){
   const tasks=[];
-  if(bday) tasks.push(`Dar um presente para ${bday}`);
+  if(bday) tasks.push({t:`Dar um presente de aniversário para ${bday}`,d:giftText(bday)});
   tasks.push('Conversar com 5 moradores');
   tasks.push('Pegar um pedido no quadro de avisos do Pierre');
   if(c.newbie) tasks.push('Visitar as casas da cidade para conhecer todo mundo');
