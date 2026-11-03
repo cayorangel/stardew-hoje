@@ -193,6 +193,7 @@ details.sec>summary .sum{font-family:var(--body);font-size:.8rem;color:var(--mut
 .plant .pn{font-weight:800}
 .plant .pp{font-weight:800;text-align:right;color:var(--ok)}
 .plant .pd{grid-column:1 / -1;font-size:.84rem;color:var(--muted)}
+.plant .pill{align-self:start;justify-self:end;white-space:nowrap;margin-left:0}
 .loading{padding:24px;text-align:center}
 @media (max-width:980px){
   body{padding-bottom:calc(88px + env(safe-area-inset-bottom, 0px))}
@@ -451,12 +452,12 @@ const CROPS={
 
 /* ============ ESTADO ============ */
 const EXAMPLE={
- example:true, year:1, season:0, day:9, weather:'chuva', forecast:'sol', luck:'1', money:1450,
+ example:true, year:1, season:0, day:9, weather:'chuva', forecast:'sol', luck:'1', money:1450, mine:12,
  players:[
-  {name:'Jogador 1',farming:2,mining:1,foraging:2,fishing:0,combat:1,mine:12},
-  {name:'Jogador 2',farming:1,mining:0,foraging:1,fishing:2,combat:0,mine:5}
+  {name:'Jogador 1',farming:2,mining:1,foraging:2,fishing:0,combat:1},
+  {name:'Jogador 2',farming:1,mining:0,foraging:1,fishing:2,combat:0}
  ],
- farm:{crops:'poucas',sprinklers:false,coop:false,barn:false,silo:false,furnace:true,crab:false,greenhouse:false},
+ farm:{crops:'poucas',sprinklers:false,coop:false,barn:false,silo:false,furnace:true,crab:false,greenhouse:false,fiberRod:false},
  unl:{cc:true,beach:false,woods:false,bus:false,minecart:false,quarry:false,skull:false,island:false},
  cc:{'sf:0':true,'sf:2':true,'sc:0':true,'con:2':true,'ge:0':true},
  done:{}
@@ -472,6 +473,8 @@ function normalize(s){
   out.farm=Object.assign(clone(EXAMPLE.farm),s.farm||{});
   out.unl=Object.assign(clone(EXAMPLE.unl),s.unl||{});
   out.cc=s.cc||(s.example===false?{}:out.cc); out.done=s.done||{};
+  if(s.mine==null && s.players) out.mine=Math.max(0,...s.players.map(p=>+p.mine||0));
+  out.players.forEach(p=>delete p.mine);
   return out;
 }
 let st=normalize(lsGet());
@@ -508,7 +511,7 @@ function roomDone(r){return r.bundles.every(bundleDone)}
 
 function ctxOf(s){
   const rain=s.weather==='chuva'||s.weather==='tempestade';
-  const maxMine=Math.max(s.players[0].mine||0,s.players[1].mine||0);
+  const maxMine=s.mine||0;
   const minesOpen=!(s.year===1&&s.season===0&&s.day<5);
   const rodOk=!(s.year===1&&s.season===0&&s.day<2);
   return {S:s.season,D:s.day,Y:s.year,wd:weekday(s.day),rain,storm:s.weather==='tempestade',
@@ -533,7 +536,7 @@ function ccToday(c){
     b.items.forEach((it,i)=>{
       if(st.cc[itemKey(b.id,i)]) return;
       if(!['fish','forage','mine','crab','gold'].includes(it.k)) return;
-      if(it.k==='gold'){ if(st.money>=it.g) res.push({it,b,r,score:5,tag:'Dá pra pagar'}); return; }
+      if(it.k==='gold') return;
       if(it.s && !it.s.includes(c.S)) return;
       if(it.w==='rain' && !c.rain) return;
       if(it.w==='sun' && c.rain) return;
@@ -553,72 +556,84 @@ function ccToday(c){
   return res.sort((a,b)=>b.score-a.score);
 }
 
+function cropBundle(en){
+  let best=null;
+  for(const r of ROOMS) for(const b of r.bundles){
+    if(bundleDone(b)) continue;
+    b.items.forEach((it,i)=>{
+      if(it.k!=='crop'||st.cc[itemKey(b.id,i)]) return;
+      if(it.en.replace('Gold ','')!==en) return;
+      const cand={b,quality:it.en.startsWith('Gold '),left:b.need-bundleCount(b)};
+      if(!best||(best.quality&&!cand.quality)) best=cand;
+    });
+  }
+  return best;
+}
+function shopFor(c,x){
+  if(x==='oasis') return 'no Oásis (deserto)';
+  if(x==='fest') return 'na barraca do Pierre no festival';
+  return c.wd===2?'na JojaMart (o Pierre fecha às quartas)':'no Pierre';
+}
 function plantList(c){
-  if(c.S===3 && !st.farm.greenhouse) return [];
+  const empty={cc:[],money:[]};
+  if(c.S===3) return empty;
   const list=(CROPS[c.S]||[]).map(([n,en,g,rg,seed,sell,x])=>{
     let dl=c.daysLeft; if(x==='multi'&&c.S===1) dl+=28;
-    if(c.S===3) dl=99;
     if(g>dl) return null;
+    if(x==='y2'&&c.Y<2) return null;
+    if(x==='oasis'&&!st.unl.bus) return null;
+    if(x==='fest'&&c.D!==13) return null;
     let harvests, profit;
     if(rg){harvests=1+Math.floor((dl-g)/rg); profit=harvests*sell-seed;}
     else {harvests=Math.floor(dl/g); profit=harvests*(sell-seed);}
-    const bundleNeed=ROOMS.some(r=>r.bundles.some(b=>!bundleDone(b)&&b.items.some((it,i)=>it.k==='crop'&&!st.cc[itemKey(b.id,i)]&&it.en.replace('Gold ','')===en)));
     let note='';
-    if(x==='y2'&&c.Y<2) return null;
-    if(x==='oasis'&&!st.unl.bus) return null;
-    if(x==='fest'&&!(c.D>13||c.Y>1)) return null;
-    if(x==='oasis') note='Oásis (deserto)';
-    if(x==='fest') note='Só do Festival do Ovo';
-    if(x==='multi'&&c.S===1) note='Continua no outono';
-    if(x==='treliça') note='Treliça: bloqueia passagem';
-    return {n,en,g,rg,seed,sell,harvests,profit,bundleNeed,note};
+    if(x==='multi'&&c.S===1) note='continua no outono';
+    if(x==='treliça') note='treliça: bloqueia a passagem';
+    return {n,en,g,rg,seed,sell,harvests,profit,note,shop:shopFor(c,x),bundle:cropBundle(en)};
   }).filter(Boolean);
-  return list.sort((a,b)=>(b.bundleNeed-a.bundleNeed)||(b.profit-a.profit)).slice(0,6);
+  const cc=list.filter(p=>p.bundle).sort((a,b)=>(a.bundle.quality-b.bundle.quality)||(a.bundle.left-b.bundle.left)||(a.g-b.g));
+  const money=list.filter(p=>!p.bundle).sort((a,b)=>b.profit-a.profit).slice(0,4);
+  return {cc,money};
 }
+function missingNames(kinds,max){
+  const out=[];
+  ROOMS.forEach(r=>r.bundles.forEach(b=>{ if(bundleDone(b)) return;
+    b.items.forEach((it,i)=>{ if(!st.cc[itemKey(b.id,i)]&&kinds.includes(it.k)&&!out.includes(it.n)) out.push(it.n); }); }));
+  return out.slice(0,max);
+}
+function bundleById(id){for(const r of ROOMS) for(const b of r.bundles) if(b.id===id) return b; return null}
 
 function buildPlan(){
-  const c=ctxOf(st), P=st.players, home=[], farm=[], night=[];
+  const c=ctxOf(st), P=st.players, tasks=[];
   const fests=festOn(c.S,c.D);
   const bday=BIRTHDAYS[c.S][c.D];
   const cc=ccToday(c);
+  const plants=plantList(c);
   const T=(id,prio,t,d)=>({id,prio,t,d});
-
-  // Casa
-  home.push(T('tv',1,'Ligar a TV',(st.luck===''?'Vejam a previsão de amanhã e a sorte do dia (cartomante) e marquem aqui. A sorte muda o plano das minas. ':'')+
-    (c.wd===6?'Domingo: a Rainha do Molho ensina uma receita nova.':c.wd===0||c.wd===3?'Hoje passa "Vivendo da Terra", com dicas para iniciantes.':'')));
-  home.push(T('mail',2,'Abrir a caixa de correio',c.newbie&&c.D===2?'Hoje chega a carta do Willy: vão à praia pegar a vara de pesca!':c.newbie&&c.D===5?'Hoje chega a carta avisando que as minas abriram.':'Cartas trazem missões, receitas e presentes.'));
-  if(bday) home.push(T('bday',2,`Aniversário de ${bday}`,'Presente de aniversário vale 8× mais amizade. Algo coletado da estação costuma agradar.'));
-  if(c.wd===4||c.wd===6) home.push(T('cart',3,'Carroça viajante na floresta','Hoje (sexta e domingo), 6h–20h, ao sul da casa da Marnie. Às vezes vende itens dos pacotes.'));
-  if(c.wd===2) home.push(T('pierre',0,'O Pierre fecha às quartas','Se precisarem de sementes, comprem na JojaMart ou amanhã.'));
-  if((c.wd===0||c.wd===1)) home.push(T('marnie',0,'A Marnie fecha segunda e terça','Animais e feno: comprem outro dia.'));
-
-  // Fazenda
   const hasCrops=st.farm.crops!=='nenhuma';
   const outdoors=c.S!==3;
   const farmerIdx=P[0].farming>=P[1].farming?0:1;
-  if(c.newbie && c.D<=3 && st.farm.crops==='nenhuma'){
-    farm.push(T('plant15',1,'Plantar as 15 sementes de pastinaca','Limpem um pedaço perto da casa com a enxada, plantem e reguem. Ficam prontas em 4 dias.'));
-  }
-  if(hasCrops && outdoors){
-    if(c.rain) farm.push(T('water',0,'Não precisa regar','A chuva rega tudo. Dia livre para pescar ou explorar.'));
-    else farm.push(T('water',1,st.farm.crops==='muitas'&&!st.farm.sprinklers?'Regar tudo (os dois juntos)':`Regar as plantações (${esc(P[farmerIdx].name)})`,
-      st.farm.sprinklers?'Os irrigadores cuidam da parte deles. Reguem o resto.':'Façam logo de manhã. Encham o regador em água próxima.'));
-    farm.push(T('harvest',1,'Colher o que estiver pronto','Pronto quando aparece a mão ao passar o cursor. Replantem o espaço vazio se ainda der tempo.'));
-  }
-  if(st.farm.greenhouse && c.S===3) farm.push(T('gh',1,'Regar a estufa','No inverno só a estufa produz.'));
-  if(st.farm.coop||st.farm.barn) farm.push(T('animals',1,'Cuidar dos animais','Fazer carinho todo dia, coletar ovos/leite. '+(st.farm.silo?'O feno sai sozinho do silo para o comedouro.':'Sem silo: comprem feno com a Marnie.')));
-  if(c.storm && hasCrops && outdoors) farm.push(T('storm',3,'Tempestade','Raios podem queimar plantações. Para-raios (Coleta nv. 6) protegem e dão baterias.'));
-  if(outdoors && c.D===28) farm.push(T('last',1,'Último dia da estação','Colham tudo hoje: amanhã as plantações desta estação morrem. Milho, trigo e girassol passam do verão para o outono.'));
-  else if(outdoors && c.daysLeft<=6 && c.S<3) farm.push(T('late',2,`Faltam ${c.daysLeft} dias na estação`,'Só plantem o que cresce rápido (veja a tabela). Dia 1 da próxima estação: comprem sementes novas logo cedo.'));
-  if(c.S===3 && !st.farm.greenhouse) farm.push(T('winter',2,'Inverno: nada cresce lá fora','Usem a enxada na terra da fazenda e da floresta: aparecem Raiz de Inverno e Inhame da Neve.'));
-  if(!st.farm.sprinklers && st.farm.crops==='muitas' && Math.max(P[0].farming,P[1].farming)>=2) farm.push(T('sprink',2,'Fazer irrigadores','Com Cultivo nível 2 vocês já sabem fazer: 1 barra de cobre + 1 de ferro. Economiza energia todo dia.'));
-  if(!st.farm.furnace && c.minesOpen) farm.push(T('furnace',2,'Pegar a receita da fornalha','Tragam minério de cobre das minas: o Clint ensina a fazer a fornalha. Ela transforma minério em barras.'));
-  if(c.tomorrowRain && !c.rain && st.money>=2000) farm.push(T('upgrade',2,'Melhorar o regador no Clint hoje','Amanhã chove, então ficar sem regador não faz falta. Leva 2 dias e custa 2.000g + 5 barras de cobre.'));
-  if(c.S===3 && st.money>=2000) farm.push(T('upgradew',2,'Bom momento para melhorar ferramentas','No inverno não há o que regar. Levem o regador ou a enxada ao Clint.'));
-  if(!st.unl.cc && !(c.newbie&&c.D<3)) farm.push(T('cc',1,'Ver a cena do Centro Comunitário','Entrem na cidade pelo caminho do ponto de ônibus de manhã (8h–13h), num dia sem chuva.'));
 
-  night.push(T('ship',1,'Vender na caixa de envio','Tudo que vai para a caixa é pago durante a noite. Guardem 1 de cada item dos pacotes!'));
-  night.push(T('sleep',1,'Dormir antes da meia-noite','Depois da 0h vocês acordam com menos energia; às 2h desmaiam e perdem dinheiro.'));
+  if(!st.unl.cc && !(c.newbie&&c.D<3)) tasks.push(T('cc',1,'Ver a cena do Centro Comunitário','Entrem na cidade pelo caminho do ponto de ônibus de manhã (8h–13h), num dia sem chuva.'));
+  if(c.newbie && c.D<=3 && st.farm.crops==='nenhuma') tasks.push(T('plant15',1,'Plantar as 15 sementes de pastinaca','Limpem um pedaço perto da casa com a enxada, plantem e reguem. Ficam prontas em 4 dias.'));
+  if(hasCrops && outdoors && !c.rain) tasks.push(T('water',1,st.farm.crops==='muitas'&&!st.farm.sprinklers?'Regar as plantações (os dois juntos)':`Regar as plantações (${esc(P[farmerIdx].name)})`,
+      st.farm.sprinklers?'Reguem o que os irrigadores não alcançam.':'Façam logo de manhã. Encham o regador na água mais próxima.'));
+  if(hasCrops && outdoors && c.D===28) tasks.push(T('last',1,'Colher tudo antes de dormir','Amanhã as plantações desta estação morrem. Milho, trigo e girassol passam do verão para o outono.'));
+  else if(hasCrops && outdoors) tasks.push(T('harvest',1,'Colher o que estiver pronto e vender na caixa de envio','Guardem 1 de cada item que ainda falta nos pacotes do Centro Comunitário.'));
+  if(st.farm.greenhouse && c.S===3) tasks.push(T('gh',1,'Regar e colher a estufa','No inverno só a estufa produz.'));
+  if(st.farm.coop||st.farm.barn) tasks.push(T('animals',1,'Fazer carinho nos animais e coletar os produtos',st.farm.silo?'O feno sai sozinho do silo para o comedouro.':'Coloquem feno no comedouro. Sem silo, comprem feno na Marnie.'));
+  const vault=['v1','v2','v3','v4'].map(bundleById).find(b=>!bundleDone(b));
+  if(vault && st.money>=vault.items[0].g+500) tasks.push(T('vault',2,`Pagar ${vault.items[0].n} no Cofre do Centro Comunitário`,'Completar o Cofre conserta o ônibus para o deserto.'));
+  if(c.S===3 && !bundleDone(bundleById('wf'))) tasks.push(T('dig',2,'Cavar a terra com a enxada','Na fazenda e na floresta aparecem Raiz de Inverno e Inhame da Neve, do pacote de inverno.'));
+  if(!st.farm.sprinklers && st.farm.crops==='muitas' && Math.max(P[0].farming,P[1].farming)>=2) tasks.push(T('sprink',2,'Fazer irrigadores','Receita de Cultivo 2: 1 barra de cobre + 1 de ferro cada. Economiza energia todo dia.'));
+  if(!st.farm.furnace && c.minesOpen) tasks.push(T('furnace',2,'Levar minério de cobre para o Clint','Ele ensina a fazer a fornalha, que transforma minério em barras.'));
+  if(c.tomorrowRain && !c.rain && st.money>=2000 && hasCrops) tasks.push(T('upgrade',2,'Deixar o regador para melhorar no Clint','Amanhã chove, então não vão precisar dele. Custa 2.000g + 5 barras de cobre e leva 2 dias.'));
+  if(c.S===3 && st.money>=2000) tasks.push(T('upgradew',2,'Deixar o regador ou a enxada para melhorar no Clint','No inverno não há o que regar. Custa 2.000g + 5 barras de cobre.'));
+  if(!st.farm.coop && st.money>=4500) tasks.push(T('coop',2,'Encomendar um galinheiro na Robin','Custa 4.000g, 300 de madeira e 100 de pedra. Os ovos servem para o pacote de Animais.'));
+  if(c.wd===4||c.wd===6){
+    const want=missingNames(['long','crop'],3);
+    tasks.push(T('cart',3,'Passar na carroça viajante (floresta, 6h–20h)',want.length?`Procurem itens que faltam nos pacotes, como ${want.join(', ')}.`:'Às vezes ela vende sementes e itens raros.'));
+  }
 
   // Atividades candidatas
   const fishToday=cc.filter(x=>x.it.k==='fish'&&x.ok);
@@ -628,9 +643,9 @@ function buildPlan(){
   if(c.minesOpen){
     let s=3+(c.luck??0)*1.5+Math.min(mineToday.length,3)*0.7+(c.maxMine<120?1:0);
     if(c.rain) s-=0.5;
-    acts.push({id:'mines',base:s,skill:p=>p.mining*0.35+p.combat*0.25,build:p=>mineMission(p,c,mineToday)});
+    acts.push({id:'mines',base:s,skill:p=>p.mining*0.35+p.combat*0.25,build:p=>mineMission(p,c,cc)});
   }
-  if(st.unl.skull && (c.luck??0)>=1) acts.push({id:'skull',base:5+(c.luck??0),skill:p=>p.combat*0.4,build:p=>({goal:'Caverna da Caveira',why:'Sorte boa e acesso liberado: é o melhor dia para descer fundo.',tasks:['Levem muita comida e bombas.','Escadas ajudam a pular andares.','Voltem antes das 2h.']})});
+  if(st.unl.skull && (c.luck??0)>=1) acts.push({id:'skull',base:5+(c.luck??0),skill:p=>p.combat*0.4,build:p=>({goal:'Caverna da Caveira',why:'A sorte está boa e o acesso está liberado: é o melhor dia para descer fundo.',tasks:['Pegar o ônibus para o deserto','Levar muita comida, bombas e escadas','Descer o máximo de andares que der','Voltar antes das 2h'],tip:'Escadas pulam andares: guardem as que acharem.'})});
   if(c.rodOk){
     let s=2+(c.rain?3:0)+Math.min(fishToday.length,3)*1.2+(c.newbie?0.5:0);
     acts.push({id:'fish',base:s,skill:p=>p.fishing*0.45,build:p=>fishMission(p,c,fishToday)});
@@ -640,9 +655,9 @@ function buildPlan(){
     let s=1.5+(berry?3:0)+Math.min(forageToday.length,3)*0.9+(c.newbie?0.5:0);
     acts.push({id:'forage',base:s,skill:p=>p.foraging*0.4,build:p=>forageMission(p,c,forageToday,berry)});
   }
-  if(outdoors && c.daysLeft>=4 && st.farm.crops!=='muitas'){
-    let s=1.8+(st.farm.crops==='nenhuma'?2:0.8)+(c.D<=7?1:0)+(c.newbie?1.5:0);
-    acts.push({id:'farm',base:s,skill:p=>p.farming*0.4,build:p=>farmMission(p,c)});
+  if(outdoors && c.daysLeft>=4 && st.farm.crops!=='muitas' && (plants.cc.length||plants.money.length)){
+    let s=1.8+(st.farm.crops==='nenhuma'?2:0.8)+(c.D<=7?1:0)+(c.newbie?1.5:0)+(plants.cc.length?0.8:0);
+    acts.push({id:'farm',base:s,skill:p=>p.farming*0.4,build:p=>farmMission(p,c,plants)});
   }
   {
     let s=1+(bday?1.5:0)+(c.newbie&&c.D<=4?2:0);
@@ -657,60 +672,69 @@ function buildPlan(){
   const used=new Set();
   for(const s of scored){ if(assign[s.i]||used.has(s.a.id)) continue; assign[s.i]=s.a; used.add(s.a.id); if(assign[0]&&assign[1]) break; }
   const missions=assign.map((a,i)=>a?Object.assign({id:a.id},a.build(P[i])):null);
-  const together=fests.length>0;
 
-  return {c,fests,bday,home,farm,night,missions,together,cc,plants:plantList(c)};
+  // Tarefas que dependem das missões
+  if(bday && !used.has('social')) tasks.unshift(T('bday',1,`Dar um presente para ${bday}`,'É aniversário: o presente vale 8× mais amizade. Uma coleta da estação costuma agradar.'));
+  if(!used.has('farm') && outdoors && st.farm.crops!=='muitas'){
+    const top=plants.cc[0]||plants.money[0];
+    if(top && c.daysLeft>=top.g) tasks.push(T('seeds',2,`Comprar e plantar ${top.n}`,top.bundle?`É do pacote ${top.bundle.b.name}. Semente de ${top.seed}g ${top.shop}.`:`Semente de ${top.seed}g ${top.shop}. Lucro de uns ${top.profit}g por semente.`));
+  }
+
+  return {c,fests,bday,tasks,missions,cc,plants};
 }
 
-function mineMission(p,c,items){
-  const lvl=p.mine||0; const target=Math.min(120,Math.floor((lvl+10)/5)*5);
+function mineMission(p,c,cc){
+  const lvl=st.mine||0;
   const ore=lvl<40?'cobre':lvl<80?'ferro':'ouro';
-  const tasks=[`Vocês estão no andar ${lvl}. Meta: chegar ao ${target} (o elevador salva a cada 5 andares).`,
-    `Nesta profundidade sai minério de ${ore}. Guardem carvão para a fornalha.`];
-  const want=items.slice(0,3).map(x=>x.it.n);
-  if(want.length) tasks.push('Para o Centro Comunitário: '+want.join(', ')+'.');
-  if(lvl>=15&&lvl<25 || lvl>=55&&lvl<65) tasks.push('No andar 20 e 60 tem lago: dá para pescar o Peixe-fantasma.');
-  tasks.push('Levem comida (coletas ou ovos) para recuperar energia.');
-  let why=c.luck===null?'Bom para subir de nível e conseguir minério.':c.luck>=1?'A sorte está boa hoje: mais minério e mais escadas.':c.luck<=-1?'A sorte está ruim, mas ainda vale descer um pouco.':'Sorte neutra: um dia normal de mina.';
-  if(c.rain) why+=' A chuva não atrapalha lá embaixo.';
-  return {goal:`Minas: do andar ${lvl} ao ${target}`,why,tasks};
+  const want=cc.filter(x=>x.it.k==='mine'&&x.ok).slice(0,3).map(x=>x.it.n);
+  const ghost=cc.find(x=>x.it.en==='Ghostfish'&&x.ok);
+  let tip=c.luck===null?'Vejam a sorte na TV: com sorte boa sai mais minério e mais escadas.':c.luck>=1?'A sorte está boa hoje: sai mais minério e mais escadas.':c.luck<=-1?'A sorte está ruim, então não precisam ir tão fundo hoje.':'Sorte neutra: um dia normal de mina.';
+  if(lvl>=120){
+    return {goal:'Minas: andares 80 a 120',why:'Vocês já chegaram ao fundo. Agora é juntar recursos.',
+      tasks:['Descer pelo elevador até o andar 80 ou mais','Minerar ouro e procurar Quartzo de fogo',...(want.length?[`Procurar para o Centro Comunitário: ${want.join(', ')}`]:[]),'Levar comida na mochila'],tip};
+  }
+  const target=Math.min(120,Math.floor((lvl+10)/5)*5);
+  const tasks=[`Descer do andar ${lvl} até o ${target}`,`Juntar minério de ${ore} e carvão`];
+  if(want.length) tasks.push(`Procurar para o Centro Comunitário: ${want.join(', ')}`);
+  if(ghost && ((lvl>=15&&lvl<25)||(lvl>=55&&lvl<65))) tasks.push(`Pescar o Peixe-fantasma no lago do andar ${lvl<40?20:60}`);
+  tasks.push('Levar comida na mochila (coletas ou ovos)');
+  return {goal:`Minas: do andar ${lvl} ao ${target}`,why:c.rain?'A chuva não atrapalha lá embaixo.':'Minério vira barras para ferramentas, irrigadores e pacotes.',tasks,tip:tip+' O elevador salva a cada 5 andares.'};
 }
 function fishMission(p,c,items){
   const tasks=[];
-  if(items.length){
-    items.slice(0,3).forEach(x=>tasks.push(`${x.it.n}: ${dot(x.it.h)}`));
-  } else {
-    tasks.push(c.S===3?'Praia ou lago da montanha: peixes de inverno vendem bem.':'Praia de manhã, rio da cidade à tarde.');
-  }
-  if(p.fishing<2) tasks.push('Ao lançar, segurem o botão para ir mais longe. Na barra verde, toques curtos.');
-  else if(p.fishing<4) tasks.push('Com Pesca 2, a vara de fibra de vidro do Willy (1.800g) usa isca.');
-  if(p.fishing>=3 && !st.farm.crab) tasks.push('Pesca 3 libera o covo: façam alguns para o pacote de covos.');
+  items.slice(0,3).forEach(x=>tasks.push(`Pescar ${x.it.n}: ${x.it.h}`));
+  if(!items.length) tasks.push(c.S===3?'Pescar na praia e no lago da montanha e vender os peixes':'Pescar na praia de manhã e no rio à tarde e vender os peixes');
+  if(p.fishing>=2 && !st.farm.fiberRod && st.money>=1800) tasks.push('Comprar a vara de fibra de vidro e isca no Willy (1.800g)');
+  if(p.fishing>=3 && !st.farm.crab) tasks.push('Fazer 2 covos e colocar no mar');
   const why=c.rain?'Dia de chuva é o melhor para pescar: aparecem peixes raros.':items.length?'Tem peixe dos pacotes disponível hoje.':'Peixe dá dinheiro rápido e treina a habilidade.';
-  return {goal:items.length?`Pescar ${items[0].it.n}`:'Dia de pesca',why,tasks};
+  const tip=p.fishing<2?'Segurem o botão para lançar mais longe. Na barra verde, toques curtos seguram o peixe.':'Guardem 1 de cada peixe dos pacotes antes de vender.';
+  return {goal:items.length?`Pescar ${items[0].it.n}`:'Dia de pesca',why,tasks,tip};
 }
 function forageMission(p,c,items,berry){
   const tasks=[];
-  if(berry) tasks.push(c.S===0?'Época de framboesa (dias 15–18): os arbustos estão carregados. Ótima comida grátis.':'Época de amora (dias 8–11): arbustos carregados por todo lado.');
-  items.slice(0,3).forEach(x=>tasks.push(`${x.it.n}: ${dot(x.it.h)}`));
-  tasks.push('Rota: floresta (sul) → cidade → montanha. Guardem 1 de cada item para os pacotes.');
-  if(!st.unl.woods) tasks.push('Cortem árvores para juntar madeira (Construção pede 198).');
-  return {goal:berry?'Colher frutinhas e coletas':'Coletar pela cidade',why:items.length?'Faltam itens de coleta nos pacotes desta estação.':'Coletas viram comida e dinheiro grátis.',tasks};
+  if(berry) tasks.push(c.S===0?'Colher framboesas nos arbustos (época dos dias 15 a 18)':'Colher amoras nos arbustos (época dos dias 8 a 11)');
+  items.filter(x=>!/^Madeira/.test(x.it.n)).slice(0,3).forEach(x=>tasks.push(`Coletar ${x.it.n}: ${x.it.h}`));
+  tasks.push('Fazer a rota floresta → cidade → montanha pegando tudo do chão');
+  if(!bundleDone(bundleById('con'))) tasks.push('Cortar árvores até juntar 99 de madeira');
+  return {goal:berry?'Colher frutinhas e coletas':'Coletar pela cidade',why:items.length?'Faltam itens de coleta nos pacotes desta estação.':'Coletas viram comida e dinheiro grátis.',tasks,tip:'Guardem 1 de cada coleta para os pacotes e comam o resto quando a energia acabar.'};
 }
-function farmMission(p,c){
+function farmMission(p,c,plants){
   const tasks=[];
-  if(c.newbie && c.D<=3) tasks.push('Comprem mais sementes no Pierre (pastinaca e batata são ótimas).');
-  tasks.push('Limpem mais um pedaço da fazenda: madeira, pedra e fibra vão servir.');
-  tasks.push('Vejam a tabela "O que plantar hoje" abaixo.');
-  if(p.foraging>=1) tasks.push('Façam um espantalho (Cultivo nv. 1) para os corvos não comerem as plantas.');
-  return {goal:'Expandir a plantação',why:`Faltam ${c.daysLeft} dias na estação: ainda dá tempo de colher.`,tasks};
+  const top=plants.cc[0], cash=plants.money[0];
+  if(top) tasks.push(`Comprar e plantar ${top.n} ${top.shop} (pacote ${top.bundle.b.name})`);
+  if(cash) tasks.push(`Plantar ${cash.n} para vender (uns ${cash.profit}g de lucro por semente)`);
+  tasks.push('Limpar mais um pedaço da fazenda com machado, picareta e foice');
+  if(p.farming>=1 && st.farm.crops!=='nenhuma') tasks.push('Fazer um espantalho (50 madeira, 1 carvão, 20 fibra)');
+  const tip=top&&top.bundle.quality?'Para qualidade ouro, usem fertilizante na terra antes de plantar.':'Plantem em blocos perto da água para regar mais rápido.';
+  return {goal:'Expandir a plantação',why:`Faltam ${c.daysLeft} dias na estação: ainda dá tempo de colher.`,tasks,tip};
 }
 function socialMission(p,c,bday){
   const tasks=[];
-  if(bday) tasks.push(`Deem um presente para ${bday} (aniversário: vale 8×).`);
-  tasks.push('Conversem com quem encontrarem: cada conversa dá amizade.');
-  tasks.push('Vejam o quadro de avisos no Pierre: pedidos dão dinheiro e amizade.');
-  if(c.newbie) tasks.push('Ainda não conhecem todos? Visitem as casas da cidade.');
-  return {goal:bday?`Aniversário de ${bday}`:'Fazer amizades na cidade',why:'Amizade libera receitas, cenas e presentes.',tasks};
+  if(bday) tasks.push(`Dar um presente para ${bday}`);
+  tasks.push('Conversar com 5 moradores');
+  tasks.push('Pegar um pedido no quadro de avisos do Pierre');
+  if(c.newbie) tasks.push('Visitar as casas da cidade para conhecer todo mundo');
+  return {goal:bday?`Aniversário de ${bday}`:'Fazer amizades na cidade',why:bday?'Presente de aniversário vale 8× mais amizade.':'Amizade libera receitas, cenas e presentes.',tasks,tip:'Cada pessoa aceita 2 presentes por semana.'};
 }
 
 /* ============ RENDER ============ */
@@ -725,7 +749,7 @@ function renderHeader(plan){
    <div class="datebig">
      <span class="eyebrow">Ano ${st.year} · ${WEEK[c.wd]}</span>
      <h1>${SEASONS[c.S]} ${c.D}</h1>
-     <span class="sub muted small">${c.S<3||st.farm.greenhouse?`Faltam ${c.daysLeft} dias para acabar a estação`:'Inverno: tempo de minas, pesca e amizades'}</span>
+     <span class="sub muted small">${c.S<3?`Faltam ${c.daysLeft} dias para acabar a estação${c.rain&&st.farm.crops!=='nenhuma'?' · a chuva rega tudo hoje':''}`:'Inverno: tempo de minas, pesca e amizades'}</span>
    </div>
    <div class="chips">
      <span class="chip ${c.rain?'rain':''}">Hoje: ${WEATHER[st.weather]}</span>
@@ -762,21 +786,20 @@ function renderPlan(){
     });
   }
 
+  // Tarefas
+  if(plan.tasks.length) h+=`<section class="card"><div class="card-h"><h2>Tarefas de hoje</h2><span class="small muted">Comecem o dia por aqui</span></div>
+    <ul class="tasks">${plan.tasks.map(taskHTML).join('')}</ul></section>`;
+
   // Missões
   h+=`<section class="card"><div class="card-h"><h2>Missões de hoje</h2><span class="small muted">Cada um faz uma coisa, cobrindo mais do jogo</span></div><div class="missions">`;
   plan.missions.forEach((m,i)=>{
     if(!m) return;
     h+=`<div class="mission"><div class="who"><span class="avatar ${i?'p2':''}">${esc((P[i].name||'?').trim()[0]||'?')}</span>${esc(P[i].name)}</div>
       <div class="goal">${esc(m.goal)}</div><div class="why">${esc(m.why)}</div>
-      <ul class="tasks">${m.tasks.map((t,j)=>taskHTML({id:`m${i}-${m.id}-${j}`,prio:1,nob:true,t:esc(t)})).join('')}</ul></div>`;
+      <ul class="tasks">${m.tasks.map((t,j)=>taskHTML({id:`m${i}-${m.id}-${j}`,prio:1,nob:true,t:esc(t)})).join('')}</ul>
+      ${m.tip?`<div class="why"><b>Dica:</b> ${esc(m.tip)}</div>`:''}</div>`;
   });
   h+=`</div></section>`;
-
-  // Rotina
-  h+=`<section class="card"><div class="card-h"><h2>Rotina do dia</h2><span class="small muted">Marquem conforme forem fazendo</span></div>
-    <div class="group-label">Antes de sair de casa</div><ul class="tasks">${plan.home.map(taskHTML).join('')}</ul>
-    ${plan.farm.length?`<div class="group-label">Na fazenda</div><ul class="tasks">${plan.farm.map(taskHTML).join('')}</ul>`:''}
-    <div class="group-label">No fim do dia</div><ul class="tasks">${plan.night.map(taskHTML).join('')}</ul></section>`;
 
   // CC
   const ccOk=plan.cc.filter(x=>x.ok!==false).slice(0,6), ccLocked=plan.cc.filter(x=>x.ok===false).slice(0,4);
@@ -784,13 +807,18 @@ function renderPlan(){
   if(!ccOk.length && !ccLocked.length) h+=`<p class="muted" style="margin:0">Nada de pesca, coleta ou mina disponível hoje para os pacotes que faltam. Foquem em dinheiro e na fazenda.</p>`;
   else h+=`<div class="cc-list">${ccOk.map(ccItemHTML).join('')}</div>`;
   if(ccLocked.length) h+=`<details><summary class="small muted" style="cursor:pointer;font-weight:700">Mais ${ccLocked.length} itens desta estação que ainda estão bloqueados</summary><div class="cc-list" style="margin-top:8px">${ccLocked.map(ccItemHTML).join('')}</div></details>`;
-  h+=`<p class="small muted" style="margin:0">Marquem o que já entregaram em <b>Nossa fazenda → Centro Comunitário</b>. Pacotes de plantação aparecem na tabela de plantio.</p></section>`;
+  h+=`<p class="small muted" style="margin:0">Marquem o que já entregaram em <b>Nossa fazenda → Centro Comunitário</b>. Plantações dos pacotes aparecem em "O que plantar hoje".</p></section>`;
 
   // Plantio
-  if(plan.plants.length){
-    h+=`<section class="card"><div class="card-h"><h2>O que plantar hoje</h2><span class="small muted">Só o que fica pronto antes do dia 28</span></div>
-     <div class="plants">${plan.plants.map(p=>`<div class="plant"><span class="pn">${esc(p.n)} <span class="en">${esc(p.en)}</span>${p.bundleNeed?'<span class="pill">Pacote</span>':''}</span><span class="pp">+${p.profit}g</span>
-       <span class="pd">${p.g} dias${p.rg?`, depois a cada ${p.rg}`:''} · ${p.harvests} ${p.harvests>1?'colheitas':'colheita'} · semente ${p.seed}g${p.note?' · '+esc(p.note):''}</span></div>`).join('')}</div><p class="small muted" style="margin:0">O valor verde é o lucro aproximado por semente até o fim da estação. Plantas com <span class="pill" style="margin:0">Pacote</span> servem para o Centro Comunitário: guardem 1.</p></section>`;
+  const pc=plan.plants.cc, pm=plan.plants.money;
+  if(pc.length||pm.length){
+    h+=`<section class="card"><div class="card-h"><h2>O que plantar hoje</h2><span class="small muted">Primeiro o Centro Comunitário, depois dinheiro</span></div>`;
+    if(pc.length) h+=`<div class="group-label">1. Para o Centro Comunitário</div><div class="plants">${pc.map(p=>`<div class="plant"><span class="pn">${esc(p.n)} <span class="en">${esc(p.en)}</span></span><span class="pill">${esc(p.bundle.b.name)}</span>
+       <span class="pd">${p.g} dias · semente ${p.seed}g ${esc(p.shop)} · ${p.bundle.quality?'precisa de 5 de qualidade ouro: plantem uns 15 com fertilizante':'plantem pelo menos 2 e guardem 1'}</span></div>`).join('')}</div>`;
+    if(pm.length) h+=`<div class="group-label">${pc.length?'2. ':''}Para ganhar dinheiro</div><div class="plants">${pm.map(p=>`<div class="plant"><span class="pn">${esc(p.n)} <span class="en">${esc(p.en)}</span></span><span class="pp">+${p.profit}g</span>
+       <span class="pd">${p.g} dias${p.rg?`, depois a cada ${p.rg}`:''} · ${p.harvests} ${p.harvests>1?'colheitas':'colheita'} · semente ${p.seed}g${p.note?' · '+esc(p.note):''}</span></div>`).join('')}</div>
+       <p class="small muted" style="margin:0">O valor verde é o lucro aproximado por semente até o fim da estação.</p>`;
+    h+=`</section>`;
   }
 
   // Calendário
@@ -844,7 +872,6 @@ function renderForm(){
      <div class="field"><label for="f-weather">Clima hoje</label>${sel('weather',Object.entries(WEATHER),st.weather,'f-weather')}</div>
      <div class="field"><label for="f-forecast">Previsão amanhã</label>${sel('forecast',[['','Não vimos'],...Object.entries(WEATHER)],st.forecast,'f-forecast')}</div>
      <div class="field"><label for="f-luck">Sorte (TV)</label>${sel('luck',Object.entries(LUCK),st.luck,'f-luck')}</div>
-     <div class="field"><label for="f-money">Ouro</label>${num('money',st.money,0,99999999,'f-money')}</div>
     </div>
     <p class="small muted" style="margin:0">A previsão e a sorte aparecem na TV da casa. Sorte é a cartomante: "os espíritos estão muito felizes" é muito boa.</p>`);
   let pl='';
@@ -852,21 +879,25 @@ function renderForm(){
     pl+=`<div class="pl"><div class="fields">
       <div class="field" style="grid-column:1 / -1"><label for="p${i}-name">Nome do jogador ${i+1}</label><input type="text" id="p${i}-name" data-k="players.${i}.name" value="${esc(p.name)}" maxlength="24"></div>
       ${SKILLS.map(([k,l])=>`<div class="field"><label for="p${i}-${k}">${l}</label>${sel(`players.${i}.${k}`,skillOpts,p[k],`p${i}-${k}`)}</div>`).join('')}
-      <div class="field"><label for="p${i}-mine">Andar das minas</label>${num(`players.${i}.mine`,p.mine,0,120,`p${i}-mine`)}</div>
     </div></div>`;
   });
-  h+=sec('jog','Jogadores',`${esc(P[0].name)} e ${esc(P[1].name)}`,pl+`<p class="small muted" style="margin:0">Os níveis aparecem no menu, aba de habilidades. O andar é o mais fundo que cada um já chegou (o elevador mostra).</p>`);
+  h+=sec('jog','Jogadores',`${esc(P[0].name)} e ${esc(P[1].name)}`,pl+`<p class="small muted" style="margin:0">Os níveis aparecem no menu, aba de habilidades. </p>`);
   h+=sec('faz','Fazenda',{nenhuma:'Sem plantações',poucas:'Poucas plantações',muitas:'Muitas plantações'}[f.crops],`
-    <div class="fields"><div class="field" style="grid-column:1 / -1"><label for="f-crops">Plantações lá fora</label>${sel('farm.crops',[['nenhuma','Nenhuma'],['poucas','Poucas (até ~40)'],['muitas','Muitas']],f.crops,'f-crops')}</div></div>
+    <div class="fields">
+     <div class="field"><label for="f-money">Ouro</label>${num('money',st.money,0,99999999,'f-money')}</div>
+     <div class="field"><label for="f-mine">Andar das minas</label>${num('mine',st.mine,0,120,'f-mine')}</div>
+     <div class="field" style="grid-column:1 / -1"><label for="f-crops">Plantações lá fora</label>${sel('farm.crops',[['nenhuma','Nenhuma'],['poucas','Poucas (até ~40)'],['muitas','Muitas']],f.crops,'f-crops')}</div></div>
     <div class="checks">
      ${chk('farm.sprinklers',f.sprinklers,'Temos irrigadores','f-spr')}
      ${chk('farm.furnace',f.furnace,'Temos fornalha','f-fur')}
      ${chk('farm.coop',f.coop,'Temos galinheiro','f-coop')}
      ${chk('farm.barn',f.barn,'Temos estábulo','f-barn')}
      ${chk('farm.silo',f.silo,'Temos silo','f-silo')}
+     ${chk('farm.fiberRod',f.fiberRod,'Temos a vara de fibra de vidro','f-rod')}
      ${chk('farm.crab',f.crab,'Temos covos na água','f-crab')}
      ${chk('farm.greenhouse',f.greenhouse,'Estufa consertada','f-gh')}
-    </div>`);
+    </div>
+    <p class="small muted" style="margin:0">Ouro e andar das minas são da fazenda, os dois compartilham. O andar mais fundo aparece no elevador.</p>`);
   h+=sec('lib','Lugares liberados',`${Object.values(u).filter(Boolean).length} de 8`,`<div class="checks">
      ${chk('unl.cc',u.cc,'Já vimos a cena do Centro Comunitário','u-cc')}
      ${chk('unl.beach',u.beach,'Ponte da praia consertada (leste da praia)','u-beach')}
@@ -930,9 +961,9 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-cc]');
   if(b){ const k=b.dataset.cc; if(st.cc[k]) delete st.cc[k]; else st.cc[k]=true; commit(); return; }
   if(e.target.id==='resetBtn'){ showToast('Apagar tudo e começar do Ano 1, Primavera 1?','Apagar',()=>{
-     st=normalize({example:false,year:1,season:0,day:1,weather:'sol',forecast:'',luck:'',money:500,cc:{},
-       players:[{name:'Jogador 1',farming:0,mining:0,foraging:0,fishing:0,combat:0,mine:0},{name:'Jogador 2',farming:0,mining:0,foraging:0,fishing:0,combat:0,mine:0}],
-       farm:{crops:'nenhuma',sprinklers:false,coop:false,barn:false,silo:false,furnace:false,crab:false,greenhouse:false},
+     st=normalize({example:false,year:1,season:0,day:1,weather:'sol',forecast:'',luck:'',money:500,mine:0,cc:{},
+       players:[{name:'Jogador 1',farming:0,mining:0,foraging:0,fishing:0,combat:0},{name:'Jogador 2',farming:0,mining:0,foraging:0,fishing:0,combat:0}],
+       farm:{crops:'nenhuma',sprinklers:false,coop:false,barn:false,silo:false,furnace:false,crab:false,greenhouse:false,fiberRod:false},
        unl:{cc:false,beach:false,woods:false,bus:false,minecart:false,quarry:false,skull:false,island:false}});
      commit(); }); return; }
   const tab=e.target.closest('[data-tab]');
@@ -989,14 +1020,14 @@ async function askClaude(){
   const plan=buildPlan(), c=plan.c;
   const summary={
     data:`Ano ${st.year}, ${SEASONS[c.S]} dia ${c.D} (${WEEK[c.wd]})`, clima:WEATHER[st.weather], amanha:st.forecast?WEATHER[st.forecast]:'desconhecido', sorte:LUCK[st.luck], ouro:st.money,
-    jogadores:st.players.map(p=>({nome:p.name,cultivo:p.farming,mineracao:p.mining,coleta:p.foraging,pesca:p.fishing,combate:p.combat,andar_minas:p.mine})),
+    jogadores:st.players.map(p=>({nome:p.name,cultivo:p.farming,mineracao:p.mining,coleta:p.foraging,pesca:p.fishing,combate:p.combat})), andar_minas:st.mine,
     fazenda:st.farm, liberado:st.unl, festivais_hoje:plan.fests.map(f=>f[3]), aniversario:plan.bday||null,
     salas_completas:ROOMS.filter(roomDone).map(r=>r.name),
     pacotes_faltando:ROOMS.flatMap(r=>r.bundles.filter(b=>!bundleDone(b)).map(b=>`${b.name} (${bundleCount(b)}/${b.need}; faltam: ${b.items.filter((_,i)=>!st.cc[itemKey(b.id,i)]).map(i=>i.n).join(', ')})`)),
     itens_do_cc_possiveis_hoje:plan.cc.filter(x=>x.ok!==false).slice(0,8).map(x=>`${x.it.n} (${x.it.h})`),
     missoes_sugeridas:plan.missions.map((m,i)=>m&&`${st.players[i].name}: ${m.goal}`),
-    rotina:[...plan.home,...plan.farm].map(t=>t.t.replace(/<[^>]+>/g,'')),
-    plantar:plan.plants.map(p=>`${p.n} (${p.g} dias, lucro ~${p.profit}g)`)
+    tarefas:plan.tasks.map(t=>t.t.replace(/<[^>]+>/g,'')),
+    plantar_para_pacotes:plan.plants.cc.map(p=>`${p.n} (${p.bundle.b.name})`), plantar_para_dinheiro:plan.plants.money.map(p=>`${p.n} (lucro ~${p.profit}g)`)
   };
   const prompt=`Você é um amigo experiente em Stardew Valley (versão 1.6, Nintendo Switch) ajudando um casal de iniciantes que joga em tela dividida (co-op local).
 Com base no estado abaixo, escreva o plano do dia deles em português do Brasil, com tom leve e direto. Seja específico ao jogo (lugares, horários, itens). Não invente dados que contradigam o estado.
