@@ -59,6 +59,15 @@ button{cursor:pointer}
 .datebig h1{font-size:clamp(1.8rem,5vw,2.6rem);line-height:1.05;color:var(--season)}
 .datebig .sub{font-weight:600}
 .chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.daypick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;flex:1 1 360px;max-width:520px;min-width:0}
+.pick{display:flex;flex-direction:column;gap:3px;border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:6px 8px;min-width:0;cursor:pointer}
+.pick span{font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pick select{-webkit-appearance:none;appearance:none;border:0;background:transparent;font-size:16px;font-weight:700;padding:0 14px 0 0;width:100%;min-width:0;color:inherit;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 6px) 55%,calc(100% - 2px) 55%;background-size:4px 4px,4px 4px;background-repeat:no-repeat}
+.pick.rain{background:var(--sky-soft);border-color:transparent}.pick.rain select{color:var(--sky)}
+.pick.luckg{background:var(--gold-soft);border-color:transparent}.pick.luckg select{color:var(--gold)}
+.pick.luckb{background:var(--berry-soft);border-color:transparent}.pick.luckb select{color:var(--berry)}
+.pick.todo{border:1.5px dashed var(--gold)}
+@media (max-width:620px){.daypick{flex-basis:100%;max-width:none;gap:6px}.pick{padding:6px 6px 6px 8px}.pick select{font-size:16px;font-weight:600;letter-spacing:-.01em;padding-right:0;background-image:none}.dateband{padding:12px}}
 .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel2);padding:5px 11px;border-radius:999px;font-size:.88rem;font-weight:600;white-space:nowrap}
 .chip.rain{background:var(--sky-soft);border-color:transparent;color:var(--sky)}
 .chip.fest{background:var(--berry-soft);border-color:transparent;color:var(--berry)}
@@ -267,6 +276,8 @@ const TOOL0={wcan:0,hoe:0,pick:0,axe:0,rod:1,pack:0};
 const UPG=[[2000,'cobre'],[5000,'ferro'],[10000,'ouro'],[25000,'irídio']];
 const TOOL_ART={wcan:'o regador',hoe:'a enxada',pick:'a picareta',axe:'o machado'};
 const TOOL_WHY={wcan:'Regador melhor molha várias plantas de uma vez.',pick:'Picareta melhor quebra pedras com menos golpes e abre pedras grandes.',axe:'Machado melhor corta tocos e troncos grandes (madeira de lei).',hoe:'Enxada melhor prepara várias casas de terra de uma vez.'};
+const WEATHER_S={sol:'Sol',chuva:'Chuva',tempestade:'Temporal',vento:'Vento',neve:'Neve'};
+const LUCK_S={'':'Não vi','2':'Ótima','1':'Boa','0':'Normal','-1':'Ruim','-2':'Péssima'};
 const SKILLS=[['farming','Cultivo'],['mining','Mineração'],['foraging','Coleta'],['fishing','Pesca'],['combat','Combate']];
 
 const BIRTHDAYS={
@@ -1129,12 +1140,12 @@ function renderHeader(plan){
      <h1>${SEASONS[c.S]} ${c.D}</h1>
      <span class="sub muted small">${c.S<3?`Faltam ${c.daysLeft} dias para acabar a estação${c.rain&&st.farm.crops!=='nenhuma'?' · a chuva rega tudo hoje':''}`:'Inverno: tempo de minas, pesca e amizades'}</span>
    </div>
-   <div class="chips">
-     <span class="chip ${c.rain?'rain':''}">Hoje: ${WEATHER[st.weather]}</span>
-     ${st.forecast?`<span class="chip">Amanhã: ${WEATHER[st.forecast]}</span>`:''}
-     <span class="chip ${luckCls}">Sorte: ${LUCK[st.luck]}</span>
-     ${plan.fests.map(f=>`<span class="chip fest">${esc(f[3])}</span>`).join('')}
+   <div class="daypick">
+     <label class="pick ${c.rain?'rain':''}" for="h-weather" title="Clima de hoje"><span>Clima</span>${sel('weather',Object.entries(WEATHER_S),st.weather,'h-weather')}</label>
+     <label class="pick ${st.forecast===''?'todo':''}" for="h-forecast" title="Previsão de amanhã (TV)"><span>Amanhã</span>${sel('forecast',[['','Não vi'],...Object.entries(WEATHER_S)],st.forecast,'h-forecast')}</label>
+     <label class="pick ${luckCls} ${st.luck===''?'todo':''}" for="h-luck" title="Sorte do dia (TV)"><span>Sorte</span>${sel('luck',Object.entries(LUCK_S),st.luck,'h-luck')}</label>
    </div>
+   ${plan.fests.length?`<div class="chips">${plan.fests.map(f=>`<span class="chip fest">${esc(f[3])}</span>`).join('')}</div>`:''}
    <div class="actions">
      <button class="btn primary" id="nextDay">Próximo dia →</button>
    </div>`;
@@ -1367,7 +1378,7 @@ function render(opts={}){
 /* ---------- Eventos ---------- */
 document.addEventListener('change',e=>{
   if(e.target.dataset.done){ toggleTask(e.target.dataset.done,e.target.checked); return; }
-  if(e.target.closest('#farmCol')) onFormInput(e);
+  if(e.target.closest('#farmCol')||e.target.closest('#dateband')) onFormInput(e);
 });
 document.addEventListener('input',e=>{
   if(e.target.closest('#farmCol') && (e.target.type==='text'||e.target.type==='number')) onFormInput(e);
