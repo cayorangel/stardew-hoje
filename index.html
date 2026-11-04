@@ -265,6 +265,8 @@ const TOOLS=[
 const TOOL0={wcan:0,hoe:0,pick:0,axe:0,rod:1,pack:0};
 // melhoria no Clint para o próximo nível: [ouro, barra]
 const UPG=[[2000,'cobre'],[5000,'ferro'],[10000,'ouro'],[25000,'irídio']];
+const TOOL_ART={wcan:'o regador',hoe:'a enxada',pick:'a picareta',axe:'o machado'};
+const TOOL_WHY={wcan:'Regador melhor molha várias plantas de uma vez.',pick:'Picareta melhor quebra pedras com menos golpes e abre pedras grandes.',axe:'Machado melhor corta tocos e troncos grandes (madeira de lei).',hoe:'Enxada melhor prepara várias casas de terra de uma vez.'};
 const SKILLS=[['farming','Cultivo'],['mining','Mineração'],['foraging','Coleta'],['fishing','Pesca'],['combat','Combate']];
 
 const BIRTHDAYS={
@@ -543,6 +545,33 @@ ROOMS.forEach(r=>r.bundles.forEach(b=>b.items.forEach(it=>{
   if(FISH_INFO[it.en]) it.h=FISH_INFO[it.en];
   const mi=MINE_INFO[it.en]; if(mi){ it.fl=[mi[0],mi[1]]; it.h=mi[2]; if(mi[3]) it.bar=1; }
 })));
+// Construções (Robin) e máquinas (receitas). ok(): já dá para fazer; need(): só faz sentido se...
+const BUILD=[
+ {id:'coop',n:'Galinheiro',en:'Coop',robin:1,g:4000,mat:'300 madeira e 100 pedra',why:'Ovos para o pacote de Animais.',cc:1},
+ {id:'barn',n:'Estábulo',en:'Barn',robin:1,g:6000,mat:'350 madeira e 150 pedra',why:'Leite e lã para os pacotes de Animais e Artesão.',cc:1},
+ {id:'silo',n:'Silo',en:'Silo',robin:1,g:100,mat:'100 pedra, 10 argila e 5 barras de cobre',ok:()=>st.farm.furnace,need:()=>st.farm.coop||st.farm.barn,why:'Guarda o feno do capim cortado com a foice, assim não precisam comprar feno.'},
+ {id:'kitchen',n:'Casa com cozinha',en:'House upgrade',robin:1,g:10000,mat:'450 madeira',why:'Libera cozinhar: Ovo frito e Maki do pacote do Chef, e comida para energia.',cc:1},
+ {id:'stable',n:'Estábulo do cavalo',en:'Stable',robin:1,g:10000,mat:'100 madeira de lei e 5 barras de ferro',ok:()=>maxTool('axe')>=1&&st.mine>=40,why:'Vem com um cavalo: andam muito mais rápido.'},
+ {id:'pond',n:'Tanque de peixes',en:'Fish Pond',robin:1,g:5000,mat:'200 pedra, 5 algas marinhas e 5 algas verdes',why:'Cria peixes e dá ovas.'},
+ {id:'shed',n:'Galpão',en:'Shed',robin:1,g:15000,mat:'300 madeira',why:'Espaço coberto para muitas máquinas.'},
+ {id:'mayo',n:'Máquina de maionese',en:'Mayonnaise Machine',sk:['farming',2],mat:'15 madeira, 15 pedra, 1 cristal de terra e 1 barra de cobre',ok:()=>st.farm.furnace,need:()=>st.farm.coop,why:'Ovo vira maionese, que vende bem melhor.'},
+ {id:'tapper',n:'Torneira',en:'Tapper',sk:['foraging',3],mat:'40 madeira e 2 barras de cobre',ok:()=>st.farm.furnace,why:'Colocada numa árvore: bordo dá xarope, carvalho dá resina e pinheiro dá piche (pacotes Chef, Coleta Exótica e Encantador).',cc:1},
+ {id:'bee',n:'Colmeia',en:'Bee House',sk:['farming',3],mat:'40 madeira, 8 carvão, 1 barra de ferro e 1 xarope de bordo',ok:()=>st.mine>=40&&own('tapper'),why:'Dá mel (pacote de Artesão). Rende mais perto de flores.',cc:1},
+ {id:'jar',n:'Jarra de conserva',en:'Preserves Jar',sk:['farming',4],mat:'50 madeira, 40 pedra e 8 carvão',why:'Fruta vira geleia (pacote de Artesão) e legume vira picles.',cc:1},
+ {id:'recycler',n:'Máquina de reciclagem',en:'Recycling Machine',sk:['fishing',4],mat:'25 madeira, 25 pedra e 1 barra de ferro',ok:()=>st.mine>=40,why:'Lixo da pesca vira pedra, carvão, minério de ferro e outras coisas úteis.'},
+ {id:'kiln',n:'Forno de carvão',en:'Charcoal Kiln',sk:['foraging',4],mat:'20 madeira e 2 barras de cobre',ok:()=>st.farm.furnace,why:'Madeira vira carvão.'},
+ {id:'cheese',n:'Prensa de queijo',en:'Cheese Press',sk:['farming',6],mat:'45 madeira, 45 pedra, 10 madeira de lei e 1 barra de cobre',ok:()=>st.farm.furnace&&maxTool('axe')>=1,need:()=>st.farm.barn,why:'Leite vira queijo (pacote de Artesão).',cc:1},
+ {id:'lrod',n:'Para-raios',en:'Lightning Rod',sk:['foraging',6],mat:'1 barra de ferro, 1 quartzo refinado e 5 asas de morcego',ok:()=>st.mine>=40,why:'Protege das tempestades e dá baterias.'},
+ {id:'loom',n:'Tear',en:'Loom',sk:['farming',7],mat:'60 madeira, 30 fibra e 1 piche de pinheiro',ok:()=>own('tapper'),need:()=>st.farm.barn,why:'Lã vira tecido (pacote de Artesão).',cc:1},
+ {id:'keg',n:'Barril',en:'Keg',sk:['farming',8],mat:'30 madeira, 1 barra de cobre, 1 barra de ferro e 1 resina de carvalho',ok:()=>st.mine>=40&&own('tapper'),why:'Fruta vira vinho (pacotes Encantador e Artesão).',cc:1},
+ {id:'oil',n:'Prensa de óleo',en:'Oil Maker',sk:['farming',8],mat:'50 gosma, 20 madeira de lei e 1 barra de ouro',ok:()=>st.mine>=80&&maxTool('axe')>=1,need:()=>st.farm.barn,why:'Trufa vira óleo de trufa (pacote de Artesão).',cc:1},
+ {id:'seedmaker',n:'Fabricante de sementes',en:'Seed Maker',sk:['farming',9],mat:'25 madeira, 10 carvão e 1 barra de ouro',ok:()=>st.mine>=80,why:'Uma colheita vira várias sementes.'},
+ {id:'crystal',n:'Cristalário',en:'Crystalarium',sk:['mining',9],mat:'99 pedra, 5 barras de ouro, 2 barras de irídio e 1 bateria',ok:()=>st.unl.skull&&own('lrod'),why:'Copia joias e minerais sem parar.'}
+];
+const SKILL_PT={farming:'Cultivo',mining:'Mineração',foraging:'Coleta',fishing:'Pesca',combat:'Combate'};
+function own(id){ if(id==='coop') return !!st.farm.coop; if(id==='barn') return !!st.farm.barn; return (st.owned||{})[id]==='have'; }
+function wants(id){ if(own(id)) return false; return ((st.owned||{})[id]||'want')==='want'; }
+function maxTool(k){ return Math.max(tl(0,k),tl(1,k)); }
 // Onde cada morador mora (e onde costuma estar)
 const HOME={
  Maru:'na Carpintaria da Robin, na montanha (norte da cidade)',Robin:'na Carpintaria da Robin, na montanha (norte da cidade)',
@@ -615,7 +644,10 @@ function normalize(s){
   out.players=[0,1].map(i=>Object.assign(clone(EXAMPLE.players[i]),(s.players||[])[i]||{}));
   out.farm=Object.assign(clone(EXAMPLE.farm),s.farm||{});
   out.unl=Object.assign(clone(EXAMPLE.unl),s.unl||{});
-  out.cc=s.cc||(s.example===false?{}:out.cc); out.done=s.done||{}; out.planted=Array.isArray(s.planted)?s.planted:[];
+  out.cc=s.cc||(s.example===false?{}:out.cc); out.done=s.done||{}; out.planted=Array.isArray(s.planted)?s.planted:[]; out.upgrading=Array.isArray(s.upgrading)?s.upgrading:[];
+  out.owned=Object.assign({},s.owned||{});
+  if(out.farm.crabWhere==null) out.farm.crabWhere=out.farm.crab?'mar':'';
+  out.farm.crab=!!out.farm.crabWhere;
   if(s.mine==null && s.players) out.mine=Math.max(0,...s.players.map(p=>+p.mine||0));
   out.players.forEach(p=>delete p.mine);
   out.players.forEach((pl,i)=>{
@@ -670,6 +702,8 @@ function applyFx(fx){
   if(fx.money){ const b=st.money; st.money=Math.max(0,st.money+fx.money); prev.money=st.money-b; }
   (fx.set||[]).forEach(([path,val])=>{prev.set.push([path,getByPath(path)]); setByPath(path,val);});
   if(fx.plant){ st.planted=(st.planted||[]).filter(r=>r.id!==fx.plant.id); st.planted.push(clone(fx.plant)); }
+  if(fx.upg){ st.upgrading=(st.upgrading||[]).filter(u=>u.id!==fx.upg.id); st.upgrading.push(clone(fx.upg)); }
+  if(fx.unupg){ prev.unupg=(st.upgrading||[]).find(u=>u.id===fx.unupg)||null; st.upgrading=(st.upgrading||[]).filter(u=>u.id!==fx.unupg); }
   if(fx.unplant){ prev.unplanted=(st.planted||[]).find(r=>r.id===fx.unplant)||null; st.planted=(st.planted||[]).filter(r=>r.id!==fx.unplant); }
   return prev;
 }
@@ -679,6 +713,8 @@ function undoFx(fx,prev){
   if(prev.money) st.money=Math.max(0,st.money-prev.money);
   (prev.set||[]).slice().reverse().forEach(([path,val])=>setByPath(path,val));
   if(fx.plant) st.planted=(st.planted||[]).filter(r=>r.id!==fx.plant.id);
+  if(fx.upg) st.upgrading=(st.upgrading||[]).filter(u=>u.id!==fx.upg.id);
+  if(prev.unupg) st.upgrading=[...(st.upgrading||[]),prev.unupg];
   if(prev.unplanted) st.planted=[...(st.planted||[]),prev.unplanted];
 }
 let lastTasks={};
@@ -744,7 +780,7 @@ function ccToday(c){
       if(it.w==='sun' && c.rain) return;
       if(it.k==='fish' && !c.rodOk) return;
       if(it.k==='mine' && !c.minesOpen) return;
-      if(it.k==='crab' && !st.farm.crab) return;
+      if(it.k==='crab' && !st.farm.crabWhere) return;
       const ok=reqOk(it.req,c);
       let score=ok?3:0, tag=null;
       if(it.w==='rain'){score+=3;tag='Só na chuva';}
@@ -870,15 +906,36 @@ function buildPlan(){
       fl>=9&&st.unl.skull?'Receita de Cultivo 9: 1 barra de ouro + 1 de irídio + 1 bateria. Rega 24 quadrados em volta.':'Receita de Cultivo 6: 1 barra de ferro + 1 de ouro + 1 quartzo refinado. Rega os 8 quadrados em volta.',fi,{set:[['farm.sprinklers',true]]})); }
   if(!st.farm.furnace && c.minesOpen) tasks.push(T('furnace',2,'Levar minério de cobre para o Clint','Ele ensina a fazer a fornalha, que transforma minério em barras.','act:mines',{set:[['farm.furnace',true]]}));
   if(c.wd!==2) [0,1].filter(i=>tl(i,'pack')===0).forEach(i=>{ if(spend(2000)) tasks.push(T('pack-'+i,2,'Comprar a mochila grande no Pierre','2.000g. São 12 espaços a mais, menos viagens para casa.',i,{set:[[`players.${i}.tools.pack`,1]],money:-2000})); });
-  { const i=tl(0,'wcan')<=tl(1,'wcan')?0:1, lv=tl(i,'wcan');
-    const barOk=[st.farm.furnace,st.mine>=40,st.mine>=80,st.unl.skull][lv];
-    if(lv<4 && barOk && ((c.tomorrowRain&&!c.rain&&hasCrops)||c.S===3) && spend(UPG[lv][0])) tasks.push(T(`upgrade-${i}-${lv+1}`,2,`Deixar o regador para virar de ${LV[lv+1].toLowerCase()} no Clint`,
-      (c.S===3?'No inverno não há o que regar, então não vai fazer falta. ':'Amanhã chove, então não vai fazer falta. ')+`Custa ${upgText(lv)} e leva 2 dias.`,i,{set:[[`players.${i}.tools.wcan`,lv+1]],money:-UPG[lv][0]})); }
-  if(!st.cc['con:3'] && Math.max(tl(0,'axe'),tl(1,'axe'))===0 && st.farm.furnace){
-    const i=P[0].foraging>=P[1].foraging?0:1;
-    if(spend(UPG[0][0])) tasks.push(T('axe',2,'Deixar o machado para virar de cobre no Clint',`Machado de cobre corta os tocos grandes que dão madeira de lei (pacote de Construção). Custa ${upgText(0)}.`,i,{set:[[`players.${i}.tools.axe`,1]],money:-UPG[0][0]}));
+  // Covos: recolher todo dia e mudar de lugar quando o pacote precisar
+  if(st.farm.crabWhere){
+    const cp=bundleById('cp'), SEA=[0,2,3,4,5,8,9], FRESH=[1,6,7];
+    const miss=ix=>ix.filter(k=>!st.cc['cp:'+k]).map(k=>cp.items[k].n);
+    const sea=miss(SEA), fresh=miss(FRESH), done=bundleDone(cp), where=st.farm.crabWhere;
+    const fi=P[0].fishing>=P[1].fishing?0:1;
+    const here=where==='mar'?sea:fresh;
+    tasks.push(T('crabcheck',1,`Recolher os covos ${where==='mar'?'na praia':'no rio ou lago'} e colocar isca de novo`,
+      (done?'O pacote de Covos já está completo: o que sair pode vender. ':here.length?`Para o pacote de Covos ainda faltam: ${here.join(', ')}. O que vier, entreguem no Centro Comunitário. `:'')+'Isca: o Willy vende por 5g cada. Um covo sem isca não pega nada.',fi));
+    if(!done && where==='mar' && !sea.length && fresh.length) tasks.push(T('crabmove',2,'Mudar os covos para o rio ou o lago',`No mar já saiu tudo que o pacote precisa. ${fresh.join(', ')} só saem em água doce: rio da cidade, rio da Floresta Cinzaseiva ou lago da montanha.`,fi,{set:[['farm.crabWhere','doce']]}));
+    if(!done && where==='doce' && !fresh.length && sea.length) tasks.push(T('crabmove',2,'Mudar os covos para a praia',`Na água doce já saiu tudo que o pacote precisa. ${sea.join(', ')} só saem no mar.`,fi,{set:[['farm.crabWhere','mar']]}));
   }
-  if(!st.farm.coop && spend(4000)) tasks.push(T('coop',2,'Encomendar um galinheiro na Robin','Custa 4.000g, 300 de madeira e 100 de pedra. Os ovos servem para o pacote de Animais.','bal',{set:[['farm.coop',true]],money:-4000}));
+  // Ferramentas que estão com o Clint
+  st.upgrading=(st.upgrading||[]).filter(u=>u&&u.readyAbs);
+  st.upgrading.forEach(u=>{ if(now>=u.readyAbs) tasks.push(T(`pickup-${u.id}`,1,`Buscar ${TOOL_ART[u.tool]} no Clint`,`Já está pronta: agora é de ${LV[u.lv].toLowerCase()}. O Clint atende das 9h às 16h.`,u.i,{set:[[`players.${u.i}.tools.${u.tool}`,u.lv]],unupg:u.id})); });
+  // Construções e máquinas que vocês querem e ainda não têm
+  { let n=0, robinUsed=false;
+    const list=BUILD.filter(b=>wants(b.id)&&(!b.need||b.need())&&(!b.ok||b.ok()));
+    list.sort((a,b)=>(b.cc?1:0)-(a.cc?1:0));
+    for(const b of list){
+      if(n>=2) break;
+      let who='bal';
+      if(b.sk){ const [k,lv]=b.sk; const able=[0,1].filter(i=>P[i][k]>=lv); if(!able.length) continue; who=able.length===2?(P[0][k]>=P[1][k]?0:1):able[0]; }
+      if(b.robin){ if(robinUsed || !spend(b.g)) continue; robinUsed=true; }
+      n++;
+      tasks.push(T('build-'+b.id,b.cc?2:3,b.robin?`Encomendar ${b.n.toLowerCase()} na Robin`:`Fazer ${b.n.toLowerCase()}`,
+        `${b.robin?`Custa ${b.g.toLocaleString('pt-BR')}g, `:'Materiais: '}${b.mat}. ${b.why}${b.sk?` Receita de ${SKILL_PT[b.sk[0]]} ${b.sk[1]}.`:' A Robin leva alguns dias para construir.'}`,who,
+        {set:[[b.id==='coop'?'farm.coop':b.id==='barn'?'farm.barn':'owned.'+b.id,b.id==='coop'||b.id==='barn'?true:'have']],money:b.robin?-b.g:0}));
+    }
+  }
   if(c.wd!==2 && tl(0,'pack')>=1 && tl(1,'pack')>=1){ const n2=[0,1].filter(i=>tl(i,'pack')===1); if(n2.length && spend(10000)) tasks.push(T('pack2',3,'Comprar a mochila de luxo no Pierre','10.000g, mais 12 espaços.',n2[0],{set:[[`players.${n2[0]}.tools.pack`,2]],money:-10000})); }
   if(c.wd===4||c.wd===6){
     const want=missingNames(['long','crop'],3);
@@ -931,6 +988,30 @@ function buildPlan(){
     if(top && c.daysLeft>=top.g) tasks.push(T('seeds',3,`Plantar ${top.n} para vender`,`Semente de ${top.seed}g ${top.shop}. Lucro de uns ${top.profit}g por semente até o fim da estação.`,farmerIdx));
   }
 
+  // Melhorar ferramentas: uma por jogador, só quando a barra já está ao alcance e a ferramenta não faz falta hoje
+  { let bud=c.budget??st.money;
+    const barOk=lv=>[st.farm.furnace,st.mine>=40,st.mine>=80,st.unl.skull][lv];
+    [0,1].forEach(i=>{
+      if((st.upgrading||[]).some(u=>u.i===i)) return;
+      const mid=missions[i]&&missions[i].id;
+      const order=[
+        ['wcan',(c.tomorrowRain&&!c.rain)||c.S===3||!hasCrops||(i!==farmerIdx&&!waterBoth)],
+        ['pick',mid!=='mines'&&mid!=='skull'],
+        ['axe',mid!=='forage'],
+        ['hoe',c.S===3]
+      ];
+      for(const [k,okToday] of order){
+        const lv=tl(i,k); if(lv>=4||!okToday||!barOk(lv)) continue;
+        const cost=UPG[lv][0]; if(cost>bud) continue;
+        bud-=cost;
+        const id=`${i}-${k}-${lv+1}`;
+        tasks.push(T('upg-'+id,2,`Deixar ${TOOL_ART[k]} no Clint para virar de ${LV[lv+1].toLowerCase()}`,
+          `Custa ${upgText(lv)}. O Clint fica com ela 2 dias e a página avisa quando for buscar. ${TOOL_WHY[k]}`,i,{upg:{id,i,tool:k,lv:lv+1,readyAbs:now+2},money:-cost}));
+        break;
+      }
+    });
+    c.budget=bud;
+  }
   // Dividir as tarefas: primeiro as que têm dono, depois equilibrando as listas
   const perPlayer=[[],[]];
   const owner=w=>{ if(typeof w==='string'&&w.startsWith('act:')){const o=assign.findIndex(a=>a&&a.id===w.slice(4)); return o>=0?o:'bal';} return w; };
@@ -993,7 +1074,7 @@ function fishMission(p,c,items,i){
     if(tl(other,'rod')>=2) tasks.unshift(`Pegar a vara de ${tl(other,'rod')===3?'irídio':'fibra de vidro'} de ${st.players[other].name} emprestada`);
     else if((c.budget??st.money)>=1800){ c.budget=(c.budget??st.money)-1800; tasks.unshift({id:'rod2',fx:{set:[[`players.${i}.tools.rod`,2]],money:-1800},t:'Comprar a vara de fibra de vidro e isca no Willy (1.800g)'}); }
   }
-  if(p.fishing>=3 && !st.farm.crab && st.mine>=40) tasks.push({id:'crab',fx:{set:[['farm.crab',true]]},t:'Fazer 2 covos e colocar no mar',d:'Cada covo: 40 madeira + 3 barras de ferro (receita de Pesca 3). Coloquem isca dentro todo dia.'});
+  if(p.fishing>=3 && !st.farm.crabWhere && st.mine>=40) tasks.push({id:'crab',fx:{set:[['farm.crabWhere','mar'],['farm.crab',true]]},t:'Fazer 2 covos e colocar no mar',d:'Cada covo: 40 madeira + 3 barras de ferro (receita de Pesca 3). Coloquem isca dentro todo dia.'});
   const why=c.rain?'Dia de chuva é o melhor para pescar: aparecem peixes raros.':items.length?'Tem peixe dos pacotes disponível hoje.':'Peixe dá dinheiro rápido e treina a habilidade.';
   let tip=p.fishing<2?'Segurem o botão para lançar mais longe. Na barra verde, toques curtos seguram o peixe.':'Guardem 1 de cada peixe dos pacotes antes de vender.';
   if(p.fishing>=2 && tl(i,'rod')<2 && tl(other,'rod')>=2) tip='Para emprestar, quem tem a vara coloca ela num baú ou joga no chão perto do outro.';
@@ -1208,6 +1289,7 @@ function renderForm(){
     <div class="fields">
      <div class="field"><label for="f-money">Ouro</label>${num('money',st.money,0,99999999,'f-money')}</div>
      <div class="field"><label for="f-mine">Andar das minas</label>${num('mine',st.mine,0,120,'f-mine')}</div>
+     <div class="field" style="grid-column:1 / -1"><label for="f-crabw">Covos</label>${sel('farm.crabWhere',[['','Não temos'],['mar','No mar (praia)'],['doce','No rio ou lago']],f.crabWhere||'','f-crabw')}</div>
      <div class="field" style="grid-column:1 / -1"><label for="f-crops">Plantações lá fora</label>${sel('farm.crops',[['nenhuma','Nenhuma'],['poucas','Poucas (até ~40)'],['muitas','Muitas']],f.crops,'f-crops')}</div></div>
     <div class="checks">
      ${chk('farm.sprinklers',f.sprinklers,'Temos irrigadores de qualidade (ou melhores)','f-spr')}
@@ -1215,7 +1297,6 @@ function renderForm(){
      ${chk('farm.coop',f.coop,'Temos galinheiro','f-coop')}
      ${chk('farm.barn',f.barn,'Temos estábulo','f-barn')}
      ${chk('farm.silo',f.silo,'Temos silo','f-silo')}
-     ${chk('farm.crab',f.crab,'Temos covos na água','f-crab')}
      ${chk('farm.greenhouse',f.greenhouse,'Estufa consertada','f-gh')}
     </div>
     <p class="small muted" style="margin:0">Ouro e andar das minas são da fazenda, os dois compartilham. O andar mais fundo aparece no elevador.</p>`);
@@ -1224,6 +1305,12 @@ function renderForm(){
       <div class="fields">${[0,1].map(i=>`<div class="field"><label for="t${i}-${k}" class="small muted" style="text-transform:none;letter-spacing:0">${esc(P[i].name)}</label>${sel(`players.${i}.tools.${k}`,levels.map((n,v)=>[v,n]),tl(i,k),`t${i}-${k}`)}</div>`).join('')}</div></div>`).join('');
     h+=sec('eq','Equipamentos',`${esc(LV[tl(0,'wcan')])} / ${esc(LV[tl(1,'wcan')])} no regador`,`<div class="fields">${rows}</div>
       <p class="small muted" style="margin:0">Cada um tem as próprias ferramentas. O nível aparece no nome da ferramenta no inventário (cobre, aço, ouro, irídio).</p>`);
+  }
+  {
+    const opts=[['want','Queremos'],['have','Já temos'],['no','Não queremos']];
+    const rows=BUILD.filter(b=>b.id!=='coop'&&b.id!=='barn').map(b=>`<div class="field"><label for="b-${b.id}">${esc(b.n)} <span class="en" style="text-transform:none;letter-spacing:0">${esc(b.en)}</span></label>${sel('owned.'+b.id,opts,(st.owned||{})[b.id]||'want','b-'+b.id)}</div>`).join('');
+    const have=BUILD.filter(b=>own(b.id)).length;
+    h+=sec('build','Construções e máquinas',`${have} de ${BUILD.length}`,`<p class="small muted" style="margin:0">Marquem o que já têm e o que não querem. O que estiver em "Queremos" aparece como tarefa quando já der para fazer (nível de habilidade, materiais e ouro). Galinheiro e estábulo ficam na seção Fazenda.</p><div class="fields">${rows}</div>`);
   }
   h+=sec('lib','Lugares liberados',`${Object.values(u).filter(Boolean).length} de 8`,`<div class="checks">
      ${chk('unl.cc',u.cc,'Já vimos a cena do Centro Comunitário','u-cc')}
