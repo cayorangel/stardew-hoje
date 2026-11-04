@@ -738,6 +738,10 @@ function giftText(name){
   if(!g.length) return 'Presente que a pessoa ama no aniversário vale 8× mais amizade.';
   return 'Ama: '+g.map(([n,h])=>`${n} (${h})`).join('; ')+'. No aniversário, um presente amado vale 8× mais amizade.';
 }
+// Quem faz o quê: sorteio do dia (fixo no mesmo dia, muda no dia seguinte).
+// Se só um dos dois já tem nível 10 numa habilidade, o outro faz, para chegar ao 10 também.
+function dayRand(key){ let h=2166136261; const str=absDay(st)+':'+key; for(const ch of str){ h^=ch.charCodeAt(0); h=Math.imul(h,16777619); } return (h>>>0)%2; }
+function pickFor(k){ const a=(st.players[0][k]||0)>=10, b=(st.players[1][k]||0)>=10; if(a&&!b) return 1; if(b&&!a) return 0; return dayRand(k); }
 function goldChance(level,fert){return 0.2*(level/10)+0.2*fert*((level+2)/12)+0.01}
 function weekday(day){return (day-1)%7}
 function festOn(season,day){return FESTIVALS.filter(f=>f[0]===season&&day>=f[1]&&day<=f[2])}
@@ -860,7 +864,7 @@ function buildPlan(){
   const T=(id,prio,t,d,who='bal',fx=null)=>({id,prio,t,d,who,fx});
   const hasCrops=st.farm.crops!=='nenhuma';
   const outdoors=c.S!==3;
-  const farmerIdx=tl(0,'wcan')!==tl(1,'wcan')?(tl(0,'wcan')>tl(1,'wcan')?0:1):(P[0].farming>=P[1].farming?0:1);
+  const farmerIdx=pickFor('farming');
 
   // Compras só até onde o ouro dá, na ordem: Centro Comunitário, mochila, ferramentas, construções
   let budget=st.money;
@@ -901,7 +905,7 @@ function buildPlan(){
     });
   }
   if(c.S===3 && !bundleDone(bundleById('wf'))) tasks.push(T('dig',2,'Cavar a terra com a enxada','Na fazenda e na floresta aparecem Raiz de Inverno e Inhame da Neve, do pacote de inverno.'));
-  { const fl=Math.max(P[0].farming,P[1].farming), fi=P[0].farming>=P[1].farming?0:1;
+  { const fl=Math.max(P[0].farming,P[1].farming), fi=pickFor('farming');
     if(!st.farm.sprinklers && st.farm.crops!=='nenhuma' && ((fl>=9&&st.unl.skull)||(fl>=6&&st.mine>=80))) tasks.push(T('sprink',2,fl>=9&&st.unl.skull?'Fazer irrigadores de irídio':'Fazer irrigadores de qualidade',
       fl>=9&&st.unl.skull?'Receita de Cultivo 9: 1 barra de ouro + 1 de irídio + 1 bateria. Rega 24 quadrados em volta.':'Receita de Cultivo 6: 1 barra de ferro + 1 de ouro + 1 quartzo refinado. Rega os 8 quadrados em volta.',fi,{set:[['farm.sprinklers',true]]})); }
   if(!st.farm.furnace && c.minesOpen) tasks.push(T('furnace',2,'Levar minério de cobre para o Clint','Ele ensina a fazer a fornalha, que transforma minério em barras.','act:mines',{set:[['farm.furnace',true]]}));
@@ -911,7 +915,7 @@ function buildPlan(){
     const cp=bundleById('cp'), SEA=[0,2,3,4,5,8,9], FRESH=[1,6,7];
     const miss=ix=>ix.filter(k=>!st.cc['cp:'+k]).map(k=>cp.items[k].n);
     const sea=miss(SEA), fresh=miss(FRESH), done=bundleDone(cp), where=st.farm.crabWhere;
-    const fi=P[0].fishing>=P[1].fishing?0:1;
+    const fi=pickFor('fishing');
     const here=where==='mar'?sea:fresh;
     tasks.push(T('crabcheck',1,`Recolher os covos ${where==='mar'?'na praia':'no rio ou lago'} e colocar isca de novo`,
       (done?'O pacote de Covos já está completo: o que sair pode vender. ':here.length?`Para o pacote de Covos ainda faltam: ${here.join(', ')}. O que vier, entreguem no Centro Comunitário. `:'')+'Isca: o Willy vende por 5g cada. Um covo sem isca não pega nada.',fi));
@@ -928,7 +932,7 @@ function buildPlan(){
     for(const b of list){
       if(n>=2) break;
       let who='bal';
-      if(b.sk){ const [k,lv]=b.sk; const able=[0,1].filter(i=>P[i][k]>=lv); if(!able.length) continue; who=able.length===2?(P[0][k]>=P[1][k]?0:1):able[0]; }
+      if(b.sk){ const [k,lv]=b.sk; const able=[0,1].filter(i=>P[i][k]>=lv); if(!able.length) continue; who=able.length===2?pickFor(k):able[0]; }
       if(b.robin){ if(robinUsed || !spend(b.g)) continue; robinUsed=true; }
       n++;
       tasks.push(T('build-'+b.id,b.cc?2:3,b.robin?`Encomendar ${b.n.toLowerCase()} na Robin`:`Fazer ${b.n.toLowerCase()}`,
@@ -951,31 +955,31 @@ function buildPlan(){
   if(c.minesOpen){
     let s=3+(c.luck??0)*1.5+Math.min(mineToday.length,3)*0.7+(c.maxMine<120?1:0);
     if(c.rain) s-=0.5;
-    acts.push({id:'mines',base:s,skill:(p,i)=>p.mining*0.35+p.combat*0.25+tl(i,'pick')*0.2,build:p=>mineMission(p,c,cc)});
+    acts.push({id:'mines',base:s,sk:'mining',build:p=>mineMission(p,c,cc)});
   }
-  if(st.unl.skull && (c.luck??0)>=1) acts.push({id:'skull',base:5+(c.luck??0),skill:p=>p.combat*0.4,build:p=>({goal:'Caverna da Caveira',why:'A sorte está boa e o acesso está liberado: é o melhor dia para descer fundo.',tasks:['Pegar o ônibus para o deserto','Levar muita comida, bombas e escadas','Descer o máximo de andares que der','Voltar antes das 2h'],tip:'Escadas pulam andares: guardem as que acharem.'})});
+  if(st.unl.skull && (c.luck??0)>=1) acts.push({id:'skull',base:5+(c.luck??0),sk:'combat',build:p=>({goal:'Caverna da Caveira',why:'A sorte está boa e o acesso está liberado: é o melhor dia para descer fundo.',tasks:['Pegar o ônibus para o deserto','Levar muita comida, bombas e escadas','Descer o máximo de andares que der','Voltar antes das 2h'],tip:'Escadas pulam andares: guardem as que acharem.'})});
   if(c.rodOk){
     let s=2+(c.rain?3:0)+Math.min(fishToday.length,3)*1.2+(c.newbie?0.5:0);
-    acts.push({id:'fish',base:s,skill:(p,i)=>p.fishing*0.45+(tl(i,'rod')>=2?0.6:0),build:(p,i)=>fishMission(p,c,fishToday,i)});
+    acts.push({id:'fish',base:s,sk:'fishing',build:(p,i)=>fishMission(p,c,fishToday,i)});
   }
   {
     const berry=(c.S===0&&c.D>=15&&c.D<=18)||(c.S===2&&c.D>=8&&c.D<=11);
     let s=1.5+(berry?3:0)+Math.min(forageToday.length,3)*0.9+(c.newbie?0.5:0);
-    acts.push({id:'forage',base:s,skill:(p,i)=>p.foraging*0.4,build:(p,i)=>forageMission(p,c,forageToday,berry,i)});
+    acts.push({id:'forage',base:s,sk:'foraging',build:(p,i)=>forageMission(p,c,forageToday,berry,i)});
   }
   if(outdoors && c.daysLeft>=4 && st.farm.crops!=='muitas' && plants.money.length){
     let s=1.8+(st.farm.crops==='nenhuma'?2:0.8)+(c.D<=7?1:0)+(c.newbie?1.5:0);
-    acts.push({id:'farm',base:s,skill:p=>p.farming*0.4,build:p=>farmMission(p,c,plants)});
+    acts.push({id:'farm',base:s,sk:'farming',build:p=>farmMission(p,c,plants)});
   }
   {
     let s=1+(bday?1.5:0)+(c.newbie&&c.D<=4?2:0);
-    acts.push({id:'social',base:s,skill:p=>0.2,build:p=>socialMission(p,c,bday)});
+    acts.push({id:'social',base:s,build:p=>socialMission(p,c,bday)});
   }
 
   // Distribuir: cada jogador pega a melhor atividade para si, sem repetir
   const assign=[null,null];
   const scored=[];
-  acts.forEach(a=>[0,1].forEach(i=>scored.push({a,i,v:a.base+a.skill(P[i],i)})));
+  acts.forEach(a=>[0,1].forEach(i=>scored.push({a,i,v:a.base+(a.sk&&pickFor(a.sk)===i?1.5:0)})));
   scored.sort((x,y)=>y.v-x.v);
   const used=new Set();
   for(const s of scored){ if(assign[s.i]||used.has(s.a.id)) continue; assign[s.i]=s.a; used.add(s.a.id); if(assign[0]&&assign[1]) break; }
