@@ -166,6 +166,7 @@ details.sec>summary .sum{font-family:var(--body);font-size:.8rem;color:var(--mut
 .fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
 .field{display:flex;flex-direction:column;gap:4px;min-width:0}
 .field label,.flabel{font-size:.76rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.code-show{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:1.05rem;font-weight:700;letter-spacing:.06em;background:var(--panel2);border:1px dashed var(--line);border-radius:8px;padding:10px 12px;user-select:all;overflow-wrap:anywhere}
 .sync-box{width:100%;min-height:84px;border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:8px 9px;font:inherit;font-size:16px;color:inherit;resize:vertical}
 .sync-msg{font-size:.88rem;display:flex;flex-direction:column;gap:8px}
 .sync-msg:empty{display:none}
@@ -641,6 +642,7 @@ function commit(opts={}){
   lsSet(st);
   render(opts);
   scheduleRemote();
+  schedulePush();
 }
 function scheduleRemote(){
   if(!dbDoc) return;
@@ -682,6 +684,8 @@ function undoFx(fx,prev){
 let lastTasks={};
 function toggleTask(id,checked){
   if(checked){
+    if(!st.frozen || st.frozen.abs!==absDay(st))
+      st.frozen={abs:absDay(st),lists:[0,1].map(i=>Object.values(lastTasks).filter(t=>t.pi===i).map(t=>{const c=clone(t); delete c.pi; return c;}))};
     const t=lastTasks[id]||{};
     const prev=applyFx(t.fx);
     st.done[id]={snap:{t:t.t||'',d:t.d||'',prio:t.prio||2,ord:t.ord??1,who:t.pi||0},fx:t.fx||null,prev};
@@ -943,6 +947,8 @@ function buildPlan(){
     l.push(...mt);
   });
   // Tarefas já marcadas hoje continuam na lista, mesmo que o plano tenha mudado por causa delas
+  // Depois da primeira tarefa marcada, o plano do dia fica fixo (não aparecem tarefas novas no lugar)
+  if(st.frozen && st.frozen.abs===absDay(st)){ perPlayer[0]=clone(st.frozen.lists[0]||[]); perPlayer[1]=clone(st.frozen.lists[1]||[]); }
   const ids=new Set(perPlayer.flat().map(t=>t.id));
   Object.entries(st.done||{}).forEach(([id,v])=>{ if(v&&v.snap&&!ids.has(id)) perPlayer[v.snap.who===1?1:0].push({...v.snap,id}); });
   perPlayer.forEach(l=>l.sort((a,b)=>a.ord-b.ord));
@@ -1074,7 +1080,7 @@ function renderPlan(){
   }
 
   // Plano por jogador: uma lista só, na ordem
-  h+=`<section class="card"><div class="card-h"><h2>Plano de hoje</h2><span class="small muted">Uma lista para cada um, na ordem em que vale fazer</span></div><div class="missions">`;
+  h+=`<section class="card"><div class="card-h"><h2>Plano de hoje</h2><span class="small muted">${st.frozen&&st.frozen.abs===absDay(st)?'Plano fixo para hoje. <button type="button" class="btn" id="replan" style="padding:3px 10px;font-size:.8rem">Refazer plano</button>':'Uma lista para cada um, na ordem em que vale fazer'}</span></div><div class="missions">`;
   lastTasks={};
   [0,1].forEach(i=>plan.perPlayer[i].forEach(t=>{ lastTasks[t.id]={...t,pi:i}; }));
   [0,1].forEach(i=>{
@@ -1152,7 +1158,7 @@ function ccItemHTML(x){
 
 /* ---------- Formulário ---------- */
 let openSecs=lsOpen();
-function lsOpen(){try{return JSON.parse(localStorage.getItem(LS_KEY+'-open'))||{dia:true}}catch(e){return {dia:true}}}
+function lsOpen(){try{return JSON.parse(localStorage.getItem(LS_KEY+'-open'))||{dia:true,sync:true}}catch(e){return {dia:true,sync:true}}}
 function opt(v,label,cur){return `<option value="${v}" ${String(cur)===String(v)?'selected':''}>${label}</option>`}
 function sel(path,options,cur,id){return `<select id="${id}" data-k="${path}">${options.map(([v,l])=>opt(v,l,cur)).join('')}</select>`}
 function num(path,cur,min,max,id){return `<input type="number" id="${id}" data-k="${path}" value="${cur}" min="${min}" max="${max}" inputmode="numeric">`}
@@ -1163,12 +1169,23 @@ function renderForm(){
   const P=st.players, f=st.farm, u=st.unl;
   const skillOpts=[...Array(11).keys()].map(n=>[n,n]);
   let h=`<div class="card-h"><h2>Nossa fazenda</h2><span class="save" id="saveState"></span></div>`;
-  h+=sec('sync','Passar para outro aparelho','Copiar e colar',`
-    <p class="small muted" style="margin:0">No aparelho que está com o dia certo, toquem em <b>Copiar dados</b> e mandem o texto para o outro aparelho (WhatsApp, e-mail ou Notas). No outro aparelho, colem o texto aqui embaixo e toquem em <b>Carregar</b>: os dados deste aparelho são trocados na hora (dá para desfazer).</p>
-    <div class="actions"><button type="button" class="btn primary" id="copyData">Copiar dados</button>${navigator.share?'<button type="button" class="btn" id="shareData">Enviar…</button>':''}</div>
+  const copyPaste=`<details class="small"><summary style="cursor:pointer;font-weight:700">Sem internet? Copiar e colar os dados</summary>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+    <p class="small muted" style="margin:0">No aparelho que está com o dia certo, toquem em <b>Copiar dados</b> e mandem o texto para o outro aparelho. No outro, colem aqui e toquem em <b>Carregar</b>.</p>
+    <div class="actions"><button type="button" class="btn" id="copyData">Copiar dados</button>${navigator.share?'<button type="button" class="btn" id="shareData">Enviar…</button>':''}</div>
     <textarea class="sync-box" id="pasteBox" placeholder="Colem aqui o texto copiado (começa com SDV1:)" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
-    <div class="actions"><button type="button" class="btn" id="loadData">Carregar</button></div>
-    <div class="sync-msg" id="syncMsg" role="status"></div>`);
+    <div class="actions"><button type="button" class="btn" id="loadData">Carregar</button></div></div></details>`;
+  h+=sec('sync','Sincronizar aparelhos',syncCode?'Ligado':'Desligado',syncCode?`
+    <p class="small muted" style="margin:0">Os aparelhos com este código veem sempre o mesmo dia: o que um marca aparece no outro.</p>
+    <div class="code-show" id="codeShow">${esc(syncCode)}</div>
+    <div class="actions"><button type="button" class="btn primary" id="copyCode">Copiar código</button>${navigator.share?'<button type="button" class="btn" id="shareCode">Enviar…</button>':''}<button type="button" class="btn" id="stopSync">Desligar neste aparelho</button></div>
+    <div class="sync-msg" id="syncMsg" role="status"></div>${copyPaste}`:`
+    <p class="small muted" style="margin:0">Para ver o mesmo dia no computador e no celular: no aparelho que está com o dia certo, criem o código da fazenda. No outro aparelho, digitem o mesmo código.</p>
+    <div class="actions"><button type="button" class="btn primary" id="createSync">Criar código da fazenda</button></div>
+    <div class="field"><label for="joinCode">Já têm um código?</label><input type="text" id="joinCode" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false"></div>
+    <p class="small muted" style="margin:0">Ao entrar com um código, os dados deste aparelho são trocados pelos da fazenda sincronizada.</p>
+    <div class="actions"><button type="button" class="btn" id="joinSync">Entrar com o código</button></div>
+    <div class="sync-msg" id="syncMsg" role="status"></div>${copyPaste}`);
   h+=sec('dia','Dia de hoje',`${SEASONS[st.season]} ${st.day}`,`
     <div class="fields">
      <div class="field"><label for="f-year">Ano</label>${num('year',st.year,1,99,'f-year')}</div>
@@ -1270,8 +1287,9 @@ document.addEventListener('focusout',e=>{
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-cc]');
   if(b){ const k=b.dataset.cc; if(st.cc[k]) delete st.cc[k]; else st.cc[k]=true; commit(); return; }
-  const sid=e.target.closest&&e.target.closest('#copyData,#shareData,#loadData');
-  if(sid){ ({copyData,shareData,loadData})[sid.id](); return; }
+  if(e.target.id==='replan'){ st.frozen=null; commit({keepExample:true}); return; }
+  const sid=e.target.closest&&e.target.closest('#copyData,#shareData,#loadData,#createSync,#joinSync,#copyCode,#shareCode,#stopSync');
+  if(sid){ ({copyData,shareData,loadData,createSync,joinSync,copyCode,shareCode,stopSync:syncStop})[sid.id](); return; }
   if(e.target.id==='resetBtn'){ showToast('Apagar tudo e começar do Ano 1, Primavera 1?','Apagar',()=>{
      st=normalize({example:false,year:1,season:0,day:1,weather:'sol',forecast:'',luck:'',money:500,mine:0,cc:{},
        players:[{name:'Jogador 1',farming:0,mining:0,foraging:0,fishing:0,combat:0,tools:clone(TOOL0)},{name:'Jogador 2',farming:0,mining:0,foraging:0,fishing:0,combat:0,tools:clone(TOOL0)}],
@@ -1341,7 +1359,7 @@ function nextDay(){
   st.season=d.season; st.day=d.day; st.year=d.year;
   st.weather=st.forecast||(d.season===3?'neve':'sol');
   if(d.season===3&&st.weather==='chuva') st.weather='neve';
-  st.forecast=''; st.luck=''; st.done={};
+  st.forecast=''; st.luck=''; st.done={}; st.frozen=null;
   aiText='';
   if(d.day===1) showToast(`Bem-vindos ao ${SEASONS[d.season]}! Confiram o clima e a sorte na TV.`,'Desfazer',()=>{st=undoState;commit()});
   else showToast(`${SEASONS[d.season]} ${d.day}. Confiram o clima e a sorte na TV.`,'Desfazer',()=>{st=undoState;commit()});
@@ -1410,14 +1428,105 @@ ${JSON.stringify(summary,null,1)}`;
 function setSave(mode){
   saveMode=mode;
   const el=$('#saveState'); if(!el) return;
-  el.textContent=mode==='shared'?'Salvo para vocês dois':'Salvo neste aparelho';
+  el.textContent=syncCode?(syncStatus==='on'?'Sincronizado':syncStatus==='connecting'?'Conectando…':'Sem conexão: salvo neste aparelho'):(mode==='shared'?'Salvo para vocês dois':'Salvo neste aparelho');
 }
 function applyRemote(data){
   if(!data||!data.state) return;
   st=normalize(data.state); lsSet(st); render();
 }
 
+/* ---------- Sincronização com o Firebase ---------- */
+const FB_CONFIG={apiKey:"AIzaSyClFdGdZ-bsMtESfzs7cHccjr66KbBZXv4",authDomain:"stardew-hoje.firebaseapp.com",projectId:"stardew-hoje",storageBucket:"stardew-hoje.firebasestorage.app",messagingSenderId:"51711711659",appId:"1:51711711659:web:4a7403dbd01fe969ce9aee"};
+const SYNC_KEY=LS_KEY+'-sync';
+let fbDb=null, fbDoc=null, fbUnsub=null, syncStatus='off', fbTimer=null;
+const myRevs=new Set();
+let syncCode=(()=>{try{return localStorage.getItem(SYNC_KEY)}catch(e){return null}})();
+function loadScript(src){return new Promise((res,rej)=>{const sc=document.createElement('script');sc.src=src;sc.onload=res;sc.onerror=()=>rej(new Error('load'));document.head.appendChild(sc);});}
+async function fbInit(){
+  if(fbDb) return fbDb;
+  if(!window.firebase){
+    await loadScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
+    await loadScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js');
+  }
+  const app=firebase.apps.length?firebase.app():firebase.initializeApp(FB_CONFIG);
+  fbDb=firebase.firestore(app);
+  return fbDb;
+}
+function newCode(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';const b=new Uint8Array(20);crypto.getRandomValues(b);let c='';b.forEach(x=>c+=A[x%32]);return c.match(/.{4}/g).join('-');}
+function cleanCode(t){const c=String(t||'').toUpperCase().replace(/[^A-Z0-9]/g,'');return c.length===20?c.match(/.{4}/g).join('-'):null;}
+function setSync(v){ syncStatus=v; setSave(saveMode); }
+function pushNow(){
+  if(!fbDoc) return Promise.resolve();
+  const rev=Math.random().toString(36).slice(2); myRevs.add(rev); if(myRevs.size>30) myRevs.delete(myRevs.values().next().value);
+  return fbDoc.set({json:JSON.stringify(st),rev,at:Date.now()}).then(()=>setSync('on')).catch(()=>setSync('error'));
+}
+function schedulePush(){ if(!fbDoc) return; clearTimeout(fbTimer); fbTimer=setTimeout(pushNow,800); }
+function remoteIncoming(d){
+  let state; try{ state=JSON.parse(d.json); }catch(e){ return; }
+  const data={state};
+  const editing=document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#farmCol')&&Date.now()-lastEdit<4000;
+  if(editing){ pendingRemote=data; return; }
+  applyRemote(data);
+}
+function listen(){
+  if(fbUnsub) fbUnsub();
+  fbUnsub=fbDoc.onSnapshot(snap=>{
+    setSync('on');
+    if(!snap.exists) return;
+    const d=snap.data();
+    if(myRevs.has(d.rev)) return;
+    remoteIncoming(d);
+  },()=>setSync('error'));
+}
+async function syncStart(code,mode){
+  setSync('connecting');
+  try{
+    const db=await fbInit();
+    const ref=db.collection('fazendas').doc(code);
+    if(mode==='join'){
+      const snap=await ref.get();
+      if(!snap.exists){ setSync('off'); return 'notfound'; }
+      const state=JSON.parse(snap.data().json);
+      st=normalize(state); lsSet(st);
+    }
+    fbDoc=ref; syncCode=code;
+    try{localStorage.setItem(SYNC_KEY,code)}catch(e){}
+    if(mode==='create') await pushNow();
+    listen();
+    setSync('on'); render();
+    return 'ok';
+  }catch(e){ setSync('error'); return 'error'; }
+}
+function syncStop(){
+  if(fbUnsub) fbUnsub(); fbUnsub=null; fbDoc=null; syncCode=null; clearTimeout(fbTimer);
+  try{localStorage.removeItem(SYNC_KEY)}catch(e){}
+  setSync('off'); render();
+}
+async function createSync(){
+  syncMsg('Criando…');
+  const r=await syncStart(newCode(),'create');
+  if(r==='ok'){ selectTab('fazenda'); syncMsg('Pronto. Agora, no outro aparelho, abram esta seção e digitem o código acima.','ok'); }
+  else syncMsg('Não deu para conectar ao banco. Confiram a internet e se as regras do Firestore foram publicadas, e tentem de novo.','err');
+}
+async function joinSync(){
+  const code=cleanCode(($('#joinCode')||{}).value);
+  if(!code){ syncMsg('O código tem 20 letras e números, no formato XXXX-XXXX-XXXX-XXXX-XXXX. Confiram e tentem de novo.','err'); return; }
+  syncMsg('Entrando…');
+  const r=await syncStart(code,'join');
+  if(r==='ok'){ selectTab('plano'); showToast(`Sincronizado: ${SEASONS[st.season]} ${st.day}, ano ${st.year}.`); }
+  else if(r==='notfound') syncMsg('Não achei uma fazenda com esse código. Confiram as letras: o código foi criado no outro aparelho?','err');
+  else syncMsg('Não deu para conectar ao banco. Confiram a internet e tentem de novo.','err');
+}
+function copyCode(){
+  if(!syncCode) return;
+  const ok=()=>syncMsg('Código copiado. Mandem para o outro aparelho.','ok');
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(syncCode).then(ok,()=>syncMsg('Não deu para copiar sozinho: selecionem o código acima e copiem.','err'));
+  else syncMsg('Selecionem o código acima e copiem.','err');
+}
+function shareCode(){ if(syncCode) navigator.share({title:'Código da fazenda',text:syncCode}).catch(()=>{}); }
+
 (async function boot(){
+  if(syncCode) syncStart(syncCode,'resume');
   try{ const t=sessionStorage.getItem(LS_KEY+'-tab'); if(t) selectTab(t); }catch(_){}
   render();
   if(!window.claude||!window.claude.use) return;
