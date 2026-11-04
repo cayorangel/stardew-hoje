@@ -542,6 +542,43 @@ ROOMS.forEach(r=>r.bundles.forEach(b=>b.items.forEach(it=>{
   if(FISH_INFO[it.en]) it.h=FISH_INFO[it.en];
   const mi=MINE_INFO[it.en]; if(mi){ it.fl=[mi[0],mi[1]]; it.h=mi[2]; if(mi[3]) it.bar=1; }
 })));
+// Onde cada morador mora (e onde costuma estar)
+const HOME={
+ Maru:'na Carpintaria da Robin, na montanha (norte da cidade)',Robin:'na Carpintaria da Robin, na montanha (norte da cidade)',
+ Demetrius:'na Carpintaria da Robin, na montanha (norte da cidade)',Sebastian:'no porão da Carpintaria da Robin, na montanha',
+ Abigail:'no Armazém do Pierre, no centro da cidade',Pierre:'no Armazém do Pierre, no centro da cidade',Caroline:'no Armazém do Pierre, no centro da cidade',
+ Alex:'na casa da família dele, perto do Armazém do Pierre',George:'na casa do Alex, perto do Armazém do Pierre',Evelyn:'na casa do Alex, perto do Armazém do Pierre',
+ Haley:'na casa dela e da Emily, no sul da cidade',Emily:'na casa dela e da Haley, no sul da cidade',
+ Sam:'na casa da família dele, no sudoeste da cidade',Jodi:'na casa da família do Sam, no sudoeste da cidade',Vincent:'na casa da família do Sam, no sudoeste da cidade',Kent:'na casa da família do Sam, no sudoeste da cidade',
+ Penny:'no trailer perto do Saloon',Pam:'no trailer perto do Saloon',Harvey:'no apartamento em cima da clínica',
+ Elliott:'na cabana da praia',Leah:'na casinha da Floresta Cinzaseiva',
+ Shane:'no Rancho da Marnie, na Floresta Cinzaseiva',Jas:'no Rancho da Marnie, na Floresta Cinzaseiva',Marnie:'no Rancho da Marnie, na Floresta Cinzaseiva',
+ Lewis:'na casa do prefeito, no sudeste da cidade',Gus:'no Saloon',Clint:'no Ferreiro, no leste da cidade',Willy:'na Peixaria, na praia',
+ Mago:'na Torre do Mago, no oeste da Floresta Cinzaseiva',Krobus:'no esgoto (precisa da chave do esgoto)',Linus:'na barraca ao norte do lago da montanha',
+ Sandy:'no Oásis, no deserto','Anão':'dentro da entrada das minas',Leo:'na Ilha Gengibre'
+};
+function whereText(name,c){
+  if(festOn(c.S,c.D).length) return 'Hoje tem festival: vocês encontram todo mundo lá.';
+  const wd=c.wd; let day='';
+  switch(name){
+   case 'Maru': day=(wd===1||wd===3)?'Hoje (terça ou quinta) ela trabalha na clínica do Harvey, das 9h às 16h.':'Hoje ela costuma ficar em casa ou pela montanha.'; break;
+   case 'Harvey': day=wd<5?'Durante o dia atende na clínica.':''; break;
+   case 'Pierre': day=wd===2?'Hoje (quarta) a loja fecha e ele sai pela cidade.':'Fica no balcão da loja das 9h às 17h.'; break;
+   case 'Gus': day='Fica no Saloon do meio-dia à meia-noite.'; break;
+   case 'Emily': day='À noite trabalha no Saloon, a partir das 16h.'; break;
+   case 'Clint': day='Fica no balcão do Ferreiro durante o dia.'; break;
+   case 'Willy': day='Fica na peixaria ou pescando no píer.'; break;
+   case 'Robin': day='Fica no balcão da carpintaria das 9h às 17h.'; break;
+   case 'Marnie': day=(wd===0||wd===1)?'Hoje (segunda ou terça) ela sai do rancho.':'Fica no balcão do rancho das 9h às 16h.'; break;
+   case 'Shane': day=wd<5?'De dia trabalha na JojaMart; à noite vai ao Saloon.':'À noite costuma ir ao Saloon.'; break;
+   case 'Pam': day='Costuma passar a noite no Saloon.'; break;
+   case 'Penny': day=(wd===1||wd===2||wd===4)?'Hoje de manhã ela dá aula para a Jas e o Vincent no museu.':''; break;
+   case 'Sandy': case 'Mago': case 'Krobus': case 'Linus': case 'Anão': day='Quase sempre está lá.'; break;
+  }
+  if(wd===4 && ['Abigail','Sebastian','Sam','Leah','Elliott'].includes(name)) day+=' Sexta à noite (19h–23h) costuma ir ao Saloon.';
+  if(c.rain) day+=' Com chuva, a maioria fica em casa.';
+  return `Onde achar: mora ${HOME[name]||'na cidade'}. ${day}`.trim();
+}
 // Plantações: [nome, inglês, dias, rebrota, semente, venda, extra]
 const CROPS={
  0:[['Chirívia','Parsnip',4,0,20,35],['Batata','Potato',6,0,50,80],['Couve-flor','Cauliflower',12,0,80,175],['Vagem','Green Bean',10,3,60,40,'treliça'],
@@ -577,7 +614,7 @@ function normalize(s){
   out.players=[0,1].map(i=>Object.assign(clone(EXAMPLE.players[i]),(s.players||[])[i]||{}));
   out.farm=Object.assign(clone(EXAMPLE.farm),s.farm||{});
   out.unl=Object.assign(clone(EXAMPLE.unl),s.unl||{});
-  out.cc=s.cc||(s.example===false?{}:out.cc); out.done=s.done||{};
+  out.cc=s.cc||(s.example===false?{}:out.cc); out.done=s.done||{}; out.planted=Array.isArray(s.planted)?s.planted:[];
   if(s.mine==null && s.players) out.mine=Math.max(0,...s.players.map(p=>+p.mine||0));
   out.players.forEach(p=>delete p.mine);
   out.players.forEach((pl,i)=>{
@@ -620,6 +657,41 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 function dot(t){return /[.!?]$/.test(t)?t:t+'.'}
 function tl(i,k){return (st.players[i].tools||{})[k]||0}
 function upgText(lv){const [g,bar]=UPG[lv];return `${g.toLocaleString('pt-BR')}g + 5 barras de ${bar}`}
+function absDay(s){return (s.year-1)*112+s.season*28+s.day}
+function seasonEndAbs(s,extra){return (s.year-1)*112+s.season*28+28+(extra||0)}
+function getByPath(path){return path.split('.').reduce((o,k)=>o==null?o:o[k],st)}
+// Efeitos de marcar uma tarefa: entrega no Centro Comunitário, gasto de ouro, ferramenta nova, plantio...
+function applyFx(fx){
+  if(!fx) return null;
+  const prev={cc:{},set:[],money:0};
+  (fx.cc||[]).forEach(k=>{prev.cc[k]=!!st.cc[k]; st.cc[k]=true;});
+  if(fx.money){ const b=st.money; st.money=Math.max(0,st.money+fx.money); prev.money=st.money-b; }
+  (fx.set||[]).forEach(([path,val])=>{prev.set.push([path,getByPath(path)]); setByPath(path,val);});
+  if(fx.plant){ st.planted=(st.planted||[]).filter(r=>r.id!==fx.plant.id); st.planted.push(clone(fx.plant)); }
+  if(fx.unplant){ prev.unplanted=(st.planted||[]).find(r=>r.id===fx.unplant)||null; st.planted=(st.planted||[]).filter(r=>r.id!==fx.unplant); }
+  return prev;
+}
+function undoFx(fx,prev){
+  if(!fx||!prev) return;
+  Object.entries(prev.cc||{}).forEach(([k,v])=>{ if(v) st.cc[k]=true; else delete st.cc[k]; });
+  if(prev.money) st.money=Math.max(0,st.money-prev.money);
+  (prev.set||[]).slice().reverse().forEach(([path,val])=>setByPath(path,val));
+  if(fx.plant) st.planted=(st.planted||[]).filter(r=>r.id!==fx.plant.id);
+  if(prev.unplanted) st.planted=[...(st.planted||[]),prev.unplanted];
+}
+let lastTasks={};
+function toggleTask(id,checked){
+  if(checked){
+    const t=lastTasks[id]||{};
+    const prev=applyFx(t.fx);
+    st.done[id]={snap:{t:t.t||'',d:t.d||'',prio:t.prio||2,ord:t.ord??1,who:t.pi||0},fx:t.fx||null,prev};
+  } else {
+    const v=st.done[id];
+    if(v&&v.fx) undoFx(v.fx,v.prev);
+    delete st.done[id];
+  }
+  commit({keepExample:true});
+}
 function giftOk(req){return !req||(req==='bus'?st.unl.bus:req==='island'?st.unl.island:req==='m40'?st.mine>=40:req==='m50'?st.mine>=50:req==='m80'?st.mine>=80:true)}
 function giftText(name){
   const g=(GIFTS[name]||[]).filter(x=>giftOk(x[2]));
@@ -676,7 +748,7 @@ function ccToday(c){
       if(it.s && it.s.length===1 && c.daysLeft<=7){score+=3;tag='Última semana';}
       else if(it.s && it.s.length===1){score+=1;tag=tag||'Só nesta estação';}
       if(!ok) tag=REQ_LABEL[it.req];
-      res.push({it,b,r,score,tag,ok});
+      res.push({it,b,r,score,tag,ok,key:itemKey(b.id,i)});
     });
   }));
   return res.sort((a,b)=>b.score-a.score);
@@ -689,7 +761,7 @@ function cropBundle(en){
     b.items.forEach((it,i)=>{
       if(it.k!=='crop'||st.cc[itemKey(b.id,i)]) return;
       if(it.en.replace('Gold ','')!==en) return;
-      const cand={b,quality:it.en.startsWith('Gold '),left:b.need-bundleCount(b)};
+      const cand={b,key:itemKey(b.id,i),quality:it.en.startsWith('Gold '),left:b.need-bundleCount(b)};
       if(cand.quality) qb=b;
       if(!best||(best.quality&&!cand.quality)) best=cand;
     });
@@ -725,7 +797,7 @@ function plantList(c){
     if(x==='multi'&&c.S===1) note='continua no outono';
     if(x==='treliça') note='treliça: bloqueia a passagem';
     const bundle=cropBundle(en);
-    return {n,en,g,rg,seed,sell,harvests,profit,note,shop:shopFor(c,x),bundle,q:bundle&&bundle.qb?qualityPlan(rg?harvests:1):null};
+    return {n,en,g,rg,seed,sell,harvests,profit,note,multi:x==='multi'&&c.S===1,shop:shopFor(c,x),bundle,q:bundle&&bundle.qb?qualityPlan(rg?harvests:1):null};
   }).filter(Boolean);
   const cc=list.filter(p=>p.bundle).sort((a,b)=>(a.bundle.quality-b.bundle.quality)||((a.bundle.quality&&a.q?a.q.best.seeds:0)-(b.bundle.quality&&b.q?b.q.best.seeds:0))||(a.bundle.left-b.bundle.left)||(a.g-b.g));
   const money=list.filter(p=>!p.bundle).sort((a,b)=>b.profit-a.profit).slice(0,4);
@@ -745,7 +817,7 @@ function buildPlan(){
   const bday=BIRTHDAYS[c.S][c.D];
   const cc=ccToday(c);
   const plants=plantList(c);
-  const T=(id,prio,t,d,who='bal')=>({id,prio,t,d,who});
+  const T=(id,prio,t,d,who='bal',fx=null)=>({id,prio,t,d,who,fx});
   const hasCrops=st.farm.crops!=='nenhuma';
   const outdoors=c.S!==3;
   const farmerIdx=tl(0,'wcan')!==tl(1,'wcan')?(tl(0,'wcan')>tl(1,'wcan')?0:1):(P[0].farming>=P[1].farming?0:1);
@@ -755,8 +827,8 @@ function buildPlan(){
   const spend=cost=>{ if(cost<=budget){budget-=cost;return true} return false; };
   const waterBoth=st.farm.crops==='muitas'&&!st.farm.sprinklers;
 
-  if(!st.unl.cc && !(c.newbie&&c.D<3)) tasks.push(T('cc',1,'Ver a cena do Centro Comunitário','Entrem na cidade pelo caminho do ponto de ônibus de manhã (8h–13h), num dia sem chuva.','both'));
-  if(c.newbie && c.D<=3 && st.farm.crops==='nenhuma') tasks.push(T('plant15',1,'Plantar as 15 sementes de chirívia','Limpem um pedaço perto da casa com a enxada, plantem e reguem. Ficam prontas em 4 dias.',farmerIdx));
+  if(!st.unl.cc && !(c.newbie&&c.D<3)) tasks.push(T('cc',1,'Ver a cena do Centro Comunitário','Entrem na cidade pelo caminho do ponto de ônibus de manhã (8h–13h), num dia sem chuva.','both',{set:[['unl.cc',true]]}));
+  if(c.newbie && c.D<=3 && st.farm.crops==='nenhuma') tasks.push(T('plant15',1,'Plantar as 15 sementes de chirívia','Limpem um pedaço perto da casa com a enxada, plantem e reguem. Ficam prontas em 4 dias.',farmerIdx,{set:[['farm.crops','poucas']]}));
   if(hasCrops && outdoors && !c.rain) tasks.push(T('water',1,'Regar as plantações',
       waterBoth?'Dividam o campo ao meio: cada um rega uma parte.':st.farm.sprinklers?'Reguem o que os irrigadores não alcançam.':'Façam logo de manhã. Encham o regador na água mais próxima.',waterBoth?'both':farmerIdx));
   if(hasCrops && outdoors && c.D===28) tasks.push(T('last',1,'Colher tudo antes de dormir','Amanhã as plantações desta estação morrem. Milho, trigo e girassol passam do verão para o outono.',farmerIdx));
@@ -764,23 +836,46 @@ function buildPlan(){
   if(st.farm.greenhouse && c.S===3) tasks.push(T('gh',1,'Regar e colher a estufa','No inverno só a estufa produz.',farmerIdx));
   if(st.farm.coop||st.farm.barn) tasks.push(T('animals',1,'Fazer carinho nos animais e coletar os produtos',st.farm.silo?'O feno sai sozinho do silo para o comedouro.':'Coloquem feno no comedouro. Sem silo, comprem feno na Marnie.',1-farmerIdx));
   const vault=['v1','v2','v3','v4'].map(bundleById).find(b=>!bundleDone(b));
-  if(vault && spend(vault.items[0].g)) tasks.push(T('vault',2,`Pagar ${vault.items[0].n} no Cofre do Centro Comunitário`,'Completar o Cofre conserta o ônibus para o deserto.'));
+  if(vault && spend(vault.items[0].g)) tasks.push(T('vault-'+vault.id,1,`Pagar ${vault.items[0].n} no Cofre do Centro Comunitário`,'Completar o Cofre conserta o ônibus para o deserto.','bal',{cc:[itemKey(vault.id,0)],money:-vault.items[0].g}));
+  // Plantações do Centro Comunitário: colher o que ficou pronto e plantar o que falta
+  const now=absDay(st);
+  st.planted=(st.planted||[]).filter(r=>now<=r.expAbs && !st.cc[r.key]);
+  st.planted.forEach(r=>{ if(now>=r.readyAbs) tasks.push(T('harv-'+r.id,1,`Colher ${r.n} e entregar no Centro Comunitário`,
+      r.quality?`Separem 5 com estrela de ouro para o pacote ${r.bundle} e entreguem. Se ainda não tiver 5, desmarquem e esperem a próxima colheita.`:`É para o pacote ${r.bundle}. Entreguem 1 e guardem a reserva.`,r.who??farmerIdx,{cc:[r.key],unplant:r.id})); });
+  if(outdoors){ let k=0;
+    plants.cc.forEach(pl=>{
+      if(k>=2) return;
+      const key=pl.bundle.key;
+      if(st.planted.some(r=>r.key===key)) return;
+      const qual=pl.bundle.quality;
+      if(qual && (!pl.q || pl.q.best.seeds>60)) return;
+      const n=qual?pl.q.best.seeds:2, cost=n*pl.seed;
+      if(!spend(cost)) return;
+      k++;
+      const who=qual?pl.q.fi:farmerIdx;
+      const ready=addDays(st.season,st.day,st.year,pl.g);
+      const rec={id:key+'@'+now,key,n:pl.n,bundle:pl.bundle.b.name,quality:qual,readyAbs:now+pl.g,expAbs:seasonEndAbs(st,pl.multi?28:0),who};
+      tasks.push(T('plant-'+key,1,`Plantar ${n} ${pl.n} para o Centro Comunitário`,
+        (qual?`Pacote ${pl.bundle.b.name}: precisa de 5 com estrela de ouro. Coloquem ${pl.q.best.n} na terra antes de plantar. Quem colhe deve ser ${esc(P[who].name)}. `:`Pacote ${pl.bundle.b.name}. Plantem 2 (uma é reserva). `)+
+        `Sementes de ${pl.seed}g ${pl.shop}. Ficam prontas em ${pl.g} dias: em ${SEASONS[ready.season]} ${ready.day} a colheita aparece aqui.`,who,{plant:rec,money:-cost}));
+    });
+  }
   if(c.S===3 && !bundleDone(bundleById('wf'))) tasks.push(T('dig',2,'Cavar a terra com a enxada','Na fazenda e na floresta aparecem Raiz de Inverno e Inhame da Neve, do pacote de inverno.'));
   { const fl=Math.max(P[0].farming,P[1].farming), fi=P[0].farming>=P[1].farming?0:1;
     if(!st.farm.sprinklers && st.farm.crops!=='nenhuma' && ((fl>=9&&st.unl.skull)||(fl>=6&&st.mine>=80))) tasks.push(T('sprink',2,fl>=9&&st.unl.skull?'Fazer irrigadores de irídio':'Fazer irrigadores de qualidade',
-      fl>=9&&st.unl.skull?'Receita de Cultivo 9: 1 barra de ouro + 1 de irídio + 1 bateria. Rega 24 quadrados em volta.':'Receita de Cultivo 6: 1 barra de ferro + 1 de ouro + 1 quartzo refinado. Rega os 8 quadrados em volta.',fi)); }
-  if(!st.farm.furnace && c.minesOpen) tasks.push(T('furnace',2,'Levar minério de cobre para o Clint','Ele ensina a fazer a fornalha, que transforma minério em barras.','act:mines'));
-  if(c.wd!==2) [0,1].filter(i=>tl(i,'pack')===0).forEach(i=>{ if(spend(2000)) tasks.push(T('pack-'+i,2,'Comprar a mochila grande no Pierre','2.000g. São 12 espaços a mais, menos viagens para casa.',i)); });
+      fl>=9&&st.unl.skull?'Receita de Cultivo 9: 1 barra de ouro + 1 de irídio + 1 bateria. Rega 24 quadrados em volta.':'Receita de Cultivo 6: 1 barra de ferro + 1 de ouro + 1 quartzo refinado. Rega os 8 quadrados em volta.',fi,{set:[['farm.sprinklers',true]]})); }
+  if(!st.farm.furnace && c.minesOpen) tasks.push(T('furnace',2,'Levar minério de cobre para o Clint','Ele ensina a fazer a fornalha, que transforma minério em barras.','act:mines',{set:[['farm.furnace',true]]}));
+  if(c.wd!==2) [0,1].filter(i=>tl(i,'pack')===0).forEach(i=>{ if(spend(2000)) tasks.push(T('pack-'+i,2,'Comprar a mochila grande no Pierre','2.000g. São 12 espaços a mais, menos viagens para casa.',i,{set:[[`players.${i}.tools.pack`,1]],money:-2000})); });
   { const i=tl(0,'wcan')<=tl(1,'wcan')?0:1, lv=tl(i,'wcan');
     const barOk=[st.farm.furnace,st.mine>=40,st.mine>=80,st.unl.skull][lv];
-    if(lv<4 && barOk && ((c.tomorrowRain&&!c.rain&&hasCrops)||c.S===3) && spend(UPG[lv][0])) tasks.push(T('upgrade',2,`Deixar o regador para virar de ${LV[lv+1].toLowerCase()} no Clint`,
-      (c.S===3?'No inverno não há o que regar, então não vai fazer falta. ':'Amanhã chove, então não vai fazer falta. ')+`Custa ${upgText(lv)} e leva 2 dias.`,i)); }
+    if(lv<4 && barOk && ((c.tomorrowRain&&!c.rain&&hasCrops)||c.S===3) && spend(UPG[lv][0])) tasks.push(T(`upgrade-${i}-${lv+1}`,2,`Deixar o regador para virar de ${LV[lv+1].toLowerCase()} no Clint`,
+      (c.S===3?'No inverno não há o que regar, então não vai fazer falta. ':'Amanhã chove, então não vai fazer falta. ')+`Custa ${upgText(lv)} e leva 2 dias.`,i,{set:[[`players.${i}.tools.wcan`,lv+1]],money:-UPG[lv][0]})); }
   if(!st.cc['con:3'] && Math.max(tl(0,'axe'),tl(1,'axe'))===0 && st.farm.furnace){
     const i=P[0].foraging>=P[1].foraging?0:1;
-    if(spend(UPG[0][0])) tasks.push(T('axe',2,'Deixar o machado para virar de cobre no Clint',`Machado de cobre corta os tocos grandes que dão madeira de lei (pacote de Construção). Custa ${upgText(0)}.`,i));
+    if(spend(UPG[0][0])) tasks.push(T('axe',2,'Deixar o machado para virar de cobre no Clint',`Machado de cobre corta os tocos grandes que dão madeira de lei (pacote de Construção). Custa ${upgText(0)}.`,i,{set:[[`players.${i}.tools.axe`,1]],money:-UPG[0][0]}));
   }
-  if(!st.farm.coop && spend(4000)) tasks.push(T('coop',2,'Encomendar um galinheiro na Robin','Custa 4.000g, 300 de madeira e 100 de pedra. Os ovos servem para o pacote de Animais.'));
-  if(c.wd!==2 && tl(0,'pack')>=1 && tl(1,'pack')>=1){ const n2=[0,1].filter(i=>tl(i,'pack')===1); if(n2.length && spend(10000)) tasks.push(T('pack2',3,'Comprar a mochila de luxo no Pierre','10.000g, mais 12 espaços.',n2[0])); }
+  if(!st.farm.coop && spend(4000)) tasks.push(T('coop',2,'Encomendar um galinheiro na Robin','Custa 4.000g, 300 de madeira e 100 de pedra. Os ovos servem para o pacote de Animais.','bal',{set:[['farm.coop',true]],money:-4000}));
+  if(c.wd!==2 && tl(0,'pack')>=1 && tl(1,'pack')>=1){ const n2=[0,1].filter(i=>tl(i,'pack')===1); if(n2.length && spend(10000)) tasks.push(T('pack2',3,'Comprar a mochila de luxo no Pierre','10.000g, mais 12 espaços.',n2[0],{set:[[`players.${n2[0]}.tools.pack`,2]],money:-10000})); }
   if(c.wd===4||c.wd===6){
     const want=missingNames(['long','crop'],3);
     tasks.push(T('cart',3,'Passar na carroça viajante (floresta, 6h–20h)',want.length?`Procurem itens que faltam nos pacotes, como ${want.join(', ')}.`:'Às vezes ela vende sementes e itens raros.','act:forage'));
@@ -807,8 +902,8 @@ function buildPlan(){
     let s=1.5+(berry?3:0)+Math.min(forageToday.length,3)*0.9+(c.newbie?0.5:0);
     acts.push({id:'forage',base:s,skill:(p,i)=>p.foraging*0.4,build:(p,i)=>forageMission(p,c,forageToday,berry,i)});
   }
-  if(outdoors && c.daysLeft>=4 && st.farm.crops!=='muitas' && (plants.cc.length||plants.money.length)){
-    let s=1.8+(st.farm.crops==='nenhuma'?2:0.8)+(c.D<=7?1:0)+(c.newbie?1.5:0)+(plants.cc.length?0.8:0);
+  if(outdoors && c.daysLeft>=4 && st.farm.crops!=='muitas' && plants.money.length){
+    let s=1.8+(st.farm.crops==='nenhuma'?2:0.8)+(c.D<=7?1:0)+(c.newbie?1.5:0);
     acts.push({id:'farm',base:s,skill:p=>p.farming*0.4,build:p=>farmMission(p,c,plants)});
   }
   {
@@ -826,12 +921,10 @@ function buildPlan(){
   const missions=assign.map((a,i)=>a?Object.assign({id:a.id},a.build(P[i],i)):null);
 
   // Tarefas que dependem das missões
-  if(bday && !used.has('social')) tasks.push(T('bday',1,`Dar um presente de aniversário para ${bday}`,esc(giftText(bday))));
+  if(bday && !used.has('social')) tasks.push(T('bday',1,`Dar um presente de aniversário para ${bday}`,esc(giftText(bday)+' '+whereText(bday,c))));
   if(!used.has('farm') && outdoors && st.farm.crops!=='muitas'){
-    const top=plants.cc[0]||plants.money[0];
-    if(top && c.daysLeft>=top.g) tasks.push(top.q&&top.bundle.quality
-      ? T('seeds',2,`Comprar ${top.q.best.n} e plantar uns ${top.q.best.seeds} ${top.n}`,`Para o pacote ${top.bundle.b.name}: precisa de 5 com estrela de ouro. Sementes ${top.shop}. Quem colhe deve ser ${esc(P[top.q.fi].name)}.`,top.q.fi)
-      : T('seeds',2,`Comprar e plantar ${top.n}`,top.bundle?`É do pacote ${top.bundle.b.name}. Semente de ${top.seed}g ${top.shop}.`:`Semente de ${top.seed}g ${top.shop}. Lucro de uns ${top.profit}g por semente.`,farmerIdx));
+    const top=plants.money[0];
+    if(top && c.daysLeft>=top.g) tasks.push(T('seeds',3,`Plantar ${top.n} para vender`,`Semente de ${top.seed}g ${top.shop}. Lucro de uns ${top.profit}g por semente até o fim da estação.`,farmerIdx));
   }
 
   // Dividir as tarefas: primeiro as que têm dono, depois equilibrando as listas
@@ -845,10 +938,14 @@ function buildPlan(){
   // Junta tudo numa lista só por jogador: tarefas da fazenda, recados, atividade principal e, no fim, o que é opcional
   perPlayer.forEach((l,i)=>{
     const m=missions[i];
-    const mt=m?m.tasks.map((t,j)=>{ const o=typeof t==='string'?{t}:t; const extra=j===0?[m.why,m.tip].filter(Boolean).join(' '):''; return {id:`m${i}-${m.id}-${j}`,prio:2,t:esc(o.t),d:esc([o.d,extra].filter(Boolean).join(' ')),ord:2}; }):[];
+    const mt=m?m.tasks.map((t,j)=>{ const o=typeof t==='string'?{t}:t; const extra=j===0?[m.why,m.tip].filter(Boolean).join(' '):''; return {id:o.id?`m${i}-${o.id}`:`m${i}-${m.id}-${j}`,prio:2,t:esc(o.t),d:esc([o.d,extra].filter(Boolean).join(' ')),ord:2,fx:o.fx||null}; }):[];
     l.forEach(t=>t.ord=t.prio===1?0:t.prio===2?1:3);
-    l.push(...mt); l.sort((a,b)=>a.ord-b.ord);
+    l.push(...mt);
   });
+  // Tarefas já marcadas hoje continuam na lista, mesmo que o plano tenha mudado por causa delas
+  const ids=new Set(perPlayer.flat().map(t=>t.id));
+  Object.entries(st.done||{}).forEach(([id,v])=>{ if(v&&v.snap&&!ids.has(id)) perPlayer[v.snap.who===1?1:0].push({...v.snap,id}); });
+  perPlayer.forEach(l=>l.sort((a,b)=>a.ord-b.ord));
 
   return {c,fests,bday,tasks,perPlayer,missions,cc,plants};
 }
@@ -859,8 +956,10 @@ function mineMission(p,c,cc){
   const lo=deep?80:lvl, hi=target;
   const ore=lo<40?'cobre':lo<80?'ferro':'ouro';
   const luck=c.luck===null?'Vejam a sorte na TV: com sorte boa sai mais minério e mais escadas.':c.luck>=1?'A sorte está boa hoje: sai mais minério e mais escadas.':c.luck<=-1?'A sorte está ruim, então não precisam ir tão fundo hoje.':'Sorte neutra: um dia normal de mina.';
-  const tasks=[{t:deep?'Descer pelo elevador até o andar 80 ou mais':`Descer do andar ${lvl} até o ${target}`,
+  const descDone=Object.keys(st.done||{}).some(k=>/-desc-/.test(k));
+  const tasks=descDone?[]:[{id:'desc-'+lvl,fx:deep?null:{set:[['mine',target]]},t:deep?'Descer pelo elevador até o andar 80 ou mais':`Descer do andar ${lvl} até o ${target}`,
     d:`Nesses andares sai minério de ${ore} e carvão: juntem tudo pelo caminho. ${luck} O elevador salva a cada 5 andares.`}];
+  if(descDone) tasks.push({id:'more-'+lvl,t:`Continuar minerando perto do andar ${lvl}`,d:`Vocês já desceram o combinado hoje. Se ainda tiver tempo, sai minério de ${ore} e carvão por aqui.`});
   const items=cc.filter(x=>x.it.k==='mine'&&x.ok&&x.it.fl);
   const here=[], back=[];
   items.forEach(x=>{ const [a,b]=x.it.fl; if(x.it.bar){ if(st.farm.furnace && a<=Math.max(lvl,1)) here.push(x); } else if(b>=lo&&a<=hi) here.push(x); else if(b<lo) back.push(x); });
@@ -868,26 +967,27 @@ function mineMission(p,c,cc){
   here.sort((a,b)=>w(a)-w(b)); back.sort((a,b)=>w(a)-w(b));
   [...here,...back].slice(0,3).forEach(x=>{
     const it=x.it, [a,b]=it.fl;
-    if(it.en==='Stone') tasks.push({t:'Juntar 99 pedras para o Centro Comunitário',d:'Qualquer pedra das minas serve.'});
-    else if(it.bar) tasks.push({t:`Fazer 1 ${it.n.toLowerCase()} na fornalha`,d:`${it.h}. É para o Centro Comunitário.`});
-    else if(b>=lo&&a<=hi) tasks.push({t:`Pegar ${it.n} para o Centro Comunitário`,d:`${it.h}. Sai nos andares onde vocês vão passar hoje.`});
-    else { const el=Math.floor(a/5)*5; tasks.push({t:`Pegar ${it.n}: voltar pelo elevador ${el?`ao andar ${el}`:'para a entrada das minas'}`,d:`${it.h}. Não sai nos andares de hoje.`}); }
+    const fx={cc:[x.key]}, id='cc-'+x.key;
+    if(it.en==='Stone') tasks.push({id,fx,t:'Juntar 99 pedras e entregar no Centro Comunitário',d:'Qualquer pedra das minas serve.'});
+    else if(it.bar) tasks.push({id,fx,t:`Fazer 1 ${it.n.toLowerCase()} na fornalha e entregar no Centro Comunitário`,d:`${it.h}.`});
+    else if(b>=lo&&a<=hi) tasks.push({id,fx,t:`Pegar ${it.n} e entregar no Centro Comunitário`,d:`${it.h}. Sai nos andares onde vocês vão passar hoje.`});
+    else { const el=Math.floor(a/5)*5; tasks.push({id,fx,t:`Pegar ${it.n} e entregar no Centro Comunitário`,d:`${it.h}. Não sai nos andares de hoje: voltem pelo elevador ${el?`ao andar ${el}`:'para a entrada das minas'}.`}); }
   });
   const ghost=cc.find(x=>x.it.en==='Ghostfish'&&x.ok);
-  if(ghost && c.rodOk) tasks.push({t:'Pescar o Peixe-fantasma',d:`Nos lagos dos andares 20 e 60 (o elevador para no 20 e no 60). É para o Centro Comunitário.`});
+  if(ghost && c.rodOk) tasks.push({id:'cc-'+ghost.key,fx:{cc:[ghost.key]},t:'Pescar o Peixe-fantasma e entregar no Centro Comunitário',d:`Nos lagos dos andares 20 e 60 (o elevador para no 20 e no 60).`});
   return {goal:deep?'Minas: andares 80 a 120':`Minas: do andar ${lvl} ao ${target}`,why:'',tasks};
 }
 function fishMission(p,c,items,i){
   const tasks=[];
-  items.slice(0,3).forEach(x=>tasks.push({t:`Pescar ${x.it.n}`,d:dot(x.it.h)}));
+  items.slice(0,3).forEach(x=>tasks.push({id:'cc-'+x.key,fx:{cc:[x.key]},t:`Pescar ${x.it.n} e entregar no Centro Comunitário`,d:dot(x.it.h)}));
   if(!items.length) tasks.push({t:'Pescar e vender os peixes',d:`De manhã: ${MAR}. À tarde: ${RIO}.`});
   const other=1-i;
-  if(p.fishing>=6 && tl(i,'rod')===2 && (c.budget??st.money)>=7500){ c.budget=(c.budget??st.money)-7500; tasks.unshift('Comprar a vara de irídio no Willy (7.500g)'); }
+  if(p.fishing>=6 && tl(i,'rod')===2 && (c.budget??st.money)>=7500){ c.budget=(c.budget??st.money)-7500; tasks.unshift({id:'rod3',fx:{set:[[`players.${i}.tools.rod`,3]],money:-7500},t:'Comprar a vara de irídio no Willy (7.500g)'}); }
   if(p.fishing>=2 && tl(i,'rod')<2){
     if(tl(other,'rod')>=2) tasks.unshift(`Pegar a vara de ${tl(other,'rod')===3?'irídio':'fibra de vidro'} de ${st.players[other].name} emprestada`);
-    else if((c.budget??st.money)>=1800){ c.budget=(c.budget??st.money)-1800; tasks.unshift('Comprar a vara de fibra de vidro e isca no Willy (1.800g)'); }
+    else if((c.budget??st.money)>=1800){ c.budget=(c.budget??st.money)-1800; tasks.unshift({id:'rod2',fx:{set:[[`players.${i}.tools.rod`,2]],money:-1800},t:'Comprar a vara de fibra de vidro e isca no Willy (1.800g)'}); }
   }
-  if(p.fishing>=3 && !st.farm.crab && st.mine>=40) tasks.push({t:'Fazer 2 covos e colocar no mar',d:'Cada covo: 40 madeira + 3 barras de ferro (receita de Pesca 3). Coloquem isca dentro todo dia.'});
+  if(p.fishing>=3 && !st.farm.crab && st.mine>=40) tasks.push({id:'crab',fx:{set:[['farm.crab',true]]},t:'Fazer 2 covos e colocar no mar',d:'Cada covo: 40 madeira + 3 barras de ferro (receita de Pesca 3). Coloquem isca dentro todo dia.'});
   const why=c.rain?'Dia de chuva é o melhor para pescar: aparecem peixes raros.':items.length?'Tem peixe dos pacotes disponível hoje.':'Peixe dá dinheiro rápido e treina a habilidade.';
   let tip=p.fishing<2?'Segurem o botão para lançar mais longe. Na barra verde, toques curtos seguram o peixe.':'Guardem 1 de cada peixe dos pacotes antes de vender.';
   if(p.fishing>=2 && tl(i,'rod')<2 && tl(other,'rod')>=2) tip='Para emprestar, quem tem a vara coloca ela num baú ou joga no chão perto do outro.';
@@ -896,28 +996,28 @@ function fishMission(p,c,items,i){
 function forageMission(p,c,items,berry,i){
   const tasks=[];
   if(berry) tasks.push(c.S===0?'Colher framboesas nos arbustos (época dos dias 15 a 18)':'Colher amoras nos arbustos (época dos dias 8 a 11)');
-  items.filter(x=>!/Madeira/.test(x.it.n)).slice(0,3).forEach(x=>tasks.push({t:`Coletar ${x.it.n}`,d:dot(x.it.h)}));
+  items.filter(x=>!/Madeira/.test(x.it.n)).slice(0,3).forEach(x=>tasks.push({id:'cc-'+x.key,fx:{cc:[x.key]},t:`Coletar ${x.it.n} e entregar no Centro Comunitário`,d:dot(x.it.h)}));
   tasks.push({t:'Fazer a rota floresta → cidade → montanha pegando tudo do chão',d:'Floresta Cinzaseiva fica ao sul da fazenda. A montanha fica ao norte da cidade, perto da casa da Robin.'});
   const con=bundleById('con');
   if(!bundleDone(con)){
-    if(!st.cc['con:3'] && tl(i,'axe')>=1) tasks.push('Cortar tocos grandes para juntar 10 de madeira de lei');
-    else tasks.push('Cortar árvores até juntar 99 de madeira');
+    const wk=['con:0','con:1'].find(k=>!st.cc[k]);
+    if(!st.cc['con:3'] && tl(i,'axe')>=1) tasks.push({id:'cc-con:3',fx:{cc:['con:3']},t:'Juntar 10 de madeira de lei e entregar no Centro Comunitário',d:'Cortem os tocos grandes com o machado de cobre (fazenda e Floresta Cinzaseiva).'});
+    else if(wk) tasks.push({id:'cc-'+wk,fx:{cc:[wk]},t:'Juntar 99 de madeira e entregar no Centro Comunitário',d:'Cortem árvores na fazenda ou na floresta.'});
   }
   return {goal:berry?'Colher frutinhas e coletas':'Coletar pela cidade',why:items.length?'Faltam itens de coleta nos pacotes desta estação.':'Coletas viram comida e dinheiro grátis.',tasks,tip:'Guardem 1 de cada coleta para os pacotes e comam o resto quando a energia acabar.'};
 }
 function farmMission(p,c,plants){
   const tasks=[];
   const top=plants.cc[0], cash=plants.money[0];
-  if(top) tasks.push(top.q&&top.bundle.quality?`Comprar ${top.q.best.n} e plantar uns ${top.q.best.seeds} ${top.n} ${top.shop} (pacote ${top.bundle.b.name}, precisa de estrela de ouro)`:`Comprar e plantar ${top.n} ${top.shop} (pacote ${top.bundle.b.name})`);
-  if(cash) tasks.push(`Plantar ${cash.n} para vender (uns ${cash.profit}g de lucro por semente)`);
+  if(cash) tasks.push({t:`Plantar ${cash.n} para vender`,d:`Sementes ${cash.shop}. Lucro de uns ${cash.profit}g por semente até o fim da estação.`});
   tasks.push('Limpar mais um pedaço da fazenda com machado, picareta e foice');
   if(p.farming>=1 && st.farm.crops!=='nenhuma') tasks.push('Fazer um espantalho (50 madeira, 1 carvão, 20 fibra)');
-  const tip=top&&top.q&&top.bundle.quality?`A estrela depende do Cultivo de quem colhe: deixem ${st.players[top.q.fi].name} colher. O fertilizante vai na terra arada antes da semente.`:'Plantem em blocos perto da água para regar mais rápido.';
+  const tip='Plantem em blocos perto da água para regar mais rápido.';
   return {goal:'Expandir a plantação',why:`Faltam ${c.daysLeft} dias na estação: ainda dá tempo de colher.`,tasks,tip};
 }
 function socialMission(p,c,bday){
   const tasks=[];
-  if(bday) tasks.push({t:`Dar um presente de aniversário para ${bday}`,d:giftText(bday)});
+  if(bday) tasks.push({id:'bday',t:`Dar um presente de aniversário para ${bday}`,d:giftText(bday)+' '+whereText(bday,c)});
   tasks.push('Conversar com 5 moradores');
   tasks.push('Pegar um pedido no quadro de avisos do Pierre');
   if(c.newbie) tasks.push('Visitar as casas da cidade para conhecer todo mundo');
@@ -975,6 +1075,8 @@ function renderPlan(){
 
   // Plano por jogador: uma lista só, na ordem
   h+=`<section class="card"><div class="card-h"><h2>Plano de hoje</h2><span class="small muted">Uma lista para cada um, na ordem em que vale fazer</span></div><div class="missions">`;
+  lastTasks={};
+  [0,1].forEach(i=>plan.perPlayer[i].forEach(t=>{ lastTasks[t.id]={...t,pi:i}; }));
   [0,1].forEach(i=>{
     h+=`<div class="mission"><div class="who"><span class="avatar ${i?'p2':''}">${esc((P[i].name||'?').trim()[0]||'?')}</span>${esc(P[i].name)}</div>
       <ul class="tasks">${plan.perPlayer[i].map(taskHTML).join('')}</ul></div>`;
@@ -994,7 +1096,7 @@ function renderPlan(){
   if(pc.length||pm.length){
     h+=`<section class="card"><div class="card-h"><h2>O que plantar hoje</h2><span class="small muted">Primeiro o Centro Comunitário, depois dinheiro</span></div>`;
     if(pc.length) h+=`<div class="group-label">1. Para o Centro Comunitário</div><div class="plants">${pc.map(p=>`<div class="plant"><span class="pn">${esc(p.n)} <span class="en">${esc(p.en)}</span></span><span class="pill">${esc(p.bundle.b.name)}</span>
-       <span class="pd">${p.g} dias · semente ${p.seed}g ${esc(p.shop)}${p.q?'':' · plantem pelo menos 2 e guardem 1'}</span>${p.q?qualityHTML(p):''}</div>`).join('')}</div>`;
+       <span class="pd">${plantedNote(p)}${p.g} dias · semente ${p.seed}g ${esc(p.shop)}${p.q?'':' · plantem pelo menos 2 e guardem 1'}</span>${p.q?qualityHTML(p):''}</div>`).join('')}</div>`;
     if(pm.length) h+=`<div class="group-label">${pc.length?'2. ':''}Para ganhar dinheiro</div><div class="plants">${pm.map(p=>`<div class="plant"><span class="pn">${esc(p.n)} <span class="en">${esc(p.en)}</span></span><span class="pp">+${p.profit}g</span>
        <span class="pd">${p.g} dias${p.rg?`, depois a cada ${p.rg}`:''} · ${p.harvests} ${p.harvests>1?'colheitas':'colheita'} · semente ${p.seed}g${p.note?' · '+esc(p.note):''}</span></div>`).join('')}</div>
        <p class="small muted" style="margin:0">O valor verde é o lucro aproximado por semente até o fim da estação.</p>`;
@@ -1023,6 +1125,11 @@ function renderPlan(){
   $('#planCol').innerHTML=h;
   if(aiText){ $('#aiOut').hidden=false; $('#aiOut').innerHTML=md(aiText); }
   const ab=$('#askAi'); if(ab) ab.onclick=askClaude;
+}
+function plantedNote(p){
+  const r=(st.planted||[]).find(r=>r.key===p.bundle.key); if(!r) return '';
+  const now=absDay(st), left=r.readyAbs-now;
+  return `<b>Já plantado: ${left>0?`fica pronto em ${left} ${left>1?'dias':'dia'}`:'pronto para colher'}.</b> `;
 }
 function pct(x){return Math.round(x*100)+'%'}
 function qualityHTML(p){
@@ -1151,7 +1258,7 @@ function render(opts={}){
 
 /* ---------- Eventos ---------- */
 document.addEventListener('change',e=>{
-  if(e.target.dataset.done){ st.done[e.target.dataset.done]=e.target.checked; if(!st.done[e.target.dataset.done]) delete st.done[e.target.dataset.done]; commit({keepExample:true,form:false}); return; }
+  if(e.target.dataset.done){ toggleTask(e.target.dataset.done,e.target.checked); return; }
   if(e.target.closest('#farmCol')) onFormInput(e);
 });
 document.addEventListener('input',e=>{
