@@ -1183,7 +1183,7 @@ function buildPlan(){
     acts.push({id:'farm',base:s,sk:'farming',build:p=>farmMission(p,c,plants)});
   }
   {
-    let s=1+(bday?1.5:0)+(c.newbie&&c.D<=4?2:0);
+    let s=bday?2.5:-5;
     acts.push({id:'social',base:s,build:p=>socialMission(p,c,bday)});
   }
 
@@ -1325,9 +1325,7 @@ function farmMission(p,c,plants){
 function socialMission(p,c,bday){
   const tasks=[];
   if(bday && !(c.green&&c.Y===1)) tasks.push({id:'bday',t:`Dar um presente de aniversário para ${bday}`,d:giftText(bday),dh:schedHTML(bday,c)});
-  tasks.push('Conversar com 5 moradores');
   tasks.push('Pegar um pedido no quadro de avisos do Pierre');
-  if(c.newbie) tasks.push('Visitar as casas da cidade para conhecer todo mundo');
   return {goal:bday?`Aniversário de ${bday}`:'Fazer amizades na cidade',why:bday?'Presente de aniversário vale 8× mais amizade.':'Amizade libera receitas, cenas e presentes.',tasks,tip:'Cada pessoa aceita 2 presentes por semana.'};
 }
 
