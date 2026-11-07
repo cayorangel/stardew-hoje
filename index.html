@@ -1174,7 +1174,8 @@ function buildPlan(){
   }
   {
     const berry=(c.S===0&&c.D>=15&&c.D<=18)||(c.S===2&&c.D>=8&&c.D<=11);
-    let s=1.5+(berry?3:0)+Math.min(forageToday.length,3)*0.9+(c.newbie?0.5:0);
+    const woodNeed=!bundleDone(bundleById('con'));
+    let s=(berry||forageToday.length||woodNeed)?1.5+(berry?3:0)+Math.min(forageToday.length,3)*0.9+(c.newbie?0.5:0):-5;
     acts.push({id:'forage',base:s,sk:'foraging',build:(p,i)=>forageMission(p,c,forageToday,berry,i)});
   }
   if(outdoors && c.daysLeft>=4 && st.farm.crops!=='muitas' && plants.money.length){
@@ -1304,7 +1305,6 @@ function forageMission(p,c,items,berry,i){
   const tasks=[];
   if(berry) tasks.push(c.S===0?'Colher amoras-silvestres nos arbustos (época dos dias 15 a 18)':'Colher amoras nos arbustos (época dos dias 8 a 11)');
   items.filter(x=>!/Madeira/.test(x.it.n)).slice(0,3).forEach(x=>tasks.push({id:'cc-'+x.key,fx:{cc:[x.key]},t:`Coletar ${x.it.n} e entregar no Centro Comunitário`,d:dot(x.it.h)}));
-  tasks.push({t:'Fazer a rota floresta → cidade → montanha pegando tudo do chão',d:'Floresta Cinzaseiva fica ao sul da fazenda. A montanha fica ao norte da cidade, perto da casa da Robin.'});
   const con=bundleById('con');
   if(!bundleDone(con)){
     const wk=['con:0','con:1'].find(k=>!st.cc[k]);
