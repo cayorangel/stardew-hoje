@@ -269,7 +269,7 @@ details.sec>summary .sum{font-family:var(--body);font-size:.8rem;color:var(--mut
 /* ============ DADOS DO JOGO (versão 1.6) ============ */
 const SEASONS=['Primavera','Verão','Outono','Inverno'];
 const WEEK=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
-const WEATHER={sol:'Ensolarado',chuva:'Chuva',tempestade:'Tempestade',vento:'Ventando',neve:'Neve'};
+const WEATHER={sol:'Ensolarado',chuva:'Chuva',tempestade:'Tempestade',verde:'Chuva verde',vento:'Ventando',neve:'Neve'};
 const LUCK={'':'Não vimos','2':'Muito boa','1':'Boa','0':'Neutra','-1':'Ruim','-2':'Muito ruim'};
 const LV=['Básico','Cobre','Aço','Ouro','Irídio'];
 const TOOLS=[
@@ -282,7 +282,7 @@ const TOOL0={wcan:0,hoe:0,pick:0,axe:0,rod:1,pack:0};
 const UPG=[[2000,'cobre'],[5000,'ferro'],[10000,'ouro'],[25000,'irídio']];
 const TOOL_ART={wcan:'o regador',hoe:'a enxada',pick:'a picareta',axe:'o machado'};
 const TOOL_WHY={wcan:'Regador melhor molha várias plantas de uma vez.',pick:'Picareta melhor quebra pedras com menos golpes e abre pedras grandes.',axe:'Machado melhor corta tocos e troncos grandes (madeira de lei).',hoe:'Enxada melhor prepara várias casas de terra de uma vez.'};
-const WEATHER_S={sol:'Sol',chuva:'Chuva',tempestade:'Temporal',vento:'Vento',neve:'Neve'};
+const WEATHER_S={sol:'Sol',chuva:'Chuva',tempestade:'Temporal',verde:'Verde',vento:'Vento',neve:'Neve'};
 const LUCK_S={'':'Não vi','2':'Ótima','1':'Boa','0':'Normal','-1':'Ruim','-2':'Péssima'};
 const SKILLS=[['farming','Cultivo'],['mining','Mineração'],['foraging','Coleta'],['fishing','Pesca'],['combat','Combate']];
 
@@ -809,7 +809,8 @@ function toggleTask(id,checked){
 const WDN=['segunda','terça','quarta','quinta','sexta','sábado','domingo'];
 function schedMatch(v,c,ccDone){
   const t=(v.t+' '+(v.x||'')).toLowerCase();
-  if(/chuva verde|festival do deserto|casad|casamento|resort|ilha gengibre/.test(t)) return false;
+  if(/chuva verde/.test(t)) return !!c.green && (!/ano 1/.test(t) || st.year===1);
+  if(/festival do deserto|casad|casamento|resort|ilha gengibre/.test(t)) return false;
   if(/opç(ão|ao)\s*2|segunda opção/.test(t)) return false;
   if(/quando chove/.test(t)) return c.rain;
   if(/(6\+|mais de 6|6 ou mais)\s*coraç/.test(t) && !/ou se/.test(t)) return false;
@@ -835,6 +836,7 @@ function schedMatch(v,c,ccDone){
 function schedFor(name,c){
   const d=SCHED[name]; if(!d) return null;
   const list=[...((d.s||{})[String(c.S)]||[]),...((d.s||{}).all||[])];
+  if(c.green){ const g=list.find(v=>/chuva verde/i.test(v.t)&&(!/ano 1/i.test(v.t)||st.year===1)); if(g) return {v:g,p:d.p}; }
   const ccDone=countRoomsDone()===6;
   for(let k=0;k<list.length;k++){
     const v=list[k];
@@ -876,13 +878,13 @@ function bundleDone(b){return bundleCount(b)>=b.need}
 function roomDone(r){return r.bundles.every(bundleDone)}
 
 function ctxOf(s){
-  const rain=s.weather==='chuva'||s.weather==='tempestade';
+  const rain=s.weather==='chuva'||s.weather==='tempestade'||s.weather==='verde';
   const maxMine=s.mine||0;
   const minesOpen=!(s.year===1&&s.season===0&&s.day<5);
   const rodOk=!(s.year===1&&s.season===0&&s.day<2);
-  return {S:s.season,D:s.day,Y:s.year,wd:weekday(s.day),rain,storm:s.weather==='tempestade',
+  return {S:s.season,D:s.day,Y:s.year,wd:weekday(s.day),rain,green:s.weather==='verde',storm:s.weather==='tempestade',
     luck:s.luck===''?null:+s.luck,daysLeft:28-s.day,maxMine,minesOpen,rodOk,
-    tomorrowRain:s.forecast==='chuva'||s.forecast==='tempestade',
+    tomorrowRain:s.forecast==='chuva'||s.forecast==='tempestade'||s.forecast==='verde',
     newbie:s.year===1&&s.season===0&&s.day<=7};
 }
 function reqOk(req,c){
@@ -1052,6 +1054,11 @@ function buildPlan(){
   // Ferramentas que estão com o Clint
   st.upgrading=(st.upgrading||[]).filter(u=>u&&u.readyAbs);
   st.upgrading.forEach(u=>{ if(now>=u.readyAbs) tasks.push(T(`pickup-${u.id}`,1,`Buscar ${TOOL_ART[u.tool]} no Clint`,`Já está pronta: agora é de ${LV[u.lv].toLowerCase()}. O Clint atende das 9h às 16h.`,u.i,{set:[[`players.${u.i}.tools.${u.tool}`,u.lv]],unupg:u.id})); });
+  // Chuva verde (só no verão): mato gigante e árvores de chuva verde por todo o vale
+  if(c.green){
+    tasks.push(T('green',2,'Aproveitar a chuva verde: cortar o mato gigante e pegar as sementes musgosas',
+      `Hoje aparece mato gigante e árvores de chuva verde no vale todo (menos na praia e no deserto). Cada mato gigante dá 15 XP de Coleta e some amanhã. As árvores de chuva verde dão semente musgosa, e as árvores normais podem ficar cobertas de musgo.${c.Y===1?' No ano 1, quase todo mundo fica em casa e não dá para dar presentes hoje.':''} A chuva rega as plantações.`,pickFor('foraging')));
+  }
   // Caverna da fazenda
   { const cave=st.farm.cave;
     if(cave && CAVE[cave] && now%CAVE[cave].every===0){
@@ -1145,7 +1152,7 @@ function buildPlan(){
   const missions=assign.map((a,i)=>a?Object.assign({id:a.id},a.build(P[i],i)):null);
 
   // Tarefas que dependem das missões
-  if(bday && !used.has('social')) tasks.push(T('bday',1,`Dar um presente de aniversário para ${bday}`,esc(giftText(bday))+schedHTML(bday,c)));
+  if(bday && !(c.green&&c.Y===1) && !used.has('social')) tasks.push(T('bday',1,`Dar um presente de aniversário para ${bday}`,esc(giftText(bday))+schedHTML(bday,c)));
   if(!used.has('farm') && outdoors && st.farm.crops!=='muitas'){
     const top=plants.money[0];
     if(top && c.daysLeft>=top.g) tasks.push(T('seeds',3,`Plantar ${top.n} para vender`,`Semente de ${top.seed}g ${top.shop}. Lucro de uns ${top.profit}g por semente até o fim da estação.`,farmerIdx));
@@ -1267,7 +1274,7 @@ function farmMission(p,c,plants){
 }
 function socialMission(p,c,bday){
   const tasks=[];
-  if(bday) tasks.push({id:'bday',t:`Dar um presente de aniversário para ${bday}`,d:giftText(bday),dh:schedHTML(bday,c)});
+  if(bday && !(c.green&&c.Y===1)) tasks.push({id:'bday',t:`Dar um presente de aniversário para ${bday}`,d:giftText(bday),dh:schedHTML(bday,c)});
   tasks.push('Conversar com 5 moradores');
   tasks.push('Pegar um pedido no quadro de avisos do Pierre');
   if(c.newbie) tasks.push('Visitar as casas da cidade para conhecer todo mundo');
