@@ -274,7 +274,7 @@ const LUCK={'':'Não vimos','2':'Muito boa','1':'Boa','0':'Neutra','-1':'Ruim','
 const LV=['Básico','Cobre','Aço','Ouro','Irídio'];
 const TOOLS=[
  ['wcan','Regador',LV],['hoe','Enxada',LV],['pick','Picareta',LV],['axe','Machado',LV],
- ['rod','Vara de pesca',['Nenhuma','Bambu','Fibra de vidro','Irídio']],
+ ['rod','Vara de pesca',['Nenhuma','Vara de bambu','Fibra de vidro','Irídio']],
  ['pack','Mochila',['Inicial (12)','Grande (24)','De luxo (36)']]
 ];
 const TOOL0={wcan:0,hoe:0,pick:0,axe:0,rod:1,pack:0};
@@ -298,89 +298,89 @@ const FESTIVALS=[
  [0,15,17,'Festival do Deserto','10h–23h no deserto','Só com o ônibus consertado. Tem lojinhas e o desafio do Calico.'],
  [0,24,24,'Dança das Flores','9h–14h na floresta','Para dançar, a pessoa precisa de 4 corações com vocês. Vocês podem dançar juntos!'],
  [1,11,11,'Luau','9h–14h na praia','Coloquem o melhor item que tiverem na sopa (ouro/iridium ou algo caro). Nada de lixo!'],
- [1,20,21,'Torneio da Truta','6h–2h no rio','Peixes do rio podem vir com etiquetas douradas para trocar por prêmios.'],
- [1,28,28,'Dança das Águas-vivas','22h–0h na praia','Só assistir. Façam o trabalho da fazenda antes.'],
- [2,16,16,'Feira do Vale','9h–15h na praça','Levem 9 itens variados e de boa qualidade para a exposição do grange. Joguem para ganhar fichas estrela.'],
+ [1,20,21,'Competição de Truta','6h–2h no rio','Peixes do rio podem vir com etiquetas douradas para trocar por prêmios.'],
+ [1,28,28,'Dança das Medusas-da-Lua','22h–0h na praia','Só assistir. Façam o trabalho da fazenda antes.'],
+ [2,16,16,'Feira do Vale do Orvalho','9h–15h na praça','Levem 9 itens variados e de boa qualidade para a exposição do grange. Joguem para ganhar fichas estrela.'],
  [2,27,27,'Véspera dos Espíritos','22h–23h50 na praça','Achem a abóbora dourada no fim do labirinto.'],
  [3,8,8,'Festival do Gelo','9h–14h na floresta','Concurso de pesca. Comprem a isca de pesca se quiserem treinar.'],
- [3,12,13,'Festa da Lula','6h–2h na praia','Pesquem lulas no mar durante o evento.'],
+ [3,12,13,'Festival da Lula','6h–2h na praia','Pesquem lulas no mar durante o evento.'],
  [3,15,17,'Mercado Noturno','17h–2h na praia','Submarino de pesca, show das sereias e barcos de comerciantes.'],
- [3,25,25,'Banquete da Estrela de Inverno','9h–14h na praça','Troca de presentes secreta: a carta diz para quem dar o presente.']
+ [3,25,25,'Festival da Estrela Invernal','9h–14h na praça','Troca de presentes secreta: a carta diz para quem dar o presente.']
 ];
 
-// Pacotes do Centro Comunitário (padrão). k: tipo (fish/forage/mine/crop/long), s: estações, w: clima, req: desbloqueio
+// Conjuntos do Centro Comunitário (padrão). k: tipo (fish/forage/mine/crop/long), s: estações, w: clima, req: desbloqueio
 const ALL=[0,1,2,3];
 const ROOMS0=[
  {id:'crafts',name:'Sala de Artesanato',en:'Crafts Room',reward:'Conserta a ponte para a pedreira',bundles:[
-  {id:'sf',name:'Coleta da Primavera',need:4,items:[
+  {id:'sf',name:'Recursos de Primavera',need:4,items:[
    {n:'Raiz-forte',en:'Wild Horseradish',k:'forage',s:[0],h:'Chão da fazenda, floresta e cidade'},
    {n:'Narciso',en:'Daffodil',k:'forage',s:[0],h:'Cidade e floresta'},
    {n:'Alho-poró',en:'Leek',k:'forage',s:[0],h:'Montanha e floresta'},
    {n:'Dente-de-leão',en:'Dandelion',k:'forage',s:[0],h:'Floresta e ponto de ônibus'}]},
-  {id:'uf',name:'Coleta do Verão',need:3,items:[
+  {id:'uf',name:'Recursos de Verão',need:3,items:[
    {n:'Uva',en:'Grape',k:'forage',s:[1],h:'Montanha e floresta'},
-   {n:'Baga picante',en:'Spice Berry',k:'forage',s:[1],h:'Floresta, montanha, fazenda'},
+   {n:'Café de jardim',en:'Spice Berry',k:'forage',s:[1],h:'Floresta, montanha, fazenda'},
    {n:'Ervilha-de-cheiro',en:'Sweet Pea',k:'forage',s:[1],h:'Cidade e floresta'}]},
-  {id:'ff',name:'Coleta do Outono',need:4,items:[
+  {id:'ff',name:'Recursos de Outono',need:4,items:[
    {n:'Cogumelo comum',en:'Common Mushroom',k:'forage',s:[2],h:'Floresta e montanha'},
    {n:'Ameixa selvagem',en:'Wild Plum',k:'forage',s:[2],h:'Montanha e floresta'},
    {n:'Avelã',en:'Hazelnut',k:'forage',s:[2],h:'Montanha e floresta'},
    {n:'Amora',en:'Blackberry',k:'forage',s:[2],h:'Arbustos em todo lugar, muitas do dia 8 ao 11'}]},
-  {id:'wf',name:'Coleta do Inverno',need:4,items:[
+  {id:'wf',name:'Recursos de Inverno',need:4,items:[
    {n:'Raiz de inverno',en:'Winter Root',k:'forage',s:[3],h:'Usem a enxada na terra (fazenda, floresta)'},
    {n:'Fruta de cristal',en:'Crystal Fruit',k:'forage',s:[3],h:'Montanha, floresta, cidade'},
-   {n:'Inhame da Neve',en:'Snow Yam',k:'forage',s:[3],h:'Usem a enxada na terra'},
+   {n:'Inhame de neve',en:'Snow Yam',k:'forage',s:[3],h:'Usem a enxada na terra'},
    {n:'Flor de açafrão',en:'Crocus',k:'forage',s:[3],h:'Floresta e cidade'}]},
   {id:'con',name:'Construção',need:4,items:[
    {n:'Madeira ×99',en:'Wood',k:'forage',h:'Cortem árvores e galhos'},
    {n:'Madeira ×99 (2ª)',en:'Wood',k:'forage',h:'Mais 99'},
    {n:'Pedra ×99',en:'Stone',k:'mine',h:'Quebrem pedras na fazenda ou nas minas'},
    {n:'Madeira de lei ×10',en:'Hardwood',k:'forage',req:'axe',h:'Tocos grandes com machado de cobre (fazenda, floresta, Bosque Secreto)'}]},
-  {id:'ex',name:'Coleta Exótica',need:5,items:[
+  {id:'ex',name:'Recursos Exóticos',need:5,items:[
    {n:'Coco',en:'Coconut',k:'forage',req:'bus',h:'Deserto'},
-   {n:'Fruta de cacto',en:'Cactus Fruit',k:'forage',req:'bus',h:'Deserto'},
+   {n:'Fruto do cacto',en:'Cactus Fruit',k:'forage',req:'bus',h:'Deserto'},
    {n:'Cenoura subterrânea',en:'Cave Carrot',k:'mine',h:'Quebrando pedras nas minas'},
    {n:'Cogumelo vermelho',en:'Red Mushroom',k:'forage',s:[1,2],h:'Bosque Secreto ou minas'},
    {n:'Cogumelo roxo',en:'Purple Mushroom',k:'mine',req:'mine80',h:'Minas, andares 81+'},
-   {n:'Xarope de bordo',en:'Maple Syrup',k:'long',h:'Torneira (Coleta nv. 3) num bordo'},
-   {n:'Resina de carvalho',en:'Oak Resin',k:'long',h:'Torneira num carvalho'},
-   {n:'Piche de pinheiro',en:'Pine Tar',k:'long',h:'Torneira num pinheiro'},
+   {n:'Xarope de ácer',en:'Maple Syrup',k:'long',h:'Torneirinha (Coleta nv. 3) num ácer'},
+   {n:'Resina de carvalho',en:'Oak Resin',k:'long',h:'Torneirinha num carvalho'},
+   {n:'Alcatrão de pinho',en:'Pine Tar',k:'long',h:'Torneirinha num pinheiro'},
    {n:'Morel',en:'Morel',k:'forage',s:[0],req:'woods',h:'Bosque Secreto'}]}
  ]},
  {id:'pantry',name:'Copa',en:'Pantry',reward:'Conserta a estufa',bundles:[
-  {id:'sc',name:'Plantações da Primavera',need:4,items:[
+  {id:'sc',name:'Plantações de Primavera',need:4,items:[
    {n:'Chirívia',en:'Parsnip',k:'crop',s:[0],h:'Plantar: 4 dias'},
    {n:'Vagem',en:'Green Bean',k:'crop',s:[0],h:'Plantar: 10 dias'},
    {n:'Couve-flor',en:'Cauliflower',k:'crop',s:[0],h:'Plantar: 12 dias'},
    {n:'Batata',en:'Potato',k:'crop',s:[0],h:'Plantar: 6 dias'}]},
-  {id:'uc',name:'Plantações do Verão',need:4,items:[
+  {id:'uc',name:'Plantações de Verão',need:4,items:[
    {n:'Tomate',en:'Tomato',k:'crop',s:[1],h:'Plantar: 11 dias'},
-   {n:'Pimenta',en:'Hot Pepper',k:'crop',s:[1],h:'Plantar: 5 dias'},
+   {n:'Pimenta Picante',en:'Hot Pepper',k:'crop',s:[1],h:'Plantar: 5 dias'},
    {n:'Mirtilo',en:'Blueberry',k:'crop',s:[1],h:'Plantar: 13 dias'},
    {n:'Melão',en:'Melon',k:'crop',s:[1],h:'Plantar: 12 dias'}]},
-  {id:'fc',name:'Plantações do Outono',need:4,items:[
+  {id:'fc',name:'Plantações de Outono',need:4,items:[
    {n:'Milho',en:'Corn',k:'crop',s:[1,2],h:'Plantar: 14 dias'},
    {n:'Berinjela',en:'Eggplant',k:'crop',s:[2],h:'Plantar: 5 dias'},
    {n:'Abóbora',en:'Pumpkin',k:'crop',s:[2],h:'Plantar: 13 dias'},
    {n:'Inhame',en:'Yam',k:'crop',s:[2],h:'Plantar: 10 dias'}]},
-  {id:'qc',name:'Colheita de Qualidade',need:3,items:[
+  {id:'qc',name:'Plantações de Qualidade',need:3,items:[
    {n:'5 Chirívias de ouro',en:'Gold Parsnip',k:'crop',s:[0],h:'Use fertilizante; Cultivo alto ajuda'},
    {n:'5 Melões de ouro',en:'Gold Melon',k:'crop',s:[1],h:'Use fertilizante'},
    {n:'5 Abóboras de ouro',en:'Gold Pumpkin',k:'crop',s:[2],h:'Use fertilizante'},
    {n:'5 Milhos de ouro',en:'Gold Corn',k:'crop',s:[1,2],h:'Use fertilizante'}]},
-  {id:'an',name:'Animais',need:5,items:[
+  {id:'an',name:'Animal',need:5,items:[
    {n:'Leite grande',en:'Large Milk',k:'long',req:'barn',h:'Vaca feliz'},
-   {n:'Ovo marrom grande',en:'Large Brown Egg',k:'long',req:'coop',h:'Galinha marrom feliz'},
-   {n:'Ovo branco grande',en:'Large Egg',k:'long',req:'coop',h:'Galinha branca feliz'},
-   {n:'Leite de cabra grande',en:'Large Goat Milk',k:'long',req:'barn',h:'Cabra (estábulo grande)'},
+   {n:'Ovo grande (marrom)',en:'Large Brown Egg',k:'long',req:'coop',h:'Galinha marrom feliz'},
+   {n:'Ovo grande (branco)',en:'Large Egg',k:'long',req:'coop',h:'Galinha branca feliz'},
+   {n:'Leite grande de cabra',en:'Large Goat Milk',k:'long',req:'barn',h:'Cabra (celeiro grande)'},
    {n:'Lã',en:'Wool',k:'long',req:'barn',h:'Ovelha ou coelho'},
    {n:'Ovo de pata',en:'Duck Egg',k:'long',req:'coop',h:'Pata (galinheiro grande)'}]},
   {id:'ar',name:'Artesão',need:6,items:[
-   {n:'Óleo de trufa',en:'Truffle Oil',k:'long',h:'Porco + prensa de óleo'},
+   {n:'Óleo de trufas',en:'Truffle Oil',k:'long',h:'Porco + prensa de óleo'},
    {n:'Tecido',en:'Cloth',k:'long',h:'Lã no tear'},
    {n:'Queijo de cabra',en:'Goat Cheese',k:'long',h:'Leite de cabra na prensa'},
    {n:'Queijo',en:'Cheese',k:'long',h:'Leite na prensa de queijo'},
-   {n:'Mel',en:'Honey',k:'long',h:'Colmeia (Cultivo nv. 3)'},
+   {n:'Mel',en:'Honey',k:'long',h:'Apiário (Cultivo nv. 3)'},
    {n:'Geleia',en:'Jelly',k:'long',h:'Fruta no pote de conserva'},
    {n:'Maçã',en:'Apple',k:'long',h:'Árvore frutífera (outono)'},
    {n:'Damasco',en:'Apricot',k:'long',h:'Árvore frutífera (primavera)'},
@@ -394,13 +394,13 @@ const ROOMS0=[
    {n:'Peixe-sol',en:'Sunfish',k:'fish',s:[0,1],w:'sun',h:'Rio da cidade ou floresta, 6h–19h, sem chuva'},
    {n:'Bagre',en:'Catfish',k:'fish',s:[0,2],w:'rain',h:'Rio (cidade/floresta), 6h–0h, só com chuva. Difícil!'},
    {n:'Alocine',en:'Shad',k:'fish',s:[0,1,2],w:'rain',h:'Rio, 9h–2h, só com chuva'},
-   {n:'Truta-tigre',en:'Tiger Trout',k:'fish',s:[2,3],h:'Rio, 6h–19h'}]},
+   {n:'Salmão híbrido',en:'Tiger Trout',k:'fish',s:[2,3],h:'Rio, 6h–19h'}]},
   {id:'lk',name:'Peixes de Lago',need:4,items:[
    {n:'Achigã',en:'Largemouth Bass',k:'fish',h:'Lago da montanha, 6h–19h'},
    {n:'Carpa',en:'Carp',k:'fish',s:[0,1,2],h:'Lago da montanha, qualquer hora'},
    {n:'Peixe-gato-cabeçudo',en:'Bullhead',k:'fish',h:'Lago da montanha, qualquer hora'},
    {n:'Esturjão',en:'Sturgeon',k:'fish',s:[1,3],h:'Lago da montanha, 6h–19h'}]},
-  {id:'oc',name:'Peixes do Mar',need:4,items:[
+  {id:'oc',name:'Peixes de Oceano',need:4,items:[
    {n:'Sardinha',en:'Sardine',k:'fish',s:[0,2,3],h:'Praia, 6h–19h'},
    {n:'Atum',en:'Tuna',k:'fish',s:[1,3],h:'Praia, 6h–19h'},
    {n:'Cioba',en:'Red Snapper',k:'fish',s:[1,2],w:'rain',h:'Praia, 6h–19h, só com chuva'},
@@ -409,7 +409,7 @@ const ROOMS0=[
    {n:'Picão-verde',en:'Walleye',k:'fish',s:[2],w:'rain',h:'Rio ou lago, 12h–2h, com chuva'},
    {n:'Brema',en:'Bream',k:'fish',h:'Rio, 18h–2h'},
    {n:'Enguia',en:'Eel',k:'fish',s:[0,2],w:'rain',h:'Praia, 16h–2h, com chuva'}]},
-  {id:'cp',name:'Covos',need:5,items:[
+  {id:'cp',name:'Covo',need:5,items:[
    {n:'Lagosta',en:'Lobster',k:'crab',h:'Covo no mar'},{n:'Lagostim',en:'Crayfish',k:'crab',h:'Covo em água doce'},
    {n:'Caranguejo',en:'Crab',k:'crab',h:'Covo no mar'},{n:'Berbigão',en:'Cockle',k:'crab',h:'Covo no mar ou praia'},
    {n:'Mexilhão',en:'Mussel',k:'crab',h:'Covo no mar ou praia'},{n:'Camarão',en:'Shrimp',k:'crab',h:'Covo no mar'},
@@ -435,34 +435,34 @@ const ROOMS0=[
    {n:'Gosma ×99',en:'Slime',k:'mine',h:'Derrotando gosmas'},
    {n:'Asa de morcego ×10',en:'Bat Wing',k:'mine',req:'mine40',h:'Morcegos, andares 30+'},
    {n:'Essência solar',en:'Solar Essence',k:'mine',req:'mine40',h:'Fantasmas, andares 40–79'},
-   {n:'Essência do vazio',en:'Void Essence',k:'mine',req:'mine80',h:'Sombras, andares 80+'}]}
+   {n:'Essência nula',en:'Void Essence',k:'mine',req:'mine80',h:'Sombras, andares 80+'}]}
  ]},
- {id:'board',name:'Mural de Avisos',en:'Bulletin Board',reward:'Amizade com a cidade toda',bundles:[
-  {id:'ch',name:'Chef',need:6,items:[
-   {n:'Xarope de bordo',en:'Maple Syrup',k:'long',h:'Torneira num bordo'},
-   {n:'Samambaia',en:'Fiddlehead Fern',k:'forage',s:[1],req:'woods',h:'Bosque Secreto no verão'},
+ {id:'board',name:'Mural de Recados',en:'Bulletin Board',reward:'Amizade com a cidade toda',bundles:[
+  {id:'ch',name:'Cozinheiro',need:6,items:[
+   {n:'Xarope de ácer',en:'Maple Syrup',k:'long',h:'Torneirinha num ácer'},
+   {n:'Broto de samambaia',en:'Fiddlehead Fern',k:'forage',s:[1],req:'woods',h:'Bosque Secreto no verão'},
    {n:'Trufa',en:'Truffle',k:'long',req:'barn',h:'Porco'},
    {n:'Papoula',en:'Poppy',k:'crop',s:[1],h:'Plantar no verão: 7 dias'},
-   {n:'Maki',en:'Maki Roll',k:'long',h:'Cozinhar (casa com cozinha)'},
+   {n:'Rolinhos de arroz',en:'Maki Roll',k:'long',h:'Cozinhar (casa com cozinha)'},
    {n:'Ovo frito',en:'Fried Egg',k:'long',h:'Cozinhar: 1 ovo'}]},
-  {id:'dy',name:'Tinturas',need:6,items:[
+  {id:'dy',name:'Tinta',need:6,items:[
    {n:'Cogumelo vermelho',en:'Red Mushroom',k:'forage',s:[1,2],h:'Bosque Secreto ou minas'},
    {n:'Ouriço-do-mar',en:'Sea Urchin',k:'forage',req:'beach',h:'Poças da praia, depois da ponte consertada'},
    {n:'Girassol',en:'Sunflower',k:'crop',s:[1,2],h:'Plantar: 8 dias'},
    {n:'Pena de pato',en:'Duck Feather',k:'long',req:'coop',h:'Pato feliz'},
    {n:'Água-marinha',en:'Aquamarine',k:'mine',h:'Minas'},
-   {n:'Repolho-roxo',en:'Red Cabbage',k:'crop',s:[1],req:'y2',h:'Sementes só no ano 2 (ou carroça)'}]},
+   {n:'Repolho roxo',en:'Red Cabbage',k:'crop',s:[1],req:'y2',h:'Sementes só no ano 2 (ou Carrinho de Viagem)'}]},
   {id:'fr',name:'Pesquisa de Campo',need:4,items:[
    {n:'Cogumelo roxo',en:'Purple Mushroom',k:'mine',req:'mine80',h:'Minas, andares 81+'},
-   {n:'Concha de Nautilus',en:'Nautilus Shell',k:'forage',s:[3],h:'Praia no inverno'},
-   {n:'Chub',en:'Chub',k:'fish',h:'Lago da montanha ou rio da floresta'},
+   {n:'Concha de náutilo',en:'Nautilus Shell',k:'forage',s:[3],h:'Praia no inverno'},
+   {n:'Esquálio',en:'Chub',k:'fish',h:'Lago da montanha ou rio da floresta'},
    {n:'Geodo congelado',en:'Frozen Geode',k:'mine',req:'mine40',h:'Minas, andares 40–79'}]},
   {id:'fo',name:'Forragem',need:3,items:[
    {n:'Trigo ×10',en:'Wheat',k:'crop',s:[1,2],h:'Plantar: 4 dias'},
-   {n:'Feno ×10',en:'Hay',k:'long',h:'Foice no capim com silo, ou compre na Marnie'},
+   {n:'Palha ×10',en:'Hay',k:'long',h:'Foice no capim com silo, ou compre na Marnie'},
    {n:'Maçã ×3',en:'Apple',k:'long',h:'Árvore de maçã'}]},
   {id:'en',name:'Encantador',need:4,items:[
-   {n:'Resina de carvalho',en:'Oak Resin',k:'long',h:'Torneira num carvalho'},
+   {n:'Resina de carvalho',en:'Oak Resin',k:'long',h:'Torneirinha num carvalho'},
    {n:'Vinho',en:'Wine',k:'long',h:'Fruta no barril'},
    {n:'Pé de coelho',en:"Rabbit's Foot",k:'long',req:'barn',h:'Coelho (galinheiro grande)'},
    {n:'Romã',en:'Pomegranate',k:'long',h:'Árvore de romã'}]}
@@ -518,24 +518,24 @@ const MINE_INFO={
  'Slime':[1,119,'Derrotando gosmas, em qualquer andar'],
  'Bat Wing':[30,119,'Derrotando morcegos, a partir do andar 30'],
  'Solar Essence':[40,79,'Derrotando fantasmas nos andares de gelo, 40–79'],
- 'Void Essence':[80,119,'Derrotando sombras nos andares 80–119']
+ 'Void Essence':[80,119,'Derrotando Brutos das sombras nos andares 80–119']
 };
 // Presentes que cada morador ama: [item, como conseguir, exige]
 const GIFTS={
  Kent:[['Avelãs torradas (Roasted Hazelnuts)','cozinhar com 3 avelãs'],['Risoto de samambaia (Fiddlehead Risotto)','cozinhar']],
- Lewis:[['Pimenta','plantação de verão'],['Chá verde','folhas de chá no barril'],['Inhame glaceado (Glazed Yams)','cozinhar']],
+ Lewis:[['Pimenta Picante','plantação de verão'],['Chá verde','folhas de chá no barril'],['Inhames com cobertura','cozinhar']],
  Vincent:[['Uva','coleta de verão'],['Bolo rosa (Pink Cake)','cozinhar']],
  Haley:[['Girassol','plantação de verão'],['Coco','deserto','bus'],['Salada de frutas (Fruit Salad)','cozinhar']],
- Pam:[['Chirívia','plantação de primavera'],['Cerveja','Saloon do Gus, 400g'],['Fruta de cacto','deserto','bus']],
- Shane:[['Cerveja','Saloon do Gus, 400g'],['Pizza','Saloon do Gus, 600g'],['Pimenta','plantação de verão']],
+ Pam:[['Chirívia','plantação de primavera'],['Cerveja','Saloon Fruta Estrelar, 400g'],['Fruto do cacto','deserto','bus']],
+ Shane:[['Cerveja','Saloon Fruta Estrelar, 400g'],['Pizza','Saloon Fruta Estrelar, 600g'],['Pimenta Picante','plantação de verão']],
  Pierre:[['Lula frita (Fried Calamari)','cozinhar']],
  Emily:[['Lã','ovelha ou coelho'],['Tecido','lã no tear'],['Ametista','minas, qualquer andar']],
  Jas:[['Rosa-de-fada','plantação de outono'],['Bolo rosa (Pink Cake)','cozinhar']],
  Gus:[['Laranja','árvore de laranja'],['Taco de peixe (Fish Taco)','cozinhar'],['Diamante','minas, andar 50+','m50']],
  Maru:[['Couve-flor','plantação de primavera'],['Morango','sementes no Festival do Ovo'],['Barra de ouro','minério dos andares 80+','m80']],
  Alex:[['Café da manhã completo (Complete Breakfast)','cozinhar'],['Jantar de salmão (Salmon Dinner)','cozinhar']],
- Sam:[['Pizza','Saloon do Gus, 600g'],['Fruta de cacto','deserto','bus']],
- Demetrius:[['Morango','sementes no Festival do Ovo'],['Sorvete (Ice Cream)','barraca de sorvete perto do Pierre, no verão']],
+ Sam:[['Pizza','Saloon Fruta Estrelar, 600g'],['Fruto do cacto','deserto','bus']],
+ Demetrius:[['Morango','sementes no Festival do Ovo'],['Sorvete (Ice Cream)','Banca de Sorvetes perto do Pierre, no verão']],
  'Anão':[['Ametista','minas, qualquer andar'],['Topázio','minas, qualquer andar'],['Água-marinha','minas, andares 40–79','m40']],
  Willy:[['Bagre','rio, com chuva'],['Esturjão','lago da montanha'],['Abóbora','plantação de outono']],
  Leo:[['Pena de pato','pato'],['Manga (Mango)','Ilha Gengibre','island']],
@@ -545,16 +545,16 @@ const GIFTS={
  Abigail:[['Abóbora','plantação de outono'],['Ametista','minas, qualquer andar']],
  Sandy:[['Narciso','coleta de primavera'],['Ervilha-de-cheiro','coleta de verão'],['Flor de açafrão','coleta de inverno']],
  Marnie:[['Torta de abóbora (Pumpkin Pie)','cozinhar'],['Diamante','minas, andar 50+','m50']],
- Robin:[['Pêssego','árvore de pêssego'],['Espaguete','Saloon do Gus'],['Queijo de cabra','leite de cabra na prensa']],
+ Robin:[['Pêssego','árvore de pêssego'],['Espaguete','Saloon Fruta Estrelar'],['Queijo de cabra','leite de cabra na prensa']],
  George:[['Alho-poró','coleta de primavera'],['Cogumelo frito (Fried Mushroom)','cozinhar']],
  Krobus:[['Abóbora','plantação de outono'],['Raiz-forte','coleta de primavera'],['Diamante','minas, andar 50+','m50']],
- Linus:[['Inhame','plantação de outono'],['Coco','deserto','bus'],['Fruta de cacto','deserto','bus']],
+ Linus:[['Inhame','plantação de outono'],['Coco','deserto','bus'],['Fruto do cacto','deserto','bus']],
  Caroline:[['Chá verde','folhas de chá no barril'],['Taco de peixe (Fish Taco)','cozinhar']],
  Sebastian:[['Lágrima congelada','minas, andares 40–79','m40'],['Sashimi','cozinhar com qualquer peixe'],['Obsidiana','geodos de magma, andares 80+','m80']],
- Harvey:[['Café','Saloon do Gus, 300g'],['Vinho','fruta no barril'],['Picles','legume no pote de conserva']],
- Feiticeiro:[['Essência solar','fantasmas nas minas, andares 40–79','m40'],['Essência do vazio','sombras, andares 80+','m80'],['Cogumelo roxo','minas, andares 81+','m80']],
+ Harvey:[['Café','Saloon Fruta Estrelar, 300g'],['Vinho','fruta no barril'],['Picles','legume no pote de conserva']],
+ Feiticeiro:[['Essência solar','fantasmas nas minas, andares 40–79','m40'],['Essência nula','Brutos das sombras, andares 80+','m80'],['Cogumelo roxo','minas, andares 81+','m80']],
  Evelyn:[['Tulipa','plantação de primavera'],['Rosa-de-fada','plantação de outono'],['Beterraba','sementes no oásis do deserto','bus']],
- Leah:[['Salada','Saloon do Gus, 220g'],['Vinho','fruta no barril'],['Queijo de cabra','leite de cabra na prensa']],
+ Leah:[['Salada','Saloon Fruta Estrelar, 220g'],['Vinho','fruta no barril'],['Queijo de cabra','leite de cabra na prensa']],
  Clint:[['Ametista','minas, qualquer andar'],['Topázio','minas, qualquer andar'],['Barra de ouro','minério dos andares 80+','m80']]
 };
 const ROOMS=ROOMS0;
@@ -564,26 +564,26 @@ ROOMS.forEach(r=>r.bundles.forEach(b=>b.items.forEach(it=>{
 })));
 // Construções (Robin) e máquinas (receitas). ok(): já dá para fazer; need(): só faz sentido se...
 const BUILD=[
- {id:'coop',n:'Galinheiro',en:'Coop',robin:1,g:4000,mat:'300 madeira e 100 pedra',why:'Ovos para o pacote de Animais.',cc:1},
- {id:'barn',n:'Estábulo',en:'Barn',robin:1,g:6000,mat:'350 madeira e 150 pedra',why:'Leite e lã para os pacotes de Animais e Artesão.',cc:1},
- {id:'silo',n:'Silo',en:'Silo',robin:1,g:100,mat:'100 pedra, 10 argila e 5 barras de cobre',ok:()=>st.farm.furnace,need:()=>st.farm.coop||st.farm.barn,why:'Guarda o feno do capim cortado com a foice, assim não precisam comprar feno.'},
- {id:'kitchen',n:'Casa com cozinha',en:'House upgrade',robin:1,g:10000,mat:'450 madeira',why:'Libera cozinhar: Ovo frito e Maki do pacote do Chef, e comida para energia.',cc:1},
- {id:'stable',n:'Estábulo do cavalo',en:'Stable',robin:1,g:10000,mat:'100 madeira de lei e 5 barras de ferro',ok:()=>maxTool('axe')>=1&&st.mine>=40,why:'Vem com um cavalo: andam muito mais rápido.'},
- {id:'pond',n:'Tanque de peixes',en:'Fish Pond',robin:1,g:5000,mat:'200 pedra, 5 algas marinhas e 5 algas verdes',why:'Cria peixes e dá ovas.'},
+ {id:'coop',n:'Galinheiro',en:'Coop',robin:1,g:4000,mat:'300 madeira e 100 pedra',why:'Ovos para o conjunto Animal.',cc:1},
+ {id:'barn',n:'Celeiro',en:'Barn',robin:1,g:6000,mat:'350 madeira e 150 pedra',why:'Leite e lã para os conjuntos Animal e Artesão.',cc:1},
+ {id:'silo',n:'Silo',en:'Silo',robin:1,g:100,mat:'100 pedra, 10 argila e 5 barras de cobre',ok:()=>st.farm.furnace,need:()=>st.farm.coop||st.farm.barn,why:'Guarda a palha do capim cortado com a foice, assim não precisam comprar palha.'},
+ {id:'kitchen',n:'Melhoria da casa (cozinha)',en:'House upgrade',robin:1,g:10000,mat:'450 madeira',why:'Libera cozinhar: Ovo frito e Rolinhos de arroz do conjunto Cozinheiro, e comida para energia.',cc:1},
+ {id:'stable',n:'Estábulo',en:'Stable',robin:1,g:10000,mat:'100 madeira de lei e 5 barras de ferro',ok:()=>maxTool('axe')>=1&&st.mine>=40,why:'Vem com um cavalo: andam muito mais rápido.'},
+ {id:'pond',n:'Lago de peixes',en:'Fish Pond',robin:1,g:5000,mat:'200 pedra, 5 algas marinhas e 5 algas verdes',why:'Cria peixes e dá ovas.'},
  {id:'shed',n:'Galpão',en:'Shed',robin:1,g:15000,mat:'300 madeira',why:'Espaço coberto para muitas máquinas.'},
  {id:'mayo',n:'Máquina de maionese',en:'Mayonnaise Machine',sk:['farming',2],mat:'15 madeira, 15 pedra, 1 cristal de terra e 1 barra de cobre',ok:()=>st.farm.furnace,need:()=>st.farm.coop,why:'Ovo vira maionese, que vende bem melhor.'},
- {id:'tapper',n:'Torneira',en:'Tapper',sk:['foraging',3],mat:'40 madeira e 2 barras de cobre',ok:()=>st.farm.furnace,why:'Colocada numa árvore: bordo dá xarope, carvalho dá resina e pinheiro dá piche (pacotes Chef, Coleta Exótica e Encantador).',cc:1},
- {id:'bee',n:'Colmeia',en:'Bee House',sk:['farming',3],mat:'40 madeira, 8 carvão, 1 barra de ferro e 1 xarope de bordo',ok:()=>st.mine>=40&&own('tapper'),why:'Dá mel (pacote de Artesão). Rende mais perto de flores.',cc:1},
- {id:'jar',n:'Jarra de conserva',en:'Preserves Jar',sk:['farming',4],mat:'50 madeira, 40 pedra e 8 carvão',why:'Fruta vira geleia (pacote de Artesão) e legume vira picles.',cc:1},
+ {id:'tapper',n:'Torneirinha',en:'Tapper',sk:['foraging',3],mat:'40 madeira e 2 barras de cobre',ok:()=>st.farm.furnace,why:'Colocada numa árvore: ácer dá xarope, carvalho dá resina e pinheiro dá alcatrão (conjuntos Cozinheiro, Recursos Exóticos e Encantador).',cc:1},
+ {id:'bee',n:'Apiário',en:'Bee House',sk:['farming',3],mat:'40 madeira, 8 carvão, 1 barra de ferro e 1 xarope de ácer',ok:()=>st.mine>=40&&own('tapper'),why:'Dá mel (conjunto Artesão). Rende mais perto de flores.',cc:1},
+ {id:'jar',n:'Jarra de conserva',en:'Preserves Jar',sk:['farming',4],mat:'50 madeira, 40 pedra e 8 carvão',why:'Fruta vira geleia (conjunto Artesão) e legume vira picles.',cc:1},
  {id:'recycler',n:'Máquina de reciclagem',en:'Recycling Machine',sk:['fishing',4],mat:'25 madeira, 25 pedra e 1 barra de ferro',ok:()=>st.mine>=40,why:'Lixo da pesca vira pedra, carvão, minério de ferro e outras coisas úteis.'},
- {id:'kiln',n:'Forno de carvão',en:'Charcoal Kiln',sk:['foraging',4],mat:'20 madeira e 2 barras de cobre',ok:()=>st.farm.furnace,why:'Madeira vira carvão.'},
- {id:'cheese',n:'Prensa de queijo',en:'Cheese Press',sk:['farming',6],mat:'45 madeira, 45 pedra, 10 madeira de lei e 1 barra de cobre',ok:()=>st.farm.furnace&&maxTool('axe')>=1,need:()=>st.farm.barn,why:'Leite vira queijo (pacote de Artesão).',cc:1},
- {id:'lrod',n:'Para-raios',en:'Lightning Rod',sk:['foraging',6],mat:'1 barra de ferro, 1 quartzo refinado e 5 asas de morcego',ok:()=>st.mine>=40,why:'Protege das tempestades e dá baterias.'},
- {id:'loom',n:'Tear',en:'Loom',sk:['farming',7],mat:'60 madeira, 30 fibra e 1 piche de pinheiro',ok:()=>own('tapper'),need:()=>st.farm.barn,why:'Lã vira tecido (pacote de Artesão).',cc:1},
- {id:'keg',n:'Barril',en:'Keg',sk:['farming',8],mat:'30 madeira, 1 barra de cobre, 1 barra de ferro e 1 resina de carvalho',ok:()=>st.mine>=40&&own('tapper'),why:'Fruta vira vinho (pacotes Encantador e Artesão).',cc:1},
- {id:'oil',n:'Prensa de óleo',en:'Oil Maker',sk:['farming',8],mat:'50 gosma, 20 madeira de lei e 1 barra de ouro',ok:()=>st.mine>=80&&maxTool('axe')>=1,need:()=>st.farm.barn,why:'Trufa vira óleo de trufa (pacote de Artesão).',cc:1},
- {id:'seedmaker',n:'Fabricante de sementes',en:'Seed Maker',sk:['farming',9],mat:'25 madeira, 10 carvão e 1 barra de ouro',ok:()=>st.mine>=80,why:'Uma colheita vira várias sementes.'},
- {id:'crystal',n:'Cristalário',en:'Crystalarium',sk:['mining',9],mat:'99 pedra, 5 barras de ouro, 2 barras de irídio e 1 bateria',ok:()=>st.unl.skull&&own('lrod'),why:'Copia joias e minerais sem parar.'}
+ {id:'kiln',n:'Carvoaria',en:'Charcoal Kiln',sk:['foraging',4],mat:'20 madeira e 2 barras de cobre',ok:()=>st.farm.furnace,why:'Madeira vira carvão.'},
+ {id:'cheese',n:'Prensa de queijo',en:'Cheese Press',sk:['farming',6],mat:'45 madeira, 45 pedra, 10 madeira de lei e 1 barra de cobre',ok:()=>st.farm.furnace&&maxTool('axe')>=1,need:()=>st.farm.barn,why:'Leite vira queijo (conjunto Artesão).',cc:1},
+ {id:'lrod',n:'Para-raios',en:'Lightning Rod',sk:['foraging',6],mat:'1 barra de ferro, 1 quartzo refinado e 5 asas de morcego',ok:()=>st.mine>=40,why:'Protege das tempestades e dá conjuntos de pilhas.'},
+ {id:'loom',n:'Tear',en:'Loom',sk:['farming',7],mat:'60 madeira, 30 fibra e 1 alcatrão de pinho',ok:()=>own('tapper'),need:()=>st.farm.barn,why:'Lã vira tecido (conjunto Artesão).',cc:1},
+ {id:'keg',n:'Barril',en:'Keg',sk:['farming',8],mat:'30 madeira, 1 barra de cobre, 1 barra de ferro e 1 resina de carvalho',ok:()=>st.mine>=40&&own('tapper'),why:'Fruta vira vinho (conjuntos Encantador e Artesão).',cc:1},
+ {id:'oil',n:'Gerador de óleo',en:'Oil Maker',sk:['farming',8],mat:'50 gosma, 20 madeira de lei e 1 barra de ouro',ok:()=>st.mine>=80&&maxTool('axe')>=1,need:()=>st.farm.barn,why:'Trufa vira óleo de trufas (conjunto Artesão).',cc:1},
+ {id:'seedmaker',n:'Gerador de sementes',en:'Seed Maker',sk:['farming',9],mat:'25 madeira, 10 carvão e 1 barra de ouro',ok:()=>st.mine>=80,why:'Uma colheita vira várias sementes.'},
+ {id:'crystal',n:'Cristalário',en:'Crystalarium',sk:['mining',9],mat:'99 pedra, 5 barras de ouro, 2 barras de irídio e 1 conjunto de pilhas',ok:()=>st.unl.skull&&own('lrod'),why:'Copia joias e minerais sem parar.'}
 ];
 // Livros de poder (cada jogador lê o seu). shop: preço no Vendedor de Livros; y3: só a partir do ano 3
 const BOOKS=[
@@ -592,12 +592,12 @@ const BOOKS=[
  {id:'slither',n:'O Perna de Cobra',eff:'Você corre muito mais rápido no meio do mato e das plantações.',shop:25000,pri:3},
  {id:'horse',n:'Cavalo: O Livro',eff:'O cavalo fica mais rápido.',shop:25000,pri:4,need:()=>own('stable')},
  {id:'wind2',n:'Caminho do Vento - Parte 2',eff:'Você corre mais rápido ainda.',shop:35000,pri:5,after:'wind1'},
- {id:'friend',n:'Os Básicos da Amizade',eff:'A amizade com os moradores sobe um pouco mais rápido.',shop:20000,y3:1,pri:6,how:'Também sai na Máquina de Recompensa da casa do prefeito.'},
+ {id:'friend',n:'Os Básicos da Amizade',eff:'A amizade com os moradores sobe um pouco mais rápido.',shop:20000,y3:1,pri:6,how:'Também sai na Máquina de Recompensa da Mansão do Prefeito.'},
  {id:'monster',n:'Compêndio de Monstros',eff:'Monstros às vezes deixam o dobro de itens.',shop:20000,y3:1,pri:7,how:'Também cai de monstros.'},
  {id:'woody',n:'O Segredo da Floresta',eff:'Árvores cortadas às vezes dão o dobro de madeira.',shop:20000,y3:1,pri:8,how:'Também sai cortando árvores.'},
  {id:'jack',n:'Jack seja ágil, Jack seja parrudo',eff:'+1 de defesa.',shop:20000,y3:1,pri:9,how:'Também sai em pontos de artefato (minhocas no chão).'},
  {id:'jewels',n:'Joias do Mar',eff:'Baús de tesouro da pesca podem dar ovas.',shop:20000,y3:1,pri:10,how:'Também sai em baús de tesouro da pesca.'},
- {id:'crab',n:'A Arte dos Covos',eff:'Covos às vezes pegam o dobro.',shop:20000,y3:1,pri:11,how:'Também é prêmio da Festa da Lula.'},
+ {id:'crab',n:'A Arte dos Covos',eff:'Covos às vezes pegam o dobro.',shop:20000,y3:1,pri:11,how:'Também é prêmio da Festival da Lula.'},
  {id:'raccoon',n:'Diário de Guaxinim',eff:'Ervas daninhas dão mais sementes mistas.',shop:20000,y3:1,pri:12,how:'Também é recompensa do segundo pedido dos guaxinins.'},
  {id:'alley',n:'O Bufê do Beco',eff:'Mais chance de achar coisas no lixo.',shop:20000,y3:1,pri:13,how:'De graça: na lixeira dourada entre o Ferreiro e o Mercado Joja, entrando por um buraco escondido na cerca.'},
  {id:'treasure',n:'Tesouros Antigos: Guia de Avaliação',eff:'Artefatos vendem por mais.',shop:20000,y3:1,pri:14,how:'Também sai em Tesouros de Artefatos.'},
@@ -610,16 +610,28 @@ const BOOKS=[
 // Itens especiais (da fazenda)
 const SPECIAL=[
  {id:'forest',n:'Magia da Floresta',eff:'Entender os Junimos do Centro Comunitário.'},
- {id:'dwarfguide',n:'Guia da Linguagem Anã',eff:'Conversar com o Anão. Recompensa por doar os 4 Pergaminhos do Anão ao museu.'},
+ {id:'dwarfguide',n:'Guia da Linguagem Anã',eff:'Conversar com o Anão. Recompensa por doar os 4 Pergaminhos dos anões ao museu.'},
  {id:'rusty',n:'Chave Enferrujada',eff:'Abre os Esgotos. Recompensa por doar 60 itens ao museu.'},
  {id:'skullkey',n:'Chave de Caveira',eff:'Abre a Caverna da Caveira (andar 120 das minas).'},
  {id:'magnifier',n:'Lupa',eff:'Permite achar Recados Secretos.'},
  {id:'club',n:'Cartão do Clube',eff:'Entrar no Cassino do deserto.'},
  {id:'charm',n:'Amuleto Especial',eff:'Aumenta a sorte de todo dia.'},
- {id:'bear',n:'Conhecimento do Urso',eff:'Amoras e framboesas valem 3× mais.'},
+ {id:'bear',n:'Conhecimento do Urso',eff:'Amoras e amoras-silvestres valem 3× mais.'},
  {id:'onion',n:'Domínio das Cebolinhas',eff:'Cebolinhas valem 5× mais.'},
  {id:'townkey',n:'Chave da Vila',eff:'Entrar nas construções da vila a qualquer hora.'}
 ];
+// Caverna da fazenda (Demetrius): o que sai em cada opção, segundo a wiki
+const CAVE={
+ morcegos:{n:'Morcegos (frutas)',items:['Cherry','Pomegranate','Peach','Apple','Orange','Apricot','Spice Berry','Wild Plum','Blackberry','Salmonberry'],
+   every:1,how:'Os morcegos deixam frutas no chão da caverna durante a noite (em média 1 por noite). Elas ficam lá até vocês pegarem, e fruta parada ocupa o espaço de fruta nova.'},
+ cogumelos:{n:'Cogumelos',items:['Common Mushroom','Red Mushroom','Purple Mushroom','Chanterelle','Morel'],
+   every:2,how:'As caixas da caverna dão cogumelos a cada 2 dias.'}
+};
+function caveNeeds(kind){
+  const set=new Set(CAVE[kind].items), out=[];
+  ROOMS.forEach(r=>r.bundles.forEach(b=>{ if(bundleDone(b)) return; b.items.forEach((it,i)=>{ if(!st.cc[itemKey(b.id,i)] && set.has(it.en.replace(/ ×\d+/,''))) out.push(`${it.n} (${b.name})`); }); }));
+  return out;
+}
 const BOOK_DAYS={0:[11,12,21,22,25],1:[9,12,18,25,27],2:[4,7,8,9,12,19,22,25],3:[5,11,12,19,22,24]};
 function hasPw(i,id){ return !!((st.players[i].pw||{})[id]); }
 const SKILL_PT={farming:'Cultivo',mining:'Mineração',foraging:'Coleta',fishing:'Pesca',combat:'Combate'};
@@ -636,10 +648,10 @@ const HOME={
  Alex:'na casa da família dele, perto do Armazém do Pierre',George:'na casa do Alex, perto do Armazém do Pierre',Evelyn:'na casa do Alex, perto do Armazém do Pierre',
  Haley:'na casa dela e da Emily, no sul da cidade',Emily:'na casa dela e da Haley, no sul da cidade',
  Sam:'na casa da família dele, no sudoeste da cidade',Jodi:'na casa da família do Sam, no sudoeste da cidade',Vincent:'na casa da família do Sam, no sudoeste da cidade',Kent:'na casa da família do Sam, no sudoeste da cidade',
- Penny:'no trailer perto do Saloon',Pam:'no trailer perto do Saloon',Harvey:'no apartamento em cima da clínica',
+ Penny:'no trailer perto do Saloon Fruta Estrelar',Pam:'no trailer perto do Saloon Fruta Estrelar',Harvey:'no apartamento em cima da clínica',
  Elliott:'na cabana da praia',Leah:'na casinha da Floresta Cinzaseiva',
  Shane:'no Rancho da Marnie, na Floresta Cinzaseiva',Jas:'no Rancho da Marnie, na Floresta Cinzaseiva',Marnie:'no Rancho da Marnie, na Floresta Cinzaseiva',
- Lewis:'na casa do prefeito, no sudeste da cidade',Gus:'no Saloon',Clint:'no Ferreiro, no leste da cidade',Willy:'na Peixaria, na praia',
+ Lewis:'na Mansão do Prefeito, no sudeste da cidade',Gus:'no Saloon Fruta Estrelar',Clint:'no Ferreiro, no leste da cidade',Willy:'na Peixaria, na praia',
  Feiticeiro:'na Torre do Mago, no oeste da Floresta Cinzaseiva',Krobus:'no esgoto (precisa da chave do esgoto)',Linus:'na barraca ao norte do lago da montanha',
  Sandy:'no Oásis, no deserto','Anão':'dentro da entrada das minas',Leo:'na Ilha Gengibre'
 };
@@ -650,18 +662,18 @@ function whereText(name,c){
    case 'Maru': day=(wd===1||wd===3)?'Hoje (terça ou quinta) ela trabalha na clínica do Harvey, das 9h às 16h.':'Hoje ela costuma ficar em casa ou pela montanha.'; break;
    case 'Harvey': day=wd<5?'Durante o dia atende na clínica.':''; break;
    case 'Pierre': day=wd===2?'Hoje (quarta) a loja fecha e ele sai pela cidade.':'Fica no balcão da loja das 9h às 17h.'; break;
-   case 'Gus': day='Fica no Saloon do meio-dia à meia-noite.'; break;
-   case 'Emily': day='À noite trabalha no Saloon, a partir das 16h.'; break;
+   case 'Gus': day='Fica no Saloon Fruta Estrelar do meio-dia à meia-noite.'; break;
+   case 'Emily': day='À noite trabalha no Saloon Fruta Estrelar, a partir das 16h.'; break;
    case 'Clint': day='Fica no balcão do Ferreiro durante o dia.'; break;
    case 'Willy': day='Fica na peixaria ou pescando no píer.'; break;
    case 'Robin': day='Fica no balcão da carpintaria das 9h às 17h.'; break;
    case 'Marnie': day=(wd===0||wd===1)?'Hoje (segunda ou terça) ela sai do rancho.':'Fica no balcão do rancho das 9h às 16h.'; break;
-   case 'Shane': day=wd<5?'De dia trabalha na JojaMart; à noite vai ao Saloon.':'À noite costuma ir ao Saloon.'; break;
-   case 'Pam': day='Costuma passar a noite no Saloon.'; break;
+   case 'Shane': day=wd<5?'De dia trabalha na Mercado Joja; à noite vai ao Saloon Fruta Estrelar.':'À noite costuma ir ao Saloon Fruta Estrelar.'; break;
+   case 'Pam': day='Costuma passar a noite no Saloon Fruta Estrelar.'; break;
    case 'Penny': day=(wd===1||wd===2||wd===4)?'Hoje de manhã ela dá aula para a Jas e o Vincent no museu.':''; break;
    case 'Sandy': case 'Feiticeiro': case 'Krobus': case 'Linus': case 'Anão': day='Quase sempre está lá.'; break;
   }
-  if(wd===4 && ['Abigail','Sebastian','Sam','Leah','Elliott'].includes(name)) day+=' Sexta à noite (19h–23h) costuma ir ao Saloon.';
+  if(wd===4 && ['Abigail','Sebastian','Sam','Leah','Elliott'].includes(name)) day+=' Sexta à noite (19h–23h) costuma ir ao Saloon Fruta Estrelar.';
   if(c.rain) day+=' Com chuva, a maioria fica em casa.';
   return `Onde achar: mora ${HOME[name]||'na cidade'}. ${day}`.trim();
 }
@@ -669,9 +681,9 @@ function whereText(name,c){
 const CROPS={
  0:[['Chirívia','Parsnip',4,0,20,35],['Batata','Potato',6,0,50,80],['Couve-flor','Cauliflower',12,0,80,175],['Vagem','Green Bean',10,3,60,40,'treliça'],
     ['Couve','Kale',6,0,70,110],['Alho','Garlic',4,0,40,60,'y2'],['Morango','Strawberry',8,4,100,120,'fest'],['Tulipa','Tulip',6,0,20,30],['Jasmim-azul','Blue Jazz',7,0,30,50],['Ruibarbo','Rhubarb',13,0,100,220,'oasis']],
- 1:[['Mirtilo','Blueberry',13,4,80,150],['Melão','Melon',12,0,80,250],['Pimenta','Hot Pepper',5,3,40,40],['Tomate','Tomato',11,4,50,60],['Rabanete','Radish',6,0,40,90],
+ 1:[['Mirtilo','Blueberry',13,4,80,150],['Melão','Melon',12,0,80,250],['Pimenta Picante','Hot Pepper',5,3,40,40],['Tomate','Tomato',11,4,50,60],['Rabanete','Radish',6,0,40,90],
     ['Trigo','Wheat',4,0,10,25,'multi'],['Milho','Corn',14,4,150,50,'multi'],['Lúpulo','Hops',11,1,60,25,'treliça'],['Girassol','Sunflower',8,0,200,80,'multi'],['Papoula','Poppy',7,0,100,140],
-    ['Repolho-roxo','Red Cabbage',9,0,100,260,'y2'],['Carambola','Starfruit',13,0,400,750,'oasis']],
+    ['Repolho roxo','Red Cabbage',9,0,100,260,'y2'],['Carambola','Starfruit',13,0,400,750,'oasis']],
  2:[['Oxicoco','Cranberries',7,5,240,150],['Abóbora','Pumpkin',13,0,100,320],['Berinjela','Eggplant',5,5,20,60],['Inhame','Yam',10,0,60,160],['Acelga chinesa','Bok Choy',4,0,50,80],
     ['Amaranto','Amaranth',7,0,70,150],['Uva','Grape',10,3,60,80,'treliça'],['Alcachofra','Artichoke',8,0,30,160,'y2'],['Milho','Corn',14,4,150,50],['Trigo','Wheat',4,0,10,25],
     ['Girassol','Sunflower',8,0,200,80],['Beterraba','Beet',6,0,20,100,'oasis'],['Rosa-de-fada','Fairy Rose',12,0,200,290]],
@@ -706,6 +718,7 @@ function normalize(s){
   out.players.forEach((pl,i)=>{ pl.pw=Object.assign({},((s.players||[])[i]||{}).pw||{}); });
   if(typeof out.bookDays!=='string') out.bookDays='';
   if(out.unl.skull) out.special.skullkey=true;
+  if(out.farm.cave==null) out.farm.cave='';
   if(out.farm.crabWhere==null) out.farm.crabWhere=out.farm.crab?'mar':'';
   out.farm.crab=!!out.farm.crabWhere;
   if(s.mine==null && s.players) out.mine=Math.max(0,...s.players.map(p=>+p.mine||0));
@@ -877,7 +890,7 @@ function reqOk(req,c){
     mine20:c.maxMine>=20,mine40:c.maxMine>=40,mine80:c.maxMine>=80,axe:Math.max(tl(0,'axe'),tl(1,'axe'))>=1};
   return !!m[req];
 }
-const REQ_LABEL={bus:'precisa do ônibus',woods:'precisa do Bosque Secreto (machado de aço)',beach:'precisa da ponte da praia',coop:'precisa de galinheiro',barn:'precisa de estábulo',y2:'só no ano 2',
+const REQ_LABEL={bus:'precisa do ônibus',woods:'precisa do Bosque Secreto (machado de aço)',beach:'precisa da ponte da praia',coop:'precisa de galinheiro',barn:'precisa de celeiro',y2:'só no ano 2',
   mine20:'chegar ao andar 20',mine40:'chegar ao andar 40',mine80:'chegar ao andar 80',axe:'precisa de machado de cobre'};
 
 // Itens que faltam e que dá para pegar hoje
@@ -926,7 +939,7 @@ function cropBundle(en){
 function shopFor(c,x){
   if(x==='oasis') return 'no Oásis (deserto)';
   if(x==='fest') return 'na barraca do Pierre no festival';
-  return c.wd===2?'na JojaMart (o Pierre fecha às quartas)':'no Pierre';
+  return c.wd===2?'na Mercado Joja (o Pierre fecha às quartas)':'no Pierre';
 }
 function qualityPlan(perPlant){
   const fi=st.players[0].farming>=st.players[1].farming?0:1, lv=st.players[fi].farming;
@@ -984,18 +997,18 @@ function buildPlan(){
   if(!st.unl.cc && !(c.newbie&&c.D<3)) tasks.push(T('cc',1,'Ver a cena do Centro Comunitário','Entrem na cidade pelo caminho do ponto de ônibus de manhã (8h–13h), num dia sem chuva.','both',{set:[['unl.cc',true]]}));
   if(c.newbie && c.D<=3 && st.farm.crops==='nenhuma') tasks.push(T('plant15',1,'Plantar as 15 sementes de chirívia','Limpem um pedaço perto da casa com a enxada, plantem e reguem. Ficam prontas em 4 dias.',farmerIdx,{set:[['farm.crops','poucas']]}));
   if(hasCrops && outdoors && !c.rain) tasks.push(T('water',1,'Regar as plantações',
-      waterBoth?'Dividam o campo ao meio: cada um rega uma parte.':st.farm.sprinklers?'Reguem o que os irrigadores não alcançam.':'Façam logo de manhã. Encham o regador na água mais próxima.',waterBoth?'both':farmerIdx));
+      waterBoth?'Dividam o campo ao meio: cada um rega uma parte.':st.farm.sprinklers?'Reguem o que os aspersores não alcançam.':'Façam logo de manhã. Encham o regador na água mais próxima.',waterBoth?'both':farmerIdx));
   if(hasCrops && outdoors && c.D===28) tasks.push(T('last',1,'Colher tudo antes de dormir','Amanhã as plantações desta estação morrem. Milho, trigo e girassol passam do verão para o outono.',farmerIdx));
-  else if(hasCrops && outdoors) tasks.push(T('harvest',1,'Colher o que estiver pronto e vender na caixa de envio','Guardem 1 de cada item que ainda falta nos pacotes do Centro Comunitário.',farmerIdx));
+  else if(hasCrops && outdoors) tasks.push(T('harvest',1,'Colher o que estiver pronto e vender na caixa de envio','Guardem 1 de cada item que ainda falta nos conjuntos do Centro Comunitário.',farmerIdx));
   if(st.farm.greenhouse && c.S===3) tasks.push(T('gh',1,'Regar e colher a estufa','No inverno só a estufa produz.',farmerIdx));
-  if(st.farm.coop||st.farm.barn) tasks.push(T('animals',1,'Fazer carinho nos animais e coletar os produtos',st.farm.silo?'O feno sai sozinho do silo para o comedouro.':'Coloquem feno no comedouro. Sem silo, comprem feno na Marnie.',1-farmerIdx));
+  if(st.farm.coop||st.farm.barn) tasks.push(T('animals',1,'Fazer carinho nos animais e coletar os produtos',st.farm.silo?'A palha sai sozinha do silo para o comedouro.':'Coloquem palha no comedouro. Sem silo, comprem palha na Marnie.',1-farmerIdx));
   const vault=['v1','v2','v3','v4'].map(bundleById).find(b=>!bundleDone(b));
   if(vault && spend(vault.items[0].g)) tasks.push(T('vault-'+vault.id,1,`Pagar ${vault.items[0].n} no Cofre do Centro Comunitário`,'Completar o Cofre conserta o ônibus para o deserto.','bal',{cc:[itemKey(vault.id,0)],money:-vault.items[0].g}));
   // Plantações do Centro Comunitário: colher o que ficou pronto e plantar o que falta
   const now=absDay(st);
   st.planted=(st.planted||[]).filter(r=>now<=r.expAbs && !st.cc[r.key]);
   st.planted.forEach(r=>{ if(now>=r.readyAbs) tasks.push(T('harv-'+r.id,1,`Colher ${r.n} e entregar no Centro Comunitário`,
-      r.quality?`Separem 5 com estrela de ouro para o pacote ${r.bundle} e entreguem. Se ainda não tiver 5, desmarquem e esperem a próxima colheita.`:`É para o pacote ${r.bundle}. Entreguem 1 e guardem a reserva.`,r.who??farmerIdx,{cc:[r.key],unplant:r.id})); });
+      r.quality?`Separem 5 com estrela de ouro para o conjunto ${r.bundle} e entreguem. Se ainda não tiver 5, desmarquem e esperem a próxima colheita.`:`É para o conjunto ${r.bundle}. Entreguem 1 e guardem a reserva.`,r.who??farmerIdx,{cc:[r.key],unplant:r.id})); });
   if(outdoors){ let k=0;
     plants.cc.forEach(pl=>{
       if(k>=2) return;
@@ -1010,17 +1023,17 @@ function buildPlan(){
       const ready=addDays(st.season,st.day,st.year,pl.g);
       const rec={id:key+'@'+now,key,n:pl.n,bundle:pl.bundle.b.name,quality:qual,readyAbs:now+pl.g,expAbs:seasonEndAbs(st,pl.multi?28:0),who};
       tasks.push(T('plant-'+key,1,`Plantar ${n} ${pl.n} para o Centro Comunitário`,
-        (qual?`Pacote ${pl.bundle.b.name}: precisa de 5 com estrela de ouro. Coloquem ${pl.q.best.n} na terra antes de plantar. Quem colhe deve ser ${esc(P[who].name)}. `:`Pacote ${pl.bundle.b.name}. Plantem 2 (uma é reserva). `)+
+        (qual?`Conjunto ${pl.bundle.b.name}: precisa de 5 com estrela de ouro. Coloquem ${pl.q.best.n} na terra antes de plantar. Quem colhe deve ser ${esc(P[who].name)}. `:`Conjunto ${pl.bundle.b.name}. Plantem 2 (uma é reserva). `)+
         `Sementes de ${pl.seed}g ${pl.shop}. Ficam prontas em ${pl.g} dias: em ${SEASONS[ready.season]} ${ready.day} a colheita aparece aqui.`,who,{plant:rec,money:-cost}));
     });
   }
-  if(c.S===3 && !bundleDone(bundleById('wf'))) tasks.push(T('dig',2,'Cavar a terra com a enxada','Na fazenda e na floresta aparecem Raiz de Inverno e Inhame da Neve, do pacote de inverno.'));
+  if(c.S===3 && !bundleDone(bundleById('wf'))) tasks.push(T('dig',2,'Cavar a terra com a enxada','Na fazenda e na floresta aparecem Raiz de Inverno e Inhame de neve, do conjunto Recursos de Inverno.'));
   { const fl=Math.max(P[0].farming,P[1].farming), fi=pickFor('farming');
-    if(!st.farm.sprinklers && st.farm.crops!=='nenhuma' && ((fl>=9&&st.unl.skull)||(fl>=6&&st.mine>=80))) tasks.push(T('sprink',2,fl>=9&&st.unl.skull?'Fazer irrigadores de irídio':'Fazer irrigadores de qualidade',
-      fl>=9&&st.unl.skull?'Receita de Cultivo 9: 1 barra de ouro + 1 de irídio + 1 bateria. Rega 24 quadrados em volta.':'Receita de Cultivo 6: 1 barra de ferro + 1 de ouro + 1 quartzo refinado. Rega os 8 quadrados em volta.',fi,{set:[['farm.sprinklers',true]]})); }
+    if(!st.farm.sprinklers && st.farm.crops!=='nenhuma' && ((fl>=9&&st.unl.skull)||(fl>=6&&st.mine>=80))) tasks.push(T('sprink',2,fl>=9&&st.unl.skull?'Fazer aspersores de irídio':'Fazer aspersores de qualidade',
+      fl>=9&&st.unl.skull?'Receita de Cultivo 9: 1 barra de ouro + 1 de irídio + 1 conjunto de pilhas. Rega 24 quadrados em volta.':'Receita de Cultivo 6: 1 barra de ferro + 1 de ouro + 1 quartzo refinado. Rega os 8 quadrados em volta.',fi,{set:[['farm.sprinklers',true]]})); }
   if(!st.farm.furnace && c.minesOpen) tasks.push(T('furnace',2,'Levar minério de cobre para o Clint','Ele ensina a fazer a fornalha, que transforma minério em barras.','act:mines',{set:[['farm.furnace',true]]}));
   if(c.wd!==2) [0,1].filter(i=>tl(i,'pack')===0).forEach(i=>{ if(spend(2000)) tasks.push(T('pack-'+i,2,'Comprar a mochila grande no Pierre','2.000g. São 12 espaços a mais, menos viagens para casa.',i,{set:[[`players.${i}.tools.pack`,1]],money:-2000})); });
-  // Covos: recolher todo dia e mudar de lugar quando o pacote precisar
+  // Covos: recolher todo dia e mudar de lugar quando o conjunto precisar
   if(st.farm.crabWhere && !bundleDone(bundleById('cp'))){
     const cp=bundleById('cp'), SEA=[0,2,3,4,5,8,9], FRESH=[1,6,7];
     const miss=ix=>ix.filter(k=>!st.cc['cp:'+k]).map(k=>cp.items[k].n);
@@ -1028,13 +1041,27 @@ function buildPlan(){
     const fi=pickFor('fishing');
     const here=where==='mar'?sea:fresh;
     tasks.push(T('crabcheck',1,`Recolher os covos ${where==='mar'?'na praia':'no rio ou lago'} e colocar isca de novo`,
-      (done?'O pacote de Covos já está completo: o que sair pode vender. ':here.length?`Para o pacote de Covos ainda faltam: ${here.join(', ')}. O que vier, entreguem no Centro Comunitário. `:'')+'Isca: o Willy vende por 5g cada. Um covo sem isca não pega nada.',fi));
-    if(!done && where==='mar' && !sea.length && fresh.length) tasks.push(T('crabmove',2,'Mudar os covos para o rio ou o lago',`No mar já saiu tudo que o pacote precisa. ${fresh.join(', ')} só saem em água doce: rio da cidade, rio da Floresta Cinzaseiva ou lago da montanha.`,fi,{set:[['farm.crabWhere','doce']]}));
-    if(!done && where==='doce' && !fresh.length && sea.length) tasks.push(T('crabmove',2,'Mudar os covos para a praia',`Na água doce já saiu tudo que o pacote precisa. ${sea.join(', ')} só saem no mar.`,fi,{set:[['farm.crabWhere','mar']]}));
+      (done?'O conjunto Covo já está completo: o que sair pode vender. ':here.length?`Para o conjunto Covo ainda faltam: ${here.join(', ')}. O que vier, entreguem no Centro Comunitário. `:'')+'Isca: o Willy vende por 5g cada. Um covo sem isca não pega nada.',fi));
+    if(!done && where==='mar' && !sea.length && fresh.length) tasks.push(T('crabmove',2,'Mudar os covos para o rio ou o lago',`No mar já saiu tudo que o conjunto precisa. ${fresh.join(', ')} só saem em água doce: rio da cidade, rio da Floresta Cinzaseiva ou lago da montanha.`,fi,{set:[['farm.crabWhere','doce']]}));
+    if(!done && where==='doce' && !fresh.length && sea.length) tasks.push(T('crabmove',2,'Mudar os covos para a praia',`Na água doce já saiu tudo que o conjunto precisa. ${sea.join(', ')} só saem no mar.`,fi,{set:[['farm.crabWhere','mar']]}));
   }
   // Ferramentas que estão com o Clint
   st.upgrading=(st.upgrading||[]).filter(u=>u&&u.readyAbs);
   st.upgrading.forEach(u=>{ if(now>=u.readyAbs) tasks.push(T(`pickup-${u.id}`,1,`Buscar ${TOOL_ART[u.tool]} no Clint`,`Já está pronta: agora é de ${LV[u.lv].toLowerCase()}. O Clint atende das 9h às 16h.`,u.i,{set:[[`players.${u.i}.tools.${u.tool}`,u.lv]],unupg:u.id})); });
+  // Caverna da fazenda
+  { const cave=st.farm.cave;
+    if(cave && CAVE[cave] && now%CAVE[cave].every===0){
+      const need=caveNeeds(cave);
+      tasks.push(T('cave',2,cave==='morcegos'?'Pegar as frutas da caverna da fazenda':'Pegar os cogumelos da caverna da fazenda',
+        `${CAVE[cave].how} ${need.length?`Se aparecer, entreguem no Centro Comunitário: ${need.join(', ')}.`:'Guardem algumas para presentes e para máquinas.'}`,pickFor('foraging')));
+    }
+    if(!cave && (st.year>1||st.season>=1||st.money>=10000)){
+      const nb=caveNeeds('morcegos').length, nm=caveNeeds('cogumelos').length;
+      const best=nb>=nm?'morcegos':'cogumelos';
+      tasks.push(T('cavechoice',3,'Quando o Demetrius aparecer, escolher o que vai na caverna',
+        `Ele aparece numa manhã depois que vocês ganham 25.000g no total, e a escolha é para sempre. Para o Centro Comunitário, hoje os ${best} ajudam mais: ${best==='morcegos'?`frutas para ${nb} itens que faltam (Artesão, Encantador, Forragem e Recursos)`:`cogumelos para ${nm} itens que faltam (Recursos Exóticos, Tinta, Pesquisa de campo e Recursos de Outono)`}. Depois marquem a escolha em Nossa fazenda → Fazenda.`));
+    }
+  }
   // Poderes: livreiro, livro grátis e Magia da Floresta
   if(st.unl.cc && !st.special.forest) tasks.push(T('forest',1,'Visitar o Feiticeiro na Torre do Mago','Depois de ler o pergaminho do Centro Comunitário, ele ensina a entender os Junimos (Magia da Floresta). A torre fica no oeste da Floresta Cinzaseiva.','bal',{set:[['special.forest',true]]}));
   { const marked=(st.bookDays.match(/\d+/g)||[]).map(Number);
@@ -1047,9 +1074,9 @@ function buildPlan(){
         if(hasPw(i,b.id) || (b.after && !hasPw(i,b.after))) return;
         if(!spend(b.shop)) return;
         any=true;
-        tasks.push(T(`book-${b.id}-${i}`,2,`Comprar e ler o livro ${b.n}`,`${b.shop.toLocaleString('pt-BR')}g no Vendedor de Livros (acima da JojaMart). ${b.eff} Cada um precisa ler o seu.`,i,{set:[[`players.${i}.pw.${b.id}`,true]],money:-b.shop}));
+        tasks.push(T(`book-${b.id}-${i}`,2,`Comprar e ler o livro ${b.n}`,`${b.shop.toLocaleString('pt-BR')}g no Vendedor de Livros (acima da Mercado Joja). ${b.eff} Cada um precisa ler o seu.`,i,{set:[[`players.${i}.pw.${b.id}`,true]],money:-b.shop}));
       }));
-      if(!any) tasks.push(T('bookvisit',3,'Passar no livreiro (acima da JojaMart)','Hoje ele está na cidade. O ouro de vocês ainda não dá para os livros de poder que faltam, mas vale olhar os livros de habilidade.'));
+      if(!any) tasks.push(T('bookvisit',3,'Passar no livreiro (acima da Mercado Joja)','Hoje ele está na cidade. O ouro de vocês ainda não dá para os livros de poder que faltam, mas vale olhar os livros de habilidade.'));
     }
   }
   [0,1].forEach(i=>{ if(!hasPw(i,'alley') && st.mine>=1) tasks.push(T('alley-'+i,3,'Pegar o livro O Bufê do Beco na lixeira dourada','De graça: entre o Ferreiro e o Mercado Joja, entrando por um buraco escondido na cerca. Dá mais chance de achar coisas no lixo.',i,{set:[[`players.${i}.pw.alley`,true]]})); });
@@ -1071,7 +1098,7 @@ function buildPlan(){
   if(c.wd!==2 && tl(0,'pack')>=1 && tl(1,'pack')>=1){ const n2=[0,1].filter(i=>tl(i,'pack')===1); if(n2.length && spend(10000)) tasks.push(T('pack2',3,'Comprar a mochila de luxo no Pierre','10.000g, mais 12 espaços.',n2[0],{set:[[`players.${n2[0]}.tools.pack`,2]],money:-10000})); }
   if(c.wd===4||c.wd===6){
     const want=missingNames(['long','crop'],3);
-    tasks.push(T('cart',3,'Passar na carroça viajante (floresta, 6h–20h)',want.length?`Procurem itens que faltam nos pacotes, como ${want.join(', ')}.`:'Às vezes ela vende sementes e itens raros.','act:forage'));
+    tasks.push(T('cart',3,'Passar na Carrinho de Viagem (floresta, 6h–20h)',want.length?`Procurem itens que faltam nos conjuntos, como ${want.join(', ')}.`:'Às vezes ela vende sementes e itens raros.','act:forage'));
   }
   c.budget=budget;
 
@@ -1207,14 +1234,14 @@ function fishMission(p,c,items,i){
     else if((c.budget??st.money)>=1800){ c.budget=(c.budget??st.money)-1800; tasks.unshift({id:'rod2',fx:{set:[[`players.${i}.tools.rod`,2]],money:-1800},t:'Comprar a vara de fibra de vidro e isca no Willy (1.800g)'}); }
   }
   if(p.fishing>=3 && !st.farm.crabWhere && st.mine>=40 && !bundleDone(bundleById('cp'))) tasks.push({id:'crab',fx:{set:[['farm.crabWhere','mar'],['farm.crab',true]]},t:'Fazer 2 covos e colocar no mar',d:'Cada covo: 40 madeira + 3 barras de ferro (receita de Pesca 3). Coloquem isca dentro todo dia.'});
-  const why=c.rain?'Dia de chuva é o melhor para pescar: aparecem peixes raros.':items.length?'Tem peixe dos pacotes disponível hoje.':'Peixe dá dinheiro rápido e treina a habilidade.';
-  let tip=p.fishing<2?'Segurem o botão para lançar mais longe. Na barra verde, toques curtos seguram o peixe.':'Guardem 1 de cada peixe dos pacotes antes de vender.';
+  const why=c.rain?'Dia de chuva é o melhor para pescar: aparecem peixes raros.':items.length?'Tem peixe dos conjuntos disponível hoje.':'Peixe dá dinheiro rápido e treina a habilidade.';
+  let tip=p.fishing<2?'Segurem o botão para lançar mais longe. Na barra verde, toques curtos seguram o peixe.':'Guardem 1 de cada peixe dos conjuntos antes de vender.';
   if(p.fishing>=2 && tl(i,'rod')<2 && tl(other,'rod')>=2) tip='Para emprestar, quem tem a vara coloca ela num baú ou joga no chão perto do outro.';
   return {goal:items.length?`Pescar ${items[0].it.n}`:'Dia de pesca',why,tasks,tip};
 }
 function forageMission(p,c,items,berry,i){
   const tasks=[];
-  if(berry) tasks.push(c.S===0?'Colher framboesas nos arbustos (época dos dias 15 a 18)':'Colher amoras nos arbustos (época dos dias 8 a 11)');
+  if(berry) tasks.push(c.S===0?'Colher amoras-silvestres nos arbustos (época dos dias 15 a 18)':'Colher amoras nos arbustos (época dos dias 8 a 11)');
   items.filter(x=>!/Madeira/.test(x.it.n)).slice(0,3).forEach(x=>tasks.push({id:'cc-'+x.key,fx:{cc:[x.key]},t:`Coletar ${x.it.n} e entregar no Centro Comunitário`,d:dot(x.it.h)}));
   tasks.push({t:'Fazer a rota floresta → cidade → montanha pegando tudo do chão',d:'Floresta Cinzaseiva fica ao sul da fazenda. A montanha fica ao norte da cidade, perto da casa da Robin.'});
   const con=bundleById('con');
@@ -1223,7 +1250,7 @@ function forageMission(p,c,items,berry,i){
     if(!st.cc['con:3'] && tl(i,'axe')>=1) tasks.push({id:'cc-con:3',fx:{cc:['con:3']},t:'Juntar 10 de madeira de lei e entregar no Centro Comunitário',d:'Cortem os tocos grandes com o machado de cobre (fazenda e Floresta Cinzaseiva).'});
     else if(wk) tasks.push({id:'cc-'+wk,fx:{cc:[wk]},t:'Juntar 99 de madeira e entregar no Centro Comunitário',d:'Cortem árvores na fazenda ou na floresta.'});
   }
-  return {goal:berry?'Colher frutinhas e coletas':'Coletar pela cidade',why:items.length?'Faltam itens de coleta nos pacotes desta estação.':'Coletas viram comida e dinheiro grátis.',tasks,tip:'Guardem 1 de cada coleta para os pacotes e comam o resto quando a energia acabar.'};
+  return {goal:berry?'Colher frutinhas e coletas':'Coletar pela cidade',why:items.length?'Faltam itens de coleta nos conjuntos desta estação.':'Coletas viram comida e dinheiro grátis.',tasks,tip:'Guardem 1 de cada coleta para os conjuntos e comam o resto quando a energia acabar.'};
 }
 function farmMission(p,c,plants){
   const tasks=[];
@@ -1305,10 +1332,10 @@ function renderPlan(){
   // CC
   const ccOk=plan.cc.filter(x=>x.ok!==false).slice(0,6), ccLocked=plan.cc.filter(x=>x.ok===false).slice(0,4);
   h+=`<section class="card"><div class="card-h"><h2>Centro Comunitário: dá pra pegar hoje</h2><span class="small muted">${countRoomsDone()} de 6 salas completas</span></div>`;
-  if(!ccOk.length && !ccLocked.length) h+=`<p class="muted" style="margin:0">Nada de pesca, coleta ou mina disponível hoje para os pacotes que faltam. Foquem em dinheiro e na fazenda.</p>`;
+  if(!ccOk.length && !ccLocked.length) h+=`<p class="muted" style="margin:0">Nada de pesca, coleta ou mina disponível hoje para os conjuntos que faltam. Foquem em dinheiro e na fazenda.</p>`;
   else h+=`<div class="cc-list">${ccOk.map(ccItemHTML).join('')}</div>`;
   if(ccLocked.length) h+=`<details><summary class="small muted" style="cursor:pointer;font-weight:700">Mais ${ccLocked.length} itens desta estação que ainda estão bloqueados</summary><div class="cc-list" style="margin-top:8px">${ccLocked.map(ccItemHTML).join('')}</div></details>`;
-  h+=`<p class="small muted" style="margin:0">Marquem o que já entregaram em <b>Nossa fazenda → Centro Comunitário</b>. Plantações dos pacotes aparecem em "O que plantar hoje".</p></section>`;
+  h+=`<p class="small muted" style="margin:0">Marquem o que já entregaram em <b>Nossa fazenda → Centro Comunitário</b>. Plantações dos conjuntos aparecem em "O que plantar hoje".</p></section>`;
 
   // Plantio
   const pc=plan.plants.cc, pm=plan.plants.money;
@@ -1330,7 +1357,7 @@ function renderPlan(){
     let ev='';
     fs.forEach(f=>ev+=`<span class="ev f">${esc(f[3])}</span>`);
     if(b) ev+=`<span class="ev b">Aniv. ${esc(b)}</span>`;
-    if(wd===4||wd===6) ev+=`<span class="ev">Carroça</span>`;
+    if(wd===4||wd===6) ev+=`<span class="ev">Carrinho</span>`;
     if(d.day===28) ev+=`<span class="ev">Fim da estação</span>`;
     h+=`<div class="cal-d ${n===0?'today':''}"><span class="wd">${n===0?'Hoje':WEEK[wd].slice(0,3)}</span><span class="dn">${d.day}${d.season!==st.season?` <span class="small muted">${SEASONS[d.season].slice(0,3)}</span>`:''}</span>${ev}</div>`;
   }
@@ -1353,14 +1380,14 @@ function plantedNote(p){
 function pct(x){return Math.round(x*100)+'%'}
 function qualityHTML(p){
   const q=p.q, who=esc(st.players[q.fi].name), hard=q.best.seeds>60;
-  return `<div class="qbox"><b>★ ${p.bundle.quality?'Precisa de 5 com estrela de ouro':'Além disso, a Colheita de Qualidade pede 5 com estrela de ouro'}</b>
+  return `<div class="qbox"><b>★ ${p.bundle.quality?'Precisa de 5 com estrela de ouro':'Além disso, a Plantações de Qualidade pede 5 com estrela de ouro'}</b>
    <ul>
     <li>A estrela é decidida na colheita pelo Cultivo de quem colhe. Deixem <b>${who}</b> colher (Cultivo ${q.lv}).</li>
     <li>Com ${esc(q.best.n)}: ~${pct(q.best.ch)} de chance de ouro por colheita, então plantem uns <b>${q.best.seeds}</b>${p.rg?' pés':''}. Sem fertilizante: ~${pct(q.none.ch)} (uns ${q.none.seeds}).</li>
     <li>Fertilizante básico: 100g no Pierre, ou façam com 2 seivas (receita de Cultivo 1).${q.best.f===2?' Fertilizante de qualidade: 150g no Pierre.':''} Ele vai na terra arada <b>antes</b> de plantar a semente.</li>
-    <li>Comer algo que dá +Cultivo antes de colher aumenta a chance, por exemplo Batata rösti (Hashbrowns) ou Almoço do fazendeiro (Farmer's Lunch).</li>
+    <li>Comer algo que dá +Cultivo antes de colher aumenta a chance, por exemplo Batata-palha ou Almoço de fazendeiro (Farmer's Lunch).</li>
     <li>Confiram a estrela dourada no canto do item e guardem essas num baú, sem vender.</li>
-   </ul>${hard?`<p>Com Cultivo ${q.lv} ainda dá muito trabalho. Vale mais completar os outros pacotes primeiro e voltar a este quando o Cultivo subir.</p>`:''}</div>`;
+   </ul>${hard?`<p>Com Cultivo ${q.lv} ainda dá muito trabalho. Vale mais completar os outros conjuntos primeiro e voltar a este quando o Cultivo subir.</p>`:''}</div>`;
 }
 function countRoomsDone(){return ROOMS.filter(roomDone).length}
 function ccItemHTML(x){
@@ -1422,13 +1449,14 @@ function renderForm(){
     <div class="fields">
      <div class="field"><label for="f-money">Ouro</label>${num('money',st.money,0,99999999,'f-money')}</div>
      <div class="field"><label for="f-mine">Andar das minas</label>${num('mine',st.mine,0,120,'f-mine')}</div>
+     <div class="field" style="grid-column:1 / -1"><label for="f-cave">Caverna da fazenda (Demetrius)</label>${sel('farm.cave',[['','Ainda não escolhemos'],['morcegos','Morcegos (frutas)'],['cogumelos','Cogumelos']],f.cave||'','f-cave')}</div>
      <div class="field" style="grid-column:1 / -1"><label for="f-crabw">Covos</label>${sel('farm.crabWhere',[['','Não temos'],['mar','No mar (praia)'],['doce','No rio ou lago']],f.crabWhere||'','f-crabw')}</div>
      <div class="field" style="grid-column:1 / -1"><label for="f-crops">Plantações lá fora</label>${sel('farm.crops',[['nenhuma','Nenhuma'],['poucas','Poucas (até ~40)'],['muitas','Muitas']],f.crops,'f-crops')}</div></div>
     <div class="checks">
-     ${chk('farm.sprinklers',f.sprinklers,'Temos irrigadores de qualidade (ou melhores)','f-spr')}
+     ${chk('farm.sprinklers',f.sprinklers,'Temos aspersores de qualidade (ou melhores)','f-spr')}
      ${chk('farm.furnace',f.furnace,'Temos fornalha','f-fur')}
      ${chk('farm.coop',f.coop,'Temos galinheiro','f-coop')}
-     ${chk('farm.barn',f.barn,'Temos estábulo','f-barn')}
+     ${chk('farm.barn',f.barn,'Temos celeiro','f-barn')}
      ${chk('farm.silo',f.silo,'Temos silo','f-silo')}
      ${chk('farm.greenhouse',f.greenhouse,'Estufa consertada','f-gh')}
     </div>
@@ -1443,7 +1471,7 @@ function renderForm(){
     const opts=[['want','Queremos'],['have','Já temos'],['no','Não queremos']];
     const rows=BUILD.filter(b=>b.id!=='coop'&&b.id!=='barn').map(b=>`<div class="field"><label for="b-${b.id}">${esc(b.n)} <span class="en" style="text-transform:none;letter-spacing:0">${esc(b.en)}</span></label>${sel('owned.'+b.id,opts,(st.owned||{})[b.id]||'want','b-'+b.id)}</div>`).join('');
     const have=BUILD.filter(b=>own(b.id)).length;
-    h+=sec('build','Construções e máquinas',`${have} de ${BUILD.length}`,`<p class="small muted" style="margin:0">Marquem o que já têm e o que não querem. O que estiver em "Queremos" aparece como tarefa quando já der para fazer (nível de habilidade, materiais e ouro). Galinheiro e estábulo ficam na seção Fazenda.</p><div class="fields">${rows}</div>`);
+    h+=sec('build','Construções e máquinas',`${have} de ${BUILD.length}`,`<p class="small muted" style="margin:0">Marquem o que já têm e o que não querem. O que estiver em "Queremos" aparece como tarefa quando já der para fazer (nível de habilidade, materiais e ouro). Galinheiro e celeiro ficam na seção Fazenda.</p><div class="fields">${rows}</div>`);
   }
   {
     const chip=(attr,key,on,label,title)=>`<button type="button" class="it" ${attr}="${key}" aria-pressed="${!!on}" title="${esc(title)}">${esc(label)}</button>`;
@@ -1624,11 +1652,11 @@ async function askClaude(){
     jogadores:st.players.map(p=>({nome:p.name,cultivo:p.farming,mineracao:p.mining,coleta:p.foraging,pesca:p.fishing,combate:p.combat})), andar_minas:st.mine, equipamentos:st.players.map(pl=>({nome:pl.name,...Object.fromEntries(TOOLS.map(([k,l,lv])=>[l,lv[(pl.tools||{})[k]||0]]))})),
     fazenda:st.farm, liberado:st.unl, festivais_hoje:plan.fests.map(f=>f[3]), aniversario:plan.bday||null,
     salas_completas:ROOMS.filter(roomDone).map(r=>r.name),
-    pacotes_faltando:ROOMS.flatMap(r=>r.bundles.filter(b=>!bundleDone(b)).map(b=>`${b.name} (${bundleCount(b)}/${b.need}; faltam: ${b.items.filter((_,i)=>!st.cc[itemKey(b.id,i)]).map(i=>i.n).join(', ')})`)),
+    conjuntos_faltando:ROOMS.flatMap(r=>r.bundles.filter(b=>!bundleDone(b)).map(b=>`${b.name} (${bundleCount(b)}/${b.need}; faltam: ${b.items.filter((_,i)=>!st.cc[itemKey(b.id,i)]).map(i=>i.n).join(', ')})`)),
     itens_do_cc_possiveis_hoje:plan.cc.filter(x=>x.ok!==false).slice(0,8).map(x=>`${x.it.n} (${x.it.h})`),
     missoes_sugeridas:plan.missions.map((m,i)=>m&&`${st.players[i].name}: ${m.goal}`),
     tarefas:plan.tasks.map(t=>t.t.replace(/<[^>]+>/g,'')),
-    plantar_para_pacotes:plan.plants.cc.map(p=>`${p.n} (${p.bundle.b.name})`), plantar_para_dinheiro:plan.plants.money.map(p=>`${p.n} (lucro ~${p.profit}g)`)
+    plantar_para_conjuntos:plan.plants.cc.map(p=>`${p.n} (${p.bundle.b.name})`), plantar_para_dinheiro:plan.plants.money.map(p=>`${p.n} (lucro ~${p.profit}g)`)
   };
   const prompt=`Você é um amigo experiente em Stardew Valley (versão 1.6, Nintendo Switch) ajudando um casal de iniciantes que joga em tela dividida (co-op local).
 Com base no estado abaixo, escreva o plano do dia deles em português do Brasil, com tom leve e direto. Seja específico ao jogo (lugares, horários, itens). Não invente dados que contradigam o estado.
