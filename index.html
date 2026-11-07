@@ -560,6 +560,7 @@ const GIFTS={
 const ROOMS=ROOMS0;
 ROOMS.forEach(r=>r.bundles.forEach(b=>b.items.forEach(it=>{
   if(FISH_INFO[it.en]) it.h=FISH_INFO[it.en];
+  it.qty=+((it.n.match(/×\s*(\d+)/)||[])[1]||(it.en.startsWith('Gold ')?5:1));
   const mi=MINE_INFO[it.en]; if(mi){ it.fl=[mi[0],mi[1]]; it.h=mi[2]; if(mi[3]) it.bar=1; }
 })));
 // Construções (Robin) e máquinas (receitas). ok(): já dá para fazer; need(): só faz sentido se...
@@ -668,7 +669,7 @@ function whereText(name,c){
    case 'Willy': day='Fica na peixaria ou pescando no píer.'; break;
    case 'Robin': day='Fica no balcão da carpintaria das 9h às 17h.'; break;
    case 'Marnie': day=(wd===0||wd===1)?'Hoje (segunda ou terça) ela sai do rancho.':'Fica no balcão do rancho das 9h às 16h.'; break;
-   case 'Shane': day=wd<5?'De dia trabalha na Mercado Joja; à noite vai ao Saloon Fruta Estrelar.':'À noite costuma ir ao Saloon Fruta Estrelar.'; break;
+   case 'Shane': day=wd<5?'De dia trabalha no Mercado Joja; à noite vai ao Saloon Fruta Estrelar.':'À noite costuma ir ao Saloon Fruta Estrelar.'; break;
    case 'Pam': day='Costuma passar a noite no Saloon Fruta Estrelar.'; break;
    case 'Penny': day=(wd===1||wd===2||wd===4)?'Hoje de manhã ela dá aula para a Jas e o Vincent no museu.':''; break;
    case 'Sandy': case 'Feiticeiro': case 'Krobus': case 'Linus': case 'Anão': day='Quase sempre está lá.'; break;
@@ -928,7 +929,7 @@ function cropBundle(en){
     b.items.forEach((it,i)=>{
       if(it.k!=='crop'||st.cc[itemKey(b.id,i)]) return;
       if(it.en.replace('Gold ','')!==en) return;
-      const cand={b,key:itemKey(b.id,i),quality:it.en.startsWith('Gold '),left:b.need-bundleCount(b)};
+      const cand={b,key:itemKey(b.id,i),qty:it.qty||1,quality:it.en.startsWith('Gold '),left:b.need-bundleCount(b)};
       if(cand.quality) qb=b;
       if(!best||(best.quality&&!cand.quality)) best=cand;
     });
@@ -939,7 +940,7 @@ function cropBundle(en){
 function shopFor(c,x){
   if(x==='oasis') return 'no Oásis (deserto)';
   if(x==='fest') return 'na barraca do Pierre no festival';
-  return c.wd===2?'na Mercado Joja (o Pierre fecha às quartas)':'no Pierre';
+  return c.wd===2?'no Mercado Joja (o Pierre fecha às quartas)':'no Pierre';
 }
 function qualityPlan(perPlant){
   const fi=st.players[0].farming>=st.players[1].farming?0:1, lv=st.players[fi].farming;
@@ -1008,7 +1009,7 @@ function buildPlan(){
   const now=absDay(st);
   st.planted=(st.planted||[]).filter(r=>now<=r.expAbs && !st.cc[r.key]);
   st.planted.forEach(r=>{ if(now>=r.readyAbs) tasks.push(T('harv-'+r.id,1,`Colher ${r.n} e entregar no Centro Comunitário`,
-      r.quality?`Separem 5 com estrela de ouro para o conjunto ${r.bundle} e entreguem. Se ainda não tiver 5, desmarquem e esperem a próxima colheita.`:`É para o conjunto ${r.bundle}. Entreguem 1 e guardem a reserva.`,r.who??farmerIdx,{cc:[r.key],unplant:r.id})); });
+      r.quality?`Separem 5 com estrela de ouro para o conjunto ${r.bundle} e entreguem. Se ainda não tiver 5, desmarquem e esperem a próxima colheita.`:`É para o conjunto ${r.bundle}: entreguem ${r.qty||1}${(r.qty||1)>1?' de uma vez':''} e guardem a reserva.${(r.qty||1)>1?' Se ainda não tiverem todos, desmarquem e completem na próxima colheita.':''}`,r.who??farmerIdx,{cc:[r.key],unplant:r.id})); });
   if(outdoors){ let k=0;
     plants.cc.forEach(pl=>{
       if(k>=2) return;
@@ -1016,14 +1017,17 @@ function buildPlan(){
       if(st.planted.some(r=>r.key===key)) return;
       const qual=pl.bundle.quality;
       if(qual && (!pl.q || pl.q.best.seeds>60)) return;
-      const n=qual?pl.q.best.seeds:2, cost=n*pl.seed;
+      const qty=pl.bundle.qty||1;
+      // planta que dá de novo (rebrota) rende várias colheitas; as outras dão 1 por semente
+      const perPlant=pl.rg?Math.max(1,pl.harvests):1;
+      const n=qual?pl.q.best.seeds:Math.max(2,Math.ceil(qty/perPlant)+1), cost=n*pl.seed;
       if(!spend(cost)) return;
       k++;
       const who=qual?pl.q.fi:farmerIdx;
       const ready=addDays(st.season,st.day,st.year,pl.g);
-      const rec={id:key+'@'+now,key,n:pl.n,bundle:pl.bundle.b.name,quality:qual,readyAbs:now+pl.g,expAbs:seasonEndAbs(st,pl.multi?28:0),who};
+      const rec={id:key+'@'+now,key,n:pl.n,qty,bundle:pl.bundle.b.name,quality:qual,readyAbs:now+pl.g,expAbs:seasonEndAbs(st,pl.multi?28:0),who};
       tasks.push(T('plant-'+key,1,`Plantar ${n} ${pl.n} para o Centro Comunitário`,
-        (qual?`Conjunto ${pl.bundle.b.name}: precisa de 5 com estrela de ouro. Coloquem ${pl.q.best.n} na terra antes de plantar. Quem colhe deve ser ${esc(P[who].name)}. `:`Conjunto ${pl.bundle.b.name}. Plantem 2 (uma é reserva). `)+
+        (qual?`Conjunto ${pl.bundle.b.name}: precisa de 5 com estrela de ouro. Coloquem ${pl.q.best.n} na terra antes de plantar. Quem colhe deve ser ${esc(P[who].name)}. `:(qty>1?`Conjunto ${pl.bundle.b.name}: precisa de ${qty}. Plantem ${n} (uma é reserva). `:`Conjunto ${pl.bundle.b.name}: precisa de 1. Plantem ${n} (uma é reserva). `))+
         `Sementes de ${pl.seed}g ${pl.shop}. Ficam prontas em ${pl.g} dias: em ${SEASONS[ready.season]} ${ready.day} a colheita aparece aqui.`,who,{plant:rec,money:-cost}));
     });
   }
@@ -1074,9 +1078,9 @@ function buildPlan(){
         if(hasPw(i,b.id) || (b.after && !hasPw(i,b.after))) return;
         if(!spend(b.shop)) return;
         any=true;
-        tasks.push(T(`book-${b.id}-${i}`,2,`Comprar e ler o livro ${b.n}`,`${b.shop.toLocaleString('pt-BR')}g no Vendedor de Livros (acima da Mercado Joja). ${b.eff} Cada um precisa ler o seu.`,i,{set:[[`players.${i}.pw.${b.id}`,true]],money:-b.shop}));
+        tasks.push(T(`book-${b.id}-${i}`,2,`Comprar e ler o livro ${b.n}`,`${b.shop.toLocaleString('pt-BR')}g no Vendedor de Livros (acima do Mercado Joja). ${b.eff} Cada um precisa ler o seu.`,i,{set:[[`players.${i}.pw.${b.id}`,true]],money:-b.shop}));
       }));
-      if(!any) tasks.push(T('bookvisit',3,'Passar no livreiro (acima da Mercado Joja)','Hoje ele está na cidade. O ouro de vocês ainda não dá para os livros de poder que faltam, mas vale olhar os livros de habilidade.'));
+      if(!any) tasks.push(T('bookvisit',3,'Passar no livreiro (acima do Mercado Joja)','Hoje ele está na cidade. O ouro de vocês ainda não dá para os livros de poder que faltam, mas vale olhar os livros de habilidade.'));
     }
   }
   [0,1].forEach(i=>{ if(!hasPw(i,'alley') && st.mine>=1) tasks.push(T('alley-'+i,3,'Pegar o livro O Bufê do Beco na lixeira dourada','De graça: entre o Ferreiro e o Mercado Joja, entrando por um buraco escondido na cerca. Dá mais chance de achar coisas no lixo.',i,{set:[[`players.${i}.pw.alley`,true]]})); });
@@ -1098,7 +1102,7 @@ function buildPlan(){
   if(c.wd!==2 && tl(0,'pack')>=1 && tl(1,'pack')>=1){ const n2=[0,1].filter(i=>tl(i,'pack')===1); if(n2.length && spend(10000)) tasks.push(T('pack2',3,'Comprar a mochila de luxo no Pierre','10.000g, mais 12 espaços.',n2[0],{set:[[`players.${n2[0]}.tools.pack`,2]],money:-10000})); }
   if(c.wd===4||c.wd===6){
     const want=missingNames(['long','crop'],3);
-    tasks.push(T('cart',3,'Passar na Carrinho de Viagem (floresta, 6h–20h)',want.length?`Procurem itens que faltam nos conjuntos, como ${want.join(', ')}.`:'Às vezes ela vende sementes e itens raros.','act:forage'));
+    tasks.push(T('cart',3,'Passar no Carrinho de Viagem (floresta, 6h–20h)',want.length?`Procurem itens que faltam nos conjuntos, como ${want.join(', ')}.`:'Às vezes ela vende sementes e itens raros.','act:forage'));
   }
   c.budget=budget;
 
@@ -1342,7 +1346,7 @@ function renderPlan(){
   if(pc.length||pm.length){
     h+=`<section class="card"><div class="card-h"><h2>O que plantar hoje</h2><span class="small muted">Primeiro o Centro Comunitário, depois dinheiro</span></div>`;
     if(pc.length) h+=`<div class="group-label">1. Para o Centro Comunitário</div><div class="plants">${pc.map(p=>`<div class="plant"><span class="pn">${esc(p.n)} <span class="en">${esc(p.en)}</span></span><span class="pill">${esc(p.bundle.b.name)}</span>
-       <span class="pd">${plantedNote(p)}${p.g} dias · semente ${p.seed}g ${esc(p.shop)}${p.q?'':' · plantem pelo menos 2 e guardem 1'}</span>${p.q?qualityHTML(p):''}</div>`).join('')}</div>`;
+       <span class="pd">${plantedNote(p)}${p.g} dias · semente ${p.seed}g ${esc(p.shop)}${p.q&&p.bundle.quality?'':` · o conjunto pede ${p.bundle.qty||1}: plantem ${Math.max(2,Math.ceil((p.bundle.qty||1)/(p.rg?Math.max(1,p.harvests):1))+1)} (uma é reserva)`}</span>${p.q?qualityHTML(p):''}</div>`).join('')}</div>`;
     if(pm.length) h+=`<div class="group-label">${pc.length?'2. ':''}Para ganhar dinheiro</div><div class="plants">${pm.map(p=>`<div class="plant"><span class="pn">${esc(p.n)} <span class="en">${esc(p.en)}</span></span><span class="pp">+${p.profit}g</span>
        <span class="pd">${p.g} dias${p.rg?`, depois a cada ${p.rg}`:''} · ${p.harvests} ${p.harvests>1?'colheitas':'colheita'} · semente ${p.seed}g${p.note?' · '+esc(p.note):''}</span></div>`).join('')}</div>
        <p class="small muted" style="margin:0">O valor verde é o lucro aproximado por semente até o fim da estação.</p>`;
@@ -1380,7 +1384,7 @@ function plantedNote(p){
 function pct(x){return Math.round(x*100)+'%'}
 function qualityHTML(p){
   const q=p.q, who=esc(st.players[q.fi].name), hard=q.best.seeds>60;
-  return `<div class="qbox"><b>★ ${p.bundle.quality?'Precisa de 5 com estrela de ouro':'Além disso, a Plantações de Qualidade pede 5 com estrela de ouro'}</b>
+  return `<div class="qbox"><b>★ ${p.bundle.quality?'Precisa de 5 com estrela de ouro':'Além disso, o conjunto Plantações de Qualidade pede 5 com estrela de ouro'}</b>
    <ul>
     <li>A estrela é decidida na colheita pelo Cultivo de quem colhe. Deixem <b>${who}</b> colher (Cultivo ${q.lv}).</li>
     <li>Com ${esc(q.best.n)}: ~${pct(q.best.ch)} de chance de ouro por colheita, então plantem uns <b>${q.best.seeds}</b>${p.rg?' pés':''}. Sem fertilizante: ~${pct(q.none.ch)} (uns ${q.none.seeds}).</li>
