@@ -617,7 +617,7 @@ const BUILD=[
  {id:'mayo',n:'Máquina de maionese',en:'Mayonnaise Machine',sk:['farming',2],mat:'15 madeira, 15 pedra, 1 cristal de terra e 1 barra de cobre',ok:()=>st.farm.furnace,need:()=>st.farm.coop,why:'Ovo vira maionese, que vende bem melhor.'},
  {id:'tapper',n:'Torneirinha',en:'Tapper',sk:['foraging',3],mat:'40 madeira e 2 barras de cobre',ok:()=>st.farm.furnace,why:'Colocada numa árvore: ácer dá xarope, carvalho dá resina e pinheiro dá alcatrão (conjuntos Cozinheiro, Recursos Exóticos e Encantador).',cc:1},
  {id:'bee',n:'Apiário',en:'Bee House',sk:['farming',3],mat:'40 madeira, 8 carvão, 1 barra de ferro e 1 xarope de ácer',ok:()=>st.mine>=40&&own('tapper'),why:'Dá mel (conjunto Artesão). Rende mais perto de flores.',cc:1},
- {id:'jar',n:'Jarra de conserva',en:'Preserves Jar',sk:['farming',4],mat:'50 madeira, 40 pedra e 8 carvão',why:'Fruta vira geleia (conjunto Artesão) e legume vira picles.',cc:1},
+ {id:'jar',n:'Jarra de conserva',en:'Preserves Jar',sk:['farming',4],mat:'50 madeira, 40 pedra e 8 carvão',ok:()=>st.mine>=1||own('kiln'),why:'Fruta vira geleia (conjunto Artesão) e legume vira picles.',cc:1},
  {id:'recycler',n:'Máquina de reciclagem',en:'Recycling Machine',sk:['fishing',4],mat:'25 madeira, 25 pedra e 1 barra de ferro',ok:()=>st.mine>=40,why:'Lixo da pesca vira pedra, carvão, minério de ferro e outras coisas úteis.'},
  {id:'kiln',n:'Carvoaria',en:'Charcoal Kiln',sk:['foraging',4],mat:'20 madeira e 2 barras de cobre',ok:()=>st.farm.furnace,why:'Madeira vira carvão.'},
  {id:'cheese',n:'Prensa de queijo',en:'Cheese Press',sk:['farming',6],mat:'45 madeira, 45 pedra, 10 madeira de lei e 1 barra de cobre',ok:()=>st.farm.furnace&&maxTool('axe')>=1,need:()=>st.farm.barn,why:'Leite vira queijo (conjunto Artesão).',cc:1},
@@ -642,7 +642,7 @@ const BOOKS=[
  {id:'jewels',n:'Joias do Mar',eff:'Baús de tesouro da pesca podem dar ovas.',shop:20000,y3:1,pri:10,how:'Também sai em baús de tesouro da pesca.'},
  {id:'crab',n:'A Arte dos Covos',eff:'Covos às vezes pegam o dobro.',shop:20000,y3:1,pri:11,how:'Também é prêmio da Festival da Lula.'},
  {id:'raccoon',n:'Diário de Guaxinim',eff:'Ervas daninhas dão mais sementes mistas.',shop:20000,y3:1,pri:12,how:'Também é recompensa do segundo pedido dos guaxinins.'},
- {id:'alley',n:'O Bufê do Beco',eff:'Mais chance de achar coisas no lixo.',shop:20000,y3:1,pri:13,how:'De graça: na lixeira dourada entre o Ferreiro e o Mercado Joja, entrando por um buraco escondido na cerca.'},
+ {id:'alley',n:'O Bufê do Beco',eff:'Mais chance de achar coisas no lixo.',shop:20000,y3:1,pri:13,how:'De graça: na lixeira dourada no leste da cidade, por uma abertura escondida na cerca ao norte dos trilhos perto do Ferreiro. O caminho precisa de machado e picareta de aço.'},
  {id:'treasure',n:'Tesouros Antigos: Guia de Avaliação',eff:'Artefatos vendem por mais.',shop:20000,y3:1,pri:14,how:'Também sai em Tesouros de Artefatos.'},
  {id:'mapping',n:'Mapeamento das Cavernas',eff:'Metade do preço para o Marlon devolver itens perdidos nas minas.',shop:20000,y3:1,pri:15,how:'Também numa caixa nos fundos da Guilda dos Aventureiros (depois de 1.000 monstros).'},
  {id:'dwarf',n:'Manual de Segurança dos Anões',eff:'Bombas causam 25% menos dano em você.',pri:16,how:'Vendido pelo Anão nas minas por 4.000g.'},
@@ -1133,7 +1133,8 @@ function buildPlan(){
       if(!any) tasks.push(T('bookvisit',3,'Passar no livreiro (acima do Mercado Joja)','Hoje ele está na cidade. O ouro de vocês ainda não dá para os livros de poder que faltam, mas vale olhar os livros de habilidade.'));
     }
   }
-  [0,1].forEach(i=>{ if(!hasPw(i,'alley') && st.mine>=1) tasks.push(T('alley-'+i,3,'Pegar o livro O Bufê do Beco na lixeira dourada','De graça: entre o Ferreiro e o Mercado Joja, entrando por um buraco escondido na cerca. Dá mais chance de achar coisas no lixo.',i,{set:[[`players.${i}.pw.alley`,true]]})); });
+  // O caminho até a lixeira dourada tem um tronco grande e uma pedra grande: precisa de machado e picareta de aço (wiki)
+  if(maxTool('axe')>=2 && maxTool('pick')>=2) [0,1].forEach(i=>{ if(!hasPw(i,'alley')) tasks.push(T('alley-'+i,3,'Pegar o livro O Bufê do Beco na lixeira dourada','De graça: há uma abertura escondida na cerca leste da cidade, logo ao norte dos trilhos do carrinho de mina perto do Ferreiro. No caminho tem um tronco grande e uma pedra grande: quem tiver machado e picareta de aço abre a passagem. A lixeira fica atrás de uma árvore no fim do caminho. Dá mais chance de achar coisas no lixo.',i,{set:[[`players.${i}.pw.alley`,true]]})); });
   // Construções e máquinas que vocês querem e ainda não têm
   { let n=0, robinUsed=false;
     const list=BUILD.filter(b=>wants(b.id)&&(!b.need||b.need())&&(!b.ok||b.ok()));
