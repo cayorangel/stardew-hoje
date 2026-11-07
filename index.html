@@ -293,18 +293,60 @@ const BIRTHDAYS={
  3:{1:'Krobus',3:'Linus',7:'Caroline',10:'Sebastian',14:'Harvey',17:'Feiticeiro',20:'Evelyn',23:'Leah',26:'Clint'}
 };
 // [estação, dia inicial, dia final, nome, horário, dica]
+// Festivais que ocupam o dia: casas e lojas ficam fechadas e o dia acaba ao sair (às 22h)
+const FULLDAY=new Set(['Festival do Ovo','Dança das Flores','Luau','Feira do Vale do Orvalho','Festival do Gelo','Festival da Estrela Invernal']);
+// O que só dá para fazer ou conseguir em cada evento (Stardew Valley Wiki)
+function festTasks(f,c){
+  const n=f[3], out=[], T=(id,prio,t,d,who,fx)=>({id:'fest-'+id,prio,t,d,who:who||'bal',fx:fx||null});
+  const missKey=(bid,idx)=>{ const b=bundleById(bid); return b&&!bundleDone(b)&&!st.cc[itemKey(bid,idx)]?itemKey(bid,idx):null; };
+  if(n==='Festival do Ovo'){
+    const qty=Math.max(0,Math.min(30,Math.floor(((c.budget??st.money)-500)/100)));
+    out.push(T('straw',1,'Comprar sementes de morango na barraca do Pierre',`Só vendem aqui, 100g cada${qty?` (o ouro de vocês dá para uns ${qty})`:''}. Plantem quando voltarem: a primeira colheita sai em 8 dias e depois a cada 4, até o fim da primavera. Comprem antes de falar com o Lewis: depois da caça aos ovos a barraca fecha.`));
+    out.push(T('hunt',2,'Participar da caça aos ovos','Falar com o Lewis começa a caça e encerra o festival. Vocês voltam para casa às 22h.','both'));
+  }
+  if(n==='Festival do Deserto' && st.unl.bus){
+    out.push(T('calico',2,'Ganhar Ovos de Calico nas atrações do Festival do Deserto','Os ovos são a moeda do festival e somem quando ele acaba. A barraca dos Ovos de Calico vende sementes de morango (dias 15 e 17), Caixas Misteriosas e o livro Semanário do Lenhador (100 ovos, XP de Coleta). O festival abre às 10h.','both'));
+  }
+  if(n==='Dança das Flores'){
+    const ks=[missKey('sf',1),missKey('sf',3)].filter(Boolean);
+    if(ks.length) out.push(T('flowers',1,`Comprar ${ks.map(k=>k==='sf:1'?'Narciso':'Dente-de-leão').join(' e ')} na barraca do Pierre e entregar no Centro Comunitário`,'Ele vende 10 por 50g. É para o conjunto Recursos de Primavera.','bal',{cc:ks}));
+    out.push(T('dance',2,'Convidar alguém para dançar','A pessoa precisa ter 4 corações com vocês. Vocês dois também podem dançar juntos. Dançar dá 1 coração com o par.','both'));
+  }
+  if(n==='Luau') out.push(T('soup',1,'Colocar um item bom na sopa','Só vale item cru e comestível: fruta, legume, peixe ou coleta. Quanto maior a qualidade e o preço, melhor a reação do Governador e mais amizade com a cidade toda. Fruta ou legume com estrela de ouro, ou um peixe caro, funcionam bem. Nunca coloquem lixo.'));
+  if(n==='Competição de Truta') out.push(T('trout',2,'Pescar Truta arco-íris no rio perto do Rancho da Marnie','Cada truta tem 33% de chance de vir com uma Etiqueta Dourada. No estande, a primeira etiqueta vale um Kit de Barraca; as próximas dão, em sequência, prêmios como Aspersor de qualidade, Covo, Diamante e Omnigeodo. As etiquetas ficam guardadas para o ano seguinte.','both'));
+  if(n==='Dança das Medusas-da-Lua') out.push(T('jelly',3,'Ir à praia entre 22h e 0h','Façam o dia normal antes. É só assistir: falar com o Lewis começa a cena e encerra a festa.','both'));
+  if(n==='Feira do Vale do Orvalho'){
+    out.push(T('grange',1,'Montar a exposição da fazenda com 9 itens','A exposição é uma só para a fazenda. Contam variedade e qualidade: tentem 1 item de cada tipo (fruta, legume, produto animal, artesanal, peixe, mineral, coleta e prato), de preferência com estrela. Falar com o Lewis faz o julgamento; o 1º lugar dá 1.000 fichas estrela. Peguem os itens de volta depois.'));
+    out.push(T('tokens',2,'Juntar fichas estrela','O jogo de pesca (50g) é o que mais rende: até 800 fichas por partida.','both'));
+    out.push(T('stardrop',1,'Comprar a Fruta-estrela por 2.000 fichas','Aumenta a energia máxima para sempre. Só dá para comprar uma vez.','both'));
+  }
+  if(n==='Véspera dos Espíritos') out.push(T('maze',2,'Fazer o labirinto da Véspera dos Espíritos (22h–23h50)',st.year%2?'Neste ano o baú do fim tem a Abóbora Dourada. A passagem secreta começa embaixo e à esquerda da placa "?".':'Neste ano o baú do fim tem um Ticket de Prêmio (vale na Máquina de Recompensa da Mansão do Prefeito).','both'));
+  if(n==='Festival do Gelo') out.push(T('icefish',1,'Ganhar o concurso de pesca no gelo','Precisa pegar pelo menos 5 peixes. Fiquem bem perto do buraco e lancem curto. A primeira vitória dá dois apetrechos de pesca, um ímã e um boné; depois disso, um Ticket de Prêmio.','both'));
+  if(n==='Festival da Lula') out.push(T('squid',1,`Pescar lulas na praia (meta de hoje: ${c.D===12?8:10})`,(c.D===12?'Prêmios de hoje por lulas pescadas: 1 → 20 iscas de luxo; 3 → Prato do Mar; 5 → Pérola e 3 cafés; 8 → o livro A Arte dos Covos (se ainda não ganharam).':'Prêmios de hoje por lulas pescadas: 2 → boia armadilha; 5 → Prato do Mar; 7 → baú do tesouro e 2 expressos triplos; 10 → o livro A Arte dos Covos (se ainda não ganharam).')+' A contagem zera de um dia para o outro.','both'));
+  if(n==='Mercado Noturno'){
+    out.push(T('sub',2,'Pescar no submarino do Mercado Noturno','1.000g, entrada das 17h às 23h. Lula da Meia-noite, Peixe Assustador e Peixe-bolha só saem lá; às vezes vem até uma Pérola.',pickFor('fishing')));
+    out.push(T('mermaid',2,'Ganhar a Pérola no barco da sereia','Depois do show, toquem nas conchas na ordem 1-5-4-2-3 (da esquerda para a direita). O barco fecha às 0h30.'));
+    out.push(T('coffee',3,'Pegar o café grátis com a Mercadora do Deserto','Um por noite.','both'));
+  }
+  if(n==='Festival da Estrela Invernal'){
+    out.push(T('secret',1,'Entregar o presente secreto','A carta do Lewis do dia 18 diz para quem é. O presente vale 5× mais amizade.','both'));
+    const offer=[['Ovo de pata','an',5],['Lágrima congelada','ge',2],['Quartzo de fogo','ge',3],['Cenoura subterrânea','ex',2],['Concha','cp',9],['Raiz de inverno','wf',0]].filter(([nm,b,i])=>missKey(b,i)).map(x=>x[0]);
+    if(offer.length) out.push(T('pierre',2,'Olhar a barraca do Pierre','A barraca vende alguns itens sorteados por ano. Se aparecer, servem para o Centro Comunitário: '+offer.join(', ')+'.'));
+  }
+  return out;
+}
 const FESTIVALS=[
  [0,13,13,'Festival do Ovo','9h–14h na praça','Comprem sementes de morango na barraca do Pierre: só vendem aqui. Plantem logo, dá para colher 2 vezes antes do verão.'],
  [0,15,17,'Festival do Deserto','10h–23h no deserto','Só com o ônibus consertado. Tem lojinhas e o desafio do Calico.'],
  [0,24,24,'Dança das Flores','9h–14h na floresta','Para dançar, a pessoa precisa de 4 corações com vocês. Vocês podem dançar juntos!'],
  [1,11,11,'Luau','9h–14h na praia','Coloquem o melhor item que tiverem na sopa (ouro/iridium ou algo caro). Nada de lixo!'],
- [1,20,21,'Competição de Truta','6h–2h no rio','Peixes do rio podem vir com etiquetas douradas para trocar por prêmios.'],
+ [1,20,21,'Competição de Truta','6h–2h no rio da floresta','Trutas arco-íris podem vir com Etiqueta Dourada, que vale prêmios no estande. As lojas abrem normalmente.'],
  [1,28,28,'Dança das Medusas-da-Lua','22h–0h na praia','Só assistir. Façam o trabalho da fazenda antes.'],
- [2,16,16,'Feira do Vale do Orvalho','9h–15h na praça','Levem 9 itens variados e de boa qualidade para a exposição do grange. Joguem para ganhar fichas estrela.'],
- [2,27,27,'Véspera dos Espíritos','22h–23h50 na praça','Achem a abóbora dourada no fim do labirinto.'],
- [3,8,8,'Festival do Gelo','9h–14h na floresta','Concurso de pesca. Comprem a isca de pesca se quiserem treinar.'],
- [3,12,13,'Festival da Lula','6h–2h na praia','Pesquem lulas no mar durante o evento.'],
- [3,15,17,'Mercado Noturno','17h–2h na praia','Submarino de pesca, show das sereias e barcos de comerciantes.'],
+ [2,16,16,'Feira do Vale do Orvalho','9h–15h na praça','Exposição de 9 itens da fazenda, jogos com fichas estrela e a Fruta-estrela à venda.'],
+ [2,27,27,'Véspera dos Espíritos','22h–23h50 na praça','Labirinto com prêmio no fim: Abóbora Dourada nos anos ímpares, Ticket de Prêmio nos anos pares.'],
+ [3,8,8,'Festival do Gelo','9h–14h na floresta','Concurso de pesca no gelo: precisa pegar pelo menos 5 peixes.'],
+ [3,12,13,'Festival da Lula','6h–2h na praia','Lulas na praia o dia todo; prêmios por quantidade pescada no dia. As lojas abrem normalmente.'],
+ [3,15,17,'Mercado Noturno','17h–2h na praia','Submarino de pesca, barco da sereia (dá uma Pérola) e barcos de comerciantes. As lojas da cidade abrem normalmente.'],
  [3,25,25,'Festival da Estrela Invernal','9h–14h na praça','Troca de presentes secreta: a carta diz para quem dar o presente.']
 ];
 
@@ -459,7 +501,7 @@ const ROOMS0=[
    {n:'Geodo congelado',en:'Frozen Geode',k:'mine',req:'mine40',h:'Minas, andares 40–79'}]},
   {id:'fo',name:'Forragem',need:3,items:[
    {n:'Trigo ×10',en:'Wheat',k:'crop',s:[1,2],h:'Plantar: 4 dias'},
-   {n:'Palha ×10',en:'Hay',k:'long',h:'Foice no capim com silo, ou compre na Marnie'},
+   {n:'Feno ×10',en:'Hay',k:'long',h:'Foice no capim com silo, ou compre na Marnie'},
    {n:'Maçã ×3',en:'Apple',k:'long',h:'Árvore de maçã'}]},
   {id:'en',name:'Encantador',need:4,items:[
    {n:'Resina de carvalho',en:'Oak Resin',k:'long',h:'Torneirinha num carvalho'},
@@ -567,7 +609,7 @@ ROOMS.forEach(r=>r.bundles.forEach(b=>b.items.forEach(it=>{
 const BUILD=[
  {id:'coop',n:'Galinheiro',en:'Coop',robin:1,g:4000,mat:'300 madeira e 100 pedra',why:'Ovos para o conjunto Animal.',cc:1},
  {id:'barn',n:'Celeiro',en:'Barn',robin:1,g:6000,mat:'350 madeira e 150 pedra',why:'Leite e lã para os conjuntos Animal e Artesão.',cc:1},
- {id:'silo',n:'Silo',en:'Silo',robin:1,g:100,mat:'100 pedra, 10 argila e 5 barras de cobre',ok:()=>st.farm.furnace,need:()=>st.farm.coop||st.farm.barn,why:'Guarda a palha do capim cortado com a foice, assim não precisam comprar palha.'},
+ {id:'silo',n:'Silo',en:'Silo',robin:1,g:100,mat:'100 pedra, 10 argila e 5 barras de cobre',ok:()=>st.farm.furnace,need:()=>st.farm.coop||st.farm.barn,why:'Guarda o feno do capim cortado com a foice, assim não precisam comprar feno.'},
  {id:'kitchen',n:'Melhoria da casa (cozinha)',en:'House upgrade',robin:1,g:10000,mat:'450 madeira',why:'Libera cozinhar: Ovo frito e Rolinhos de arroz do conjunto Cozinheiro, e comida para energia.',cc:1},
  {id:'stable',n:'Estábulo',en:'Stable',robin:1,g:10000,mat:'100 madeira de lei e 5 barras de ferro',ok:()=>maxTool('axe')>=1&&st.mine>=40,why:'Vem com um cavalo: andam muito mais rápido.'},
  {id:'pond',n:'Lago de peixes',en:'Fish Pond',robin:1,g:5000,mat:'200 pedra, 5 algas marinhas e 5 algas verdes',why:'Cria peixes e dá ovas.'},
@@ -1005,7 +1047,7 @@ function buildPlan(){
   if(hasCrops && outdoors && c.D===28) tasks.push(T('last',1,'Colher tudo antes de dormir','Amanhã as plantações desta estação morrem. Milho, trigo e girassol passam do verão para o outono.',farmerIdx));
   else if(hasCrops && outdoors) tasks.push(T('harvest',1,'Colher o que estiver pronto e vender na caixa de envio','Guardem 1 de cada item que ainda falta nos conjuntos do Centro Comunitário.',farmerIdx));
   if(st.farm.greenhouse && c.S===3) tasks.push(T('gh',1,'Regar e colher a estufa','No inverno só a estufa produz.',farmerIdx));
-  if(st.farm.coop||st.farm.barn) tasks.push(T('animals',1,'Fazer carinho nos animais e coletar os produtos',st.farm.silo?'A palha sai sozinha do silo para o comedouro.':'Coloquem palha no comedouro. Sem silo, comprem palha na Marnie.',1-farmerIdx));
+  if(st.farm.coop||st.farm.barn) tasks.push(T('animals',1,'Fazer carinho nos animais e coletar os produtos',st.farm.silo?'O feno sai sozinho do silo para o comedouro.':'Coloquem feno no comedouro. Sem silo, comprem feno na Marnie.',1-farmerIdx));
   const vault=['v1','v2','v3','v4'].map(bundleById).find(b=>!bundleDone(b));
   if(vault && spend(vault.items[0].g)) tasks.push(T('vault-'+vault.id,1,`Pagar ${vault.items[0].n} no Cofre do Centro Comunitário`,'Completar o Cofre conserta o ônibus para o deserto.','bal',{cc:[itemKey(vault.id,0)],money:-vault.items[0].g}));
   // Plantações do Centro Comunitário: colher o que ficou pronto e plantar o que falta
@@ -1057,8 +1099,8 @@ function buildPlan(){
   st.upgrading.forEach(u=>{ if(now>=u.readyAbs) tasks.push(T(`pickup-${u.id}`,1,`Buscar ${TOOL_ART[u.tool]} no Clint`,`Já está pronta: agora é de ${LV[u.lv].toLowerCase()}. O Clint atende das 9h às 16h.`,u.i,{set:[[`players.${u.i}.tools.${u.tool}`,u.lv]],unupg:u.id})); });
   // Chuva verde (só no verão): mato gigante e árvores de chuva verde por todo o vale
   if(c.green){
-    tasks.push(T('green',2,'Aproveitar a chuva verde: cortar o mato gigante e pegar as sementes musgosas',
-      `Hoje aparece mato gigante e árvores de chuva verde no vale todo (menos na praia e no deserto). Cada mato gigante dá 15 XP de Coleta e some amanhã. As árvores de chuva verde dão semente musgosa, e as árvores normais podem ficar cobertas de musgo.${c.Y===1?' No ano 1, quase todo mundo fica em casa e não dá para dar presentes hoje.':''} A chuva rega as plantações.`,pickFor('foraging')));
+    tasks.push(T('green',2,'Aproveitar a chuva verde: cortar o mato gigante e pegar Sementes Musgosas',
+      `Hoje aparece mato gigante e árvores de chuva verde no vale todo (menos na praia e no deserto). Cada mato gigante dá 15 XP de Coleta e some amanhã. As Árvores de Chuva Verde dão Semente Musgosa, e as árvores normais podem ficar cobertas de Musgo.${c.Y===1?' No ano 1, quase todo mundo fica em casa e não dá para dar presentes hoje.':''} A chuva rega as plantações.`,pickFor('foraging')));
   }
   // Caverna da fazenda
   { const cave=st.farm.cave;
@@ -1150,7 +1192,12 @@ function buildPlan(){
   scored.sort((x,y)=>y.v-x.v);
   const used=new Set();
   for(const s of scored){ if(assign[s.i]||used.has(s.a.id)) continue; assign[s.i]=s.a; used.add(s.a.id); if(assign[0]&&assign[1]) break; }
+  const fullDay=fests.some(f=>FULLDAY.has(f[3]));
+  if(fullDay){ assign[0]=assign[1]=null; }
   const missions=assign.map((a,i)=>a?Object.assign({id:a.id},a.build(P[i],i)):null);
+  const keepFull=/^(water|harvest|last|animals|gh|crabcheck|cave$|harv-|fest-)/;
+  if(fullDay){ for(let k=tasks.length-1;k>=0;k--) if(!keepFull.test(tasks[k].id)) tasks.splice(k,1); }
+  fests.forEach(f=>festTasks(f,c).forEach(t=>tasks.push(t)));
 
   // Tarefas que dependem das missões
   if(bday && !(c.green&&c.Y===1) && !used.has('social')) tasks.push(T('bday',1,`Dar um presente de aniversário para ${bday}`,esc(giftText(bday))+schedHTML(bday,c)));
@@ -1183,6 +1230,7 @@ function buildPlan(){
     });
     c.budget=bud;
   }
+  if(fullDay){ for(let k=tasks.length-1;k>=0;k--) if(!keepFull.test(tasks[k].id)) tasks.splice(k,1); }
   // Dividir as tarefas: primeiro as que têm dono, depois equilibrando as listas
   const perPlayer=[[],[]];
   const owner=w=>{ if(typeof w==='string'&&w.startsWith('act:')){const o=assign.findIndex(a=>a&&a.id===w.slice(4)); return o>=0?o:'bal';} return w; };
