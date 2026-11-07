@@ -585,6 +585,43 @@ const BUILD=[
  {id:'seedmaker',n:'Fabricante de sementes',en:'Seed Maker',sk:['farming',9],mat:'25 madeira, 10 carvão e 1 barra de ouro',ok:()=>st.mine>=80,why:'Uma colheita vira várias sementes.'},
  {id:'crystal',n:'Cristalário',en:'Crystalarium',sk:['mining',9],mat:'99 pedra, 5 barras de ouro, 2 barras de irídio e 1 bateria',ok:()=>st.unl.skull&&own('lrod'),why:'Copia joias e minerais sem parar.'}
 ];
+// Livros de poder (cada jogador lê o seu). shop: preço no Vendedor de Livros; y3: só a partir do ano 3
+const BOOKS=[
+ {id:'price',n:'Catálogo de Preço',eff:'Mostra o preço de venda dos itens.',shop:3000,pri:1},
+ {id:'wind1',n:'Caminho do Vento - Parte 1',eff:'Você corre um pouco mais rápido.',shop:15000,pri:2},
+ {id:'slither',n:'O Perna de Cobra',eff:'Você corre muito mais rápido no meio do mato e das plantações.',shop:25000,pri:3},
+ {id:'horse',n:'Cavalo: O Livro',eff:'O cavalo fica mais rápido.',shop:25000,pri:4,need:()=>own('stable')},
+ {id:'wind2',n:'Caminho do Vento - Parte 2',eff:'Você corre mais rápido ainda.',shop:35000,pri:5,after:'wind1'},
+ {id:'friend',n:'Os Básicos da Amizade',eff:'A amizade com os moradores sobe um pouco mais rápido.',shop:20000,y3:1,pri:6,how:'Também sai na Máquina de Recompensa da casa do prefeito.'},
+ {id:'monster',n:'Compêndio de Monstros',eff:'Monstros às vezes deixam o dobro de itens.',shop:20000,y3:1,pri:7,how:'Também cai de monstros.'},
+ {id:'woody',n:'O Segredo da Floresta',eff:'Árvores cortadas às vezes dão o dobro de madeira.',shop:20000,y3:1,pri:8,how:'Também sai cortando árvores.'},
+ {id:'jack',n:'Jack seja ágil, Jack seja parrudo',eff:'+1 de defesa.',shop:20000,y3:1,pri:9,how:'Também sai em pontos de artefato (minhocas no chão).'},
+ {id:'jewels',n:'Joias do Mar',eff:'Baús de tesouro da pesca podem dar ovas.',shop:20000,y3:1,pri:10,how:'Também sai em baús de tesouro da pesca.'},
+ {id:'crab',n:'A Arte dos Covos',eff:'Covos às vezes pegam o dobro.',shop:20000,y3:1,pri:11,how:'Também é prêmio da Festa da Lula.'},
+ {id:'raccoon',n:'Diário de Guaxinim',eff:'Ervas daninhas dão mais sementes mistas.',shop:20000,y3:1,pri:12,how:'Também é recompensa do segundo pedido dos guaxinins.'},
+ {id:'alley',n:'O Bufê do Beco',eff:'Mais chance de achar coisas no lixo.',shop:20000,y3:1,pri:13,how:'De graça: na lixeira dourada entre o Ferreiro e o Mercado Joja, entrando por um buraco escondido na cerca.'},
+ {id:'treasure',n:'Tesouros Antigos: Guia de Avaliação',eff:'Artefatos vendem por mais.',shop:20000,y3:1,pri:14,how:'Também sai em Tesouros de Artefatos.'},
+ {id:'mapping',n:'Mapeamento das Cavernas',eff:'Metade do preço para o Marlon devolver itens perdidos nas minas.',shop:20000,y3:1,pri:15,how:'Também numa caixa nos fundos da Guilda dos Aventureiros (depois de 1.000 monstros).'},
+ {id:'dwarf',n:'Manual de Segurança dos Anões',eff:'Bombas causam 25% menos dano em você.',pri:16,how:'Vendido pelo Anão nas minas por 4.000g.'},
+ {id:'animal',n:'Catálogo de Animais',eff:'Compra na loja da Marnie mesmo quando ela não está.',pri:17,how:'Vendido pela Marnie por 5.000g a partir do ano 2.'},
+ {id:'mystery',n:'Livro de Mistérios',eff:'Mais chance de achar Caixas Misteriosas.',pri:18,how:'Sai em Caixas Misteriosas Douradas.'},
+ {id:'diamond',n:'Caçador de Diamantes',eff:'Pedras quebradas com picareta podem dar diamante.',pri:19,how:'Vendido pelo Anão do Vulcão (Ilha Gengibre) por 10 diamantes.'}
+];
+// Itens especiais (da fazenda)
+const SPECIAL=[
+ {id:'forest',n:'Magia da Floresta',eff:'Entender os Junimos do Centro Comunitário.'},
+ {id:'dwarfguide',n:'Guia da Linguagem Anã',eff:'Conversar com o Anão. Recompensa por doar os 4 Pergaminhos do Anão ao museu.'},
+ {id:'rusty',n:'Chave Enferrujada',eff:'Abre os Esgotos. Recompensa por doar 60 itens ao museu.'},
+ {id:'skullkey',n:'Chave de Caveira',eff:'Abre a Caverna da Caveira (andar 120 das minas).'},
+ {id:'magnifier',n:'Lupa',eff:'Permite achar Recados Secretos.'},
+ {id:'club',n:'Cartão do Clube',eff:'Entrar no Cassino do deserto.'},
+ {id:'charm',n:'Amuleto Especial',eff:'Aumenta a sorte de todo dia.'},
+ {id:'bear',n:'Conhecimento do Urso',eff:'Amoras e framboesas valem 3× mais.'},
+ {id:'onion',n:'Domínio das Cebolinhas',eff:'Cebolinhas valem 5× mais.'},
+ {id:'townkey',n:'Chave da Vila',eff:'Entrar nas construções da vila a qualquer hora.'}
+];
+const BOOK_DAYS={0:[11,12,21,22,25],1:[9,12,18,25,27],2:[4,7,8,9,12,19,22,25],3:[5,11,12,19,22,24]};
+function hasPw(i,id){ return !!((st.players[i].pw||{})[id]); }
 const SKILL_PT={farming:'Cultivo',mining:'Mineração',foraging:'Coleta',fishing:'Pesca',combat:'Combate'};
 function own(id){ if(id==='coop') return !!st.farm.coop; if(id==='barn') return !!st.farm.barn; return (st.owned||{})[id]==='have'; }
 function wants(id){ if(own(id)) return false; return ((st.owned||{})[id]||'want')==='want'; }
@@ -665,6 +702,10 @@ function normalize(s){
   out.unl=Object.assign(clone(EXAMPLE.unl),s.unl||{});
   out.cc=s.cc||(s.example===false?{}:out.cc); out.done=s.done||{}; out.planted=Array.isArray(s.planted)?s.planted:[]; out.upgrading=Array.isArray(s.upgrading)?s.upgrading:[];
   out.owned=Object.assign({},s.owned||{});
+  out.special=Object.assign({},s.special||{});
+  out.players.forEach((pl,i)=>{ pl.pw=Object.assign({},((s.players||[])[i]||{}).pw||{}); });
+  if(typeof out.bookDays!=='string') out.bookDays='';
+  if(out.unl.skull) out.special.skullkey=true;
   if(out.farm.crabWhere==null) out.farm.crabWhere=out.farm.crab?'mar':'';
   out.farm.crab=!!out.farm.crabWhere;
   if(s.mine==null && s.players) out.mine=Math.max(0,...s.players.map(p=>+p.mine||0));
@@ -994,6 +1035,24 @@ function buildPlan(){
   // Ferramentas que estão com o Clint
   st.upgrading=(st.upgrading||[]).filter(u=>u&&u.readyAbs);
   st.upgrading.forEach(u=>{ if(now>=u.readyAbs) tasks.push(T(`pickup-${u.id}`,1,`Buscar ${TOOL_ART[u.tool]} no Clint`,`Já está pronta: agora é de ${LV[u.lv].toLowerCase()}. O Clint atende das 9h às 16h.`,u.i,{set:[[`players.${u.i}.tools.${u.tool}`,u.lv]],unupg:u.id})); });
+  // Poderes: livreiro, livro grátis e Magia da Floresta
+  if(st.unl.cc && !st.special.forest) tasks.push(T('forest',1,'Visitar o Feiticeiro na Torre do Mago','Depois de ler o pergaminho do Centro Comunitário, ele ensina a entender os Junimos (Magia da Floresta). A torre fica no oeste da Floresta Cinzaseiva.','bal',{set:[['special.forest',true]]}));
+  { const marked=(st.bookDays.match(/\d+/g)||[]).map(Number);
+    const bookToday=marked.includes(c.D);
+    if(!marked.length && BOOK_DAYS[c.S].includes(c.D)) tasks.push(T('bookcheck',3,'Ver se o livreiro está na cidade','Ele vem 2 vezes por estação, em dias marcados com um balão no calendário do jogo (perto da porta do Pierre). Marquem os dias em Nossa fazenda → Dia de hoje.'));
+    if(bookToday){
+      const list=BOOKS.filter(b=>b.shop&&(!b.y3||st.year>=3)&&(!b.need||b.need())).sort((a,b)=>a.pri-b.pri);
+      let any=false;
+      list.forEach(b=>[0,1].forEach(i=>{
+        if(hasPw(i,b.id) || (b.after && !hasPw(i,b.after))) return;
+        if(!spend(b.shop)) return;
+        any=true;
+        tasks.push(T(`book-${b.id}-${i}`,2,`Comprar e ler o livro ${b.n}`,`${b.shop.toLocaleString('pt-BR')}g no Vendedor de Livros (acima da JojaMart). ${b.eff} Cada um precisa ler o seu.`,i,{set:[[`players.${i}.pw.${b.id}`,true]],money:-b.shop}));
+      }));
+      if(!any) tasks.push(T('bookvisit',3,'Passar no livreiro (acima da JojaMart)','Hoje ele está na cidade. O ouro de vocês ainda não dá para os livros de poder que faltam, mas vale olhar os livros de habilidade.'));
+    }
+  }
+  [0,1].forEach(i=>{ if(!hasPw(i,'alley') && st.mine>=1) tasks.push(T('alley-'+i,3,'Pegar o livro O Bufê do Beco na lixeira dourada','De graça: entre o Ferreiro e o Mercado Joja, entrando por um buraco escondido na cerca. Dá mais chance de achar coisas no lixo.',i,{set:[[`players.${i}.pw.alley`,true]]})); });
   // Construções e máquinas que vocês querem e ainda não têm
   { let n=0, robinUsed=false;
     const list=BUILD.filter(b=>wants(b.id)&&(!b.need||b.need())&&(!b.ok||b.ok()));
@@ -1348,6 +1407,7 @@ function renderForm(){
      <div class="field"><label for="f-weather">Clima hoje</label>${sel('weather',Object.entries(WEATHER),st.weather,'f-weather')}</div>
      <div class="field"><label for="f-forecast">Previsão amanhã</label>${sel('forecast',[['','Não vimos'],...Object.entries(WEATHER)],st.forecast,'f-forecast')}</div>
      <div class="field"><label for="f-luck">Sorte (TV)</label>${sel('luck',Object.entries(LUCK),st.luck,'f-luck')}</div>
+     <div class="field" style="grid-column:1 / -1"><label for="f-books">Dias do livreiro nesta estação</label><input type="text" id="f-books" data-k="bookDays" value="${esc(st.bookDays)}" placeholder="ex.: ${BOOK_DAYS[st.season].slice(0,2).join(' e ')}" inputmode="numeric"></div>
     </div>
     <p class="small muted" style="margin:0">A previsão e a sorte aparecem na TV da casa. Sorte é a cartomante: "os espíritos estão muito felizes" é muito boa.</p>`);
   let pl='';
@@ -1384,6 +1444,15 @@ function renderForm(){
     const rows=BUILD.filter(b=>b.id!=='coop'&&b.id!=='barn').map(b=>`<div class="field"><label for="b-${b.id}">${esc(b.n)} <span class="en" style="text-transform:none;letter-spacing:0">${esc(b.en)}</span></label>${sel('owned.'+b.id,opts,(st.owned||{})[b.id]||'want','b-'+b.id)}</div>`).join('');
     const have=BUILD.filter(b=>own(b.id)).length;
     h+=sec('build','Construções e máquinas',`${have} de ${BUILD.length}`,`<p class="small muted" style="margin:0">Marquem o que já têm e o que não querem. O que estiver em "Queremos" aparece como tarefa quando já der para fazer (nível de habilidade, materiais e ouro). Galinheiro e estábulo ficam na seção Fazenda.</p><div class="fields">${rows}</div>`);
+  }
+  {
+    const chip=(attr,key,on,label,title)=>`<button type="button" class="it" ${attr}="${key}" aria-pressed="${!!on}" title="${esc(title)}">${esc(label)}</button>`;
+    let body=`<p class="small muted" style="margin:0">Toquem no que cada um já tem (aparece no menu do jogo, aba Itens Especiais & Poderes). Livros de poder valem só para quem leu.</p>`;
+    let cnt=0;
+    [0,1].forEach(i=>{ const pw=P[i].pw||{}; cnt+=Object.keys(pw).filter(k=>pw[k]).length;
+      body+=`<div class="bundle"><div class="bundle-h"><span>Livros de ${esc(P[i].name)}</span><span class="cnt">${BOOKS.filter(b=>pw[b.id]).length}/${BOOKS.length}</span></div><div class="items">${BOOKS.map(b=>chip('data-pw',i+':'+b.id,pw[b.id],b.n,b.eff+(b.how?' '+b.how:'')+(b.shop?` Livreiro: ${b.shop.toLocaleString('pt-BR')}g${b.y3?' (ano 3+)':''}.`:''))).join('')}</div></div>`; });
+    body+=`<div class="bundle"><div class="bundle-h"><span>Itens especiais (da fazenda)</span><span class="cnt">${SPECIAL.filter(x=>st.special[x.id]).length}/${SPECIAL.length}</span></div><div class="items">${SPECIAL.map(x=>chip('data-sp',x.id,st.special[x.id],x.n,x.eff)).join('')}</div></div>`;
+    h+=sec('pw','Poderes',`${cnt} livros lidos`,body);
   }
   h+=sec('lib','Lugares liberados',`${Object.values(u).filter(Boolean).length} de 8`,`<div class="checks">
      ${chk('unl.cc',u.cc,'Já vimos a cena do Centro Comunitário','u-cc')}
@@ -1448,6 +1517,10 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-cc]');
   if(b){ const k=b.dataset.cc; if(st.cc[k]) delete st.cc[k]; else st.cc[k]=true; commit(); return; }
   if(e.target.id==='replan'){ st.frozen=null; commit({keepExample:true}); return; }
+  const pwb=e.target.closest('[data-pw]');
+  if(pwb){ const [i,id]=pwb.dataset.pw.split(':'); const pl=st.players[+i]; pl.pw=pl.pw||{}; if(pl.pw[id]) delete pl.pw[id]; else pl.pw[id]=true; commit(); return; }
+  const spb=e.target.closest('[data-sp]');
+  if(spb){ const id=spb.dataset.sp; if(st.special[id]) delete st.special[id]; else st.special[id]=true; commit(); return; }
   const sid=e.target.closest&&e.target.closest('#copyData,#shareData,#loadData,#createSync,#joinSync,#copyCode,#shareCode,#stopSync');
   if(sid){ ({copyData,shareData,loadData,createSync,joinSync,copyCode,shareCode,stopSync:syncStop})[sid.id](); return; }
   if(e.target.id==='resetBtn'){ showToast('Apagar tudo e começar do Ano 1, Primavera 1?','Apagar',()=>{
@@ -1516,6 +1589,7 @@ function showToast(msg,btnLabel,fn){
 function nextDay(){
   undoState=clone(st);
   const d=addDays(st.season,st.day,st.year,1);
+  if(d.season!==st.season) st.bookDays='';
   st.season=d.season; st.day=d.day; st.year=d.year;
   st.weather=st.forecast||(d.season===3?'neve':'sol');
   if(d.season===3&&st.weather==='chuva') st.weather='neve';
