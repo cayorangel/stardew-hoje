@@ -901,6 +901,15 @@ function schedHTML(name,c){
     (r.alt?`<details><summary>Com chuva há outra rotina possível</summary>${rowsHTML(r.alt)}</details>`:'')+
     `<span class="muted">Horário do relógio do jogo, segundo a wiki. Pode mudar em dias de evento.</span></div>`;
 }
+// Hora em que a tarefa começa a fazer sentido, para a lista seguir o dia (fazenda de manhã, lojas, atividades, noite)
+const START_AT=[[/^(water|harvest|last|animals|gh|crabcheck|cave)(-\d)?$/,6],[/^harv-/,6.5],[/^plant-/,7],[/^cart/,8],[/^fest-(squid|trout)/,7],
+  [/^fest-(sub|coffee)/,17],[/^fest-mermaid/,17.5],[/^fest-(jelly|maze)/,22]];
+function startOf(t){
+  const id=t.id||''; const core=id.replace(/^m\d-/,'');
+  for(const [re,h] of START_AT) if(re.test(core)) return h;
+  if(/^m\d-/.test(id)) return 10;
+  return t.prio===1?8:t.prio===3?12:9;
+}
 function giftOk(req){return !req||(req==='bus'?st.unl.bus:req==='island'?st.unl.island:req==='m40'?st.mine>=40:req==='m50'?st.mine>=50:req==='m80'?st.mine>=80:true)}
 function giftText(name){
   const g=(GIFTS[name]||[]).filter(x=>giftOk(x[2]));
@@ -928,7 +937,8 @@ function ctxOf(s){
   return {S:s.season,D:s.day,Y:s.year,wd:weekday(s.day),rain,green:s.weather==='verde',storm:s.weather==='tempestade',
     luck:s.luck===''?null:+s.luck,daysLeft:28-s.day,maxMine,minesOpen,rodOk,
     tomorrowRain:s.forecast==='chuva'||s.forecast==='tempestade'||s.forecast==='verde',
-    newbie:s.year===1&&s.season===0&&s.day<=7};
+    newbie:s.year===1&&s.season===0&&s.day<=7,
+    beachClosed:festOn(s.season,s.day).some(f=>f[3]==='Dança das Medusas-da-Lua')};
 }
 function reqOk(req,c){
   if(!req) return true;
@@ -952,6 +962,7 @@ function ccToday(c){
       if(it.w==='rain' && !c.rain) return;
       if(it.w==='sun' && c.rain) return;
       if(it.k==='fish' && !c.rodOk) return;
+      if(c.beachClosed && /praia/i.test(it.h)) return;
       if(it.k==='mine' && !c.minesOpen) return;
       if(it.k==='crab' && !st.farm.crabWhere) return;
       const ok=reqOk(it.req,c);
@@ -1083,7 +1094,7 @@ function buildPlan(){
   if(!st.farm.furnace && c.minesOpen) tasks.push(T('furnace',2,'Levar minério de cobre para o Clint','Ele ensina a fazer a fornalha, que transforma minério em barras.','act:mines',{set:[['farm.furnace',true]]}));
   if(c.wd!==2) [0,1].filter(i=>tl(i,'pack')===0).forEach(i=>{ if(spend(2000)) tasks.push(T('pack-'+i,2,'Comprar a mochila grande no Pierre','2.000g. São 12 espaços a mais, menos viagens para casa.',i,{set:[[`players.${i}.tools.pack`,1]],money:-2000})); });
   // Covos: recolher todo dia e mudar de lugar quando o conjunto precisar
-  if(st.farm.crabWhere && !bundleDone(bundleById('cp'))){
+  if(st.farm.crabWhere && !bundleDone(bundleById('cp')) && !(c.beachClosed && st.farm.crabWhere==='mar')){
     const cp=bundleById('cp'), SEA=[0,2,3,4,5,8,9], FRESH=[1,6,7];
     const miss=ix=>ix.filter(k=>!st.cc['cp:'+k]).map(k=>cp.items[k].n);
     const sea=miss(SEA), fresh=miss(FRESH), done=bundleDone(cp), where=st.farm.crabWhere;
@@ -1253,7 +1264,7 @@ function buildPlan(){
   if(st.frozen && st.frozen.abs===absDay(st)){ perPlayer[0]=clone(st.frozen.lists[0]||[]); perPlayer[1]=clone(st.frozen.lists[1]||[]); }
   const ids=new Set(perPlayer.flat().map(t=>t.id));
   Object.entries(st.done||{}).forEach(([id,v])=>{ if(v&&v.snap&&!ids.has(id)) perPlayer[v.snap.who===1?1:0].push({...v.snap,id}); });
-  perPlayer.forEach(l=>l.sort((a,b)=>a.ord-b.ord));
+  perPlayer.forEach(l=>l.sort((a,b)=>(startOf(a)-startOf(b))||(a.ord-b.ord)));
 
   return {c,fests,bday,tasks,perPlayer,missions,cc,plants};
 }
@@ -1288,14 +1299,14 @@ function mineMission(p,c,cc){
 function fishMission(p,c,items,i){
   const tasks=[];
   items.slice(0,3).forEach(x=>tasks.push({id:'cc-'+x.key,fx:{cc:[x.key]},t:`Pescar ${x.it.n} e entregar no Centro Comunitário`,d:dot(x.it.h)}));
-  if(!items.length) tasks.push({t:'Pescar e vender os peixes',d:`De manhã: ${MAR}. À tarde: ${RIO}.`});
+  if(!items.length) tasks.push({t:'Pescar e vender os peixes',d:c.beachClosed?`Hoje a praia só abre às 22h por causa do festival: pesquem no ${RIO.charAt(0).toLowerCase()+RIO.slice(1)} ou no lago da montanha.`:`De manhã: ${MAR}. À tarde: ${RIO}.`});
   const other=1-i;
-  if(p.fishing>=6 && tl(i,'rod')===2 && (c.budget??st.money)>=7500){ c.budget=(c.budget??st.money)-7500; tasks.unshift({id:'rod3',fx:{set:[[`players.${i}.tools.rod`,3]],money:-7500},t:'Comprar a vara de irídio no Willy (7.500g)'}); }
+  if(!c.beachClosed && p.fishing>=6 && tl(i,'rod')===2 && (c.budget??st.money)>=7500){ c.budget=(c.budget??st.money)-7500; tasks.unshift({id:'rod3',fx:{set:[[`players.${i}.tools.rod`,3]],money:-7500},t:'Comprar a vara de irídio no Willy (7.500g)'}); }
   if(p.fishing>=2 && tl(i,'rod')<2){
     if(tl(other,'rod')>=2) tasks.unshift(`Pegar a vara de ${tl(other,'rod')===3?'irídio':'fibra de vidro'} de ${st.players[other].name} emprestada`);
-    else if((c.budget??st.money)>=1800){ c.budget=(c.budget??st.money)-1800; tasks.unshift({id:'rod2',fx:{set:[[`players.${i}.tools.rod`,2]],money:-1800},t:'Comprar a vara de fibra de vidro e isca no Willy (1.800g)'}); }
+    else if(!c.beachClosed && (c.budget??st.money)>=1800){ c.budget=(c.budget??st.money)-1800; tasks.unshift({id:'rod2',fx:{set:[[`players.${i}.tools.rod`,2]],money:-1800},t:'Comprar a vara de fibra de vidro e isca no Willy (1.800g)'}); }
   }
-  if(p.fishing>=3 && !st.farm.crabWhere && st.mine>=40 && !bundleDone(bundleById('cp'))) tasks.push({id:'crab',fx:{set:[['farm.crabWhere','mar'],['farm.crab',true]]},t:'Fazer 2 covos e colocar no mar',d:'Cada covo: 40 madeira + 3 barras de ferro (receita de Pesca 3). Coloquem isca dentro todo dia.'});
+  if(p.fishing>=3 && !c.beachClosed && !st.farm.crabWhere && st.mine>=40 && !bundleDone(bundleById('cp'))) tasks.push({id:'crab',fx:{set:[['farm.crabWhere','mar'],['farm.crab',true]]},t:'Fazer 2 covos e colocar no mar',d:'Cada covo: 40 madeira + 3 barras de ferro (receita de Pesca 3). Coloquem isca dentro todo dia.'});
   const why=c.rain?'Dia de chuva é o melhor para pescar: aparecem peixes raros.':items.length?'Tem peixe dos conjuntos disponível hoje.':'Peixe dá dinheiro rápido e treina a habilidade.';
   let tip=p.fishing<2?'Segurem o botão para lançar mais longe. Na barra verde, toques curtos seguram o peixe.':'Guardem 1 de cada peixe dos conjuntos antes de vender.';
   if(p.fishing>=2 && tl(i,'rod')<2 && tl(other,'rod')>=2) tip='Para emprestar, quem tem a vara coloca ela num baú ou joga no chão perto do outro.';
