@@ -1053,9 +1053,15 @@ function buildPlan(){
 
   if(!st.unl.cc && !(c.newbie&&c.D<3)) tasks.push(T('cc',1,'Ver a cena do Centro Comunitário','Entrem na cidade pelo caminho do ponto de ônibus de manhã (8h–13h), num dia sem chuva.','both',{set:[['unl.cc',true]]}));
   if(c.newbie && c.D<=3 && st.farm.crops==='nenhuma') tasks.push(T('plant15',1,'Plantar as 15 sementes de chirívia','Limpem um pedaço perto da casa com a enxada, plantem e reguem. Ficam prontas em 4 dias.',farmerIdx,{set:[['farm.crops','poucas']]}));
-  if(hasCrops && outdoors && !c.rain) tasks.push(T('water',1,'Regar as plantações',
+  // No dia 28 só vale regar o que continua na estação seguinte (wiki: café primavera→verão; milho, girassol e trigo verão→outono)
+  const carry={0:['Grão de café'],1:['Milho','Girassol','Trigo'],2:[]}[c.S]||[];
+  const lastDay=c.D===28;
+  const carryTxt=carry.length>1?carry.slice(0,-1).join(', ')+' e '+carry[carry.length-1]:(carry[0]||''), carryVerb=carry.length>1?'continuam':'continua';
+  if(hasCrops && outdoors && !c.rain && lastDay && carry.length) tasks.push(T('water',1,`Regar só ${carryTxt}`,
+      `Amanhã as plantas desta estação morrem. Só ${carryTxt} ${carryVerb} no ${SEASONS[c.S+1]}: reguem só ${carry.length>1?'essas':'essa'}. Se não tiverem, pulem esta tarefa.`,farmerIdx));
+  if(hasCrops && outdoors && !c.rain && !lastDay) tasks.push(T('water',1,'Regar as plantações',
       waterBoth?'Dividam o campo ao meio: cada um rega uma parte.':st.farm.sprinklers?'Reguem o que os aspersores não alcançam.':'Façam logo de manhã. Encham o regador na água mais próxima.',waterBoth?'both':farmerIdx));
-  if(hasCrops && outdoors && c.D===28) tasks.push(T('last',1,'Colher tudo antes de dormir','Amanhã as plantações desta estação morrem. Milho, trigo e girassol passam do verão para o outono.',farmerIdx));
+  if(hasCrops && outdoors && c.D===28) tasks.push(T('last',1,'Colher tudo antes de dormir',`Amanhã as plantações desta estação morrem.${carry.length?` Só ${carryTxt} ${carryVerb} no ${SEASONS[c.S+1]}.`:' Nenhuma planta passa para o inverno.'}`,farmerIdx));
   else if(hasCrops && outdoors) tasks.push(T('harvest',1,'Colher o que estiver pronto e vender na caixa de envio','Guardem 1 de cada item que ainda falta nos conjuntos do Centro Comunitário.',farmerIdx));
   if(st.farm.greenhouse && c.S===3) tasks.push(T('gh',1,'Regar e colher a estufa','No inverno só a estufa produz.',farmerIdx));
   if(st.farm.coop||st.farm.barn) tasks.push(T('animals',1,'Fazer carinho nos animais e coletar os produtos',st.farm.silo?'O feno sai sozinho do silo para o comedouro.':'Coloquem feno no comedouro. Sem silo, comprem feno na Marnie.',1-farmerIdx));
