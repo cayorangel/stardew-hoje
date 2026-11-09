@@ -1328,18 +1328,22 @@ function buildPlan(){
     [0,1].forEach(i=>{
       if((st.upgrading||[]).some(u=>u.i===i)) return;
       const mid=missions[i]&&missions[i].id;
+      // com aspersores em toda a plantação o regador quase não é usado: vira a última opção
+      const wcan=['wcan',st.farm.sprinklers?true:((c.tomorrowRain&&!c.rain)||c.S===3||!hasCrops||(i!==farmerIdx&&!waterBoth))];
       const order=[
-        ['wcan',(c.tomorrowRain&&!c.rain)||c.S===3||!hasCrops||(i!==farmerIdx&&!waterBoth)],
+        ...(st.farm.sprinklers?[]:[wcan]),
         ['pick',mid!=='mines'&&mid!=='skull'],
         ['axe',mid!=='forage'],
-        ['hoe',c.S===3]
+        ['hoe',c.S===3],
+        ...(st.farm.sprinklers?[wcan]:[])
       ];
       for(const [k,okToday] of order){
         const lv=tl(i,k); if(lv>=4||!okToday||!barOk(lv)) continue;
+        if(k==='wcan' && st.farm.sprinklers && ['pick','axe','hoe'].some(o=>tl(i,o)<4&&barOk(tl(i,o)))) continue; // só quando não houver outra ferramenta para melhorar
         const cost=UPG[lv][0]; if(cost>bud) continue;
         bud-=cost;
         const id=`${i}-${k}-${lv+1}`;
-        tasks.push(T('upg-'+id,2,`Deixar ${TOOL_ART[k]} no Clint para virar de ${LV[lv+1].toLowerCase()}`,
+        tasks.push(T('upg-'+id,(k==='wcan'&&st.farm.sprinklers)?3:2,`Deixar ${TOOL_ART[k]} no Clint para virar de ${LV[lv+1].toLowerCase()}`,
           `Custa ${upgText(lv)}. O Clint fica com ela 2 dias e a página avisa quando for buscar. ${TOOL_WHY[k]}`,i,{upg:{id,i,tool:k,lv:lv+1,readyAbs:now+2},money:-cost}));
         break;
       }
