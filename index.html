@@ -1069,13 +1069,14 @@ function buildPlan(){
   const carry={0:['Grão de café'],1:['Milho','Girassol','Trigo'],2:[]}[c.S]||[];
   const lastDay=c.D===28;
   const carryTxt=carry.length>1?carry.slice(0,-1).join(', ')+' e '+carry[carry.length-1]:(carry[0]||''), carryVerb=carry.length>1?'continuam':'continua';
-  if(hasCrops && outdoors && !c.rain && lastDay && carry.length) tasks.push(T('water',1,`Regar só ${carryTxt}`,
+  const needWater=!st.farm.sprinklers; // com aspersores em toda a plantação, não precisa regar
+  if(needWater && hasCrops && outdoors && !c.rain && lastDay && carry.length) tasks.push(T('water',1,`Regar só ${carryTxt}`,
       `Amanhã as plantas desta estação morrem. Só ${carryTxt} ${carryVerb} no ${SEASONS[c.S+1]}: reguem só ${carry.length>1?'essas':'essa'}. Se não tiverem, pulem esta tarefa.`,farmerIdx));
-  if(hasCrops && outdoors && !c.rain && !lastDay) tasks.push(T('water',1,'Regar as plantações',
+  if(needWater && hasCrops && outdoors && !c.rain && !lastDay) tasks.push(T('water',1,'Regar as plantações',
       waterBoth?'Dividam o campo ao meio: cada um rega uma parte.':st.farm.sprinklers?'Reguem o que os aspersores não alcançam.':'Façam logo de manhã. Encham o regador na água mais próxima.',waterBoth?'both':farmerIdx));
   if(hasCrops && outdoors && c.D===28) tasks.push(T('last',1,'Colher tudo antes de dormir',`Amanhã as plantações desta estação morrem.${carry.length?` Só ${carryTxt} ${carryVerb} no ${SEASONS[c.S+1]}.`:' Nenhuma planta passa para o inverno.'}`,farmerIdx));
   else if(hasCrops && outdoors) tasks.push(T('harvest',1,'Colher o que estiver pronto e vender na caixa de envio','Guardem 1 de cada item que ainda falta nos conjuntos do Centro Comunitário.',farmerIdx));
-  if(st.farm.greenhouse && c.S===3) tasks.push(T('gh',1,'Regar e colher a estufa','No inverno só a estufa produz.',farmerIdx));
+  if(st.farm.greenhouse && c.S===3) tasks.push(T('gh',1,st.farm.sprinklers?'Colher a estufa':'Regar e colher a estufa','No inverno só a estufa produz.',farmerIdx));
   if(st.farm.coop||st.farm.barn) tasks.push(T('animals',1,'Fazer carinho nos animais e coletar os produtos',st.farm.silo?'O feno sai sozinho do silo para o comedouro.':'Coloquem feno no comedouro. Sem silo, comprem feno na Marnie.',1-farmerIdx));
   const vault=['v1','v2','v3','v4'].map(bundleById).find(b=>!bundleDone(b));
   if(vault && spend(vault.items[0].g)) tasks.push(T('vault-'+vault.id,1,`Pagar ${vault.items[0].n} no Cofre do Centro Comunitário`,'Completar o Cofre conserta o ônibus para o deserto.','bal',{cc:[itemKey(vault.id,0)],money:-vault.items[0].g}));
@@ -1102,7 +1103,7 @@ function buildPlan(){
       const rec={id:key+'@'+now,key,n:pl.n,qty,bundle:pl.bundle.b.name,quality:qual,readyAbs:now+pl.g,expAbs:seasonEndAbs(st,pl.multi?28:0),who};
       tasks.push(T('plant-'+key,1,`Plantar ${n} ${pl.n} para o Centro Comunitário`,
         (qual?`Conjunto ${pl.bundle.b.name}: precisa de 5 com estrela de ouro. Coloquem ${pl.q.best.n} na terra antes de plantar. Quem colhe deve ser ${esc(P[who].name)}. `:(qty>1?`Conjunto ${pl.bundle.b.name}: precisa de ${qty}. Plantem ${n} (uma é reserva). `:`Conjunto ${pl.bundle.b.name}: precisa de 1. Plantem ${n} (uma é reserva). `))+
-        `Sementes de ${pl.seed}g ${pl.shop}. Ficam prontas em ${pl.g} dias: em ${SEASONS[ready.season]} ${ready.day} a colheita aparece aqui.`,who,{plant:rec,money:-cost}));
+        `Sementes de ${pl.seed}g ${pl.shop}.${st.farm.sprinklers?' Plantem dentro do alcance dos aspersores.':''} Ficam prontas em ${pl.g} dias: em ${SEASONS[ready.season]} ${ready.day} a colheita aparece aqui.`,who,{plant:rec,money:-cost}));
     });
   }
   if(c.S===3 && !bundleDone(bundleById('wf'))) tasks.push(T('dig',2,'Cavar a terra com a enxada','Na fazenda e na floresta aparecem Raiz de Inverno e Inhame de neve, do conjunto Recursos de Inverno.'));
@@ -1370,7 +1371,7 @@ function farmMission(p,c,plants){
   if(cash) tasks.push({t:`Plantar ${cash.n} para vender`,d:`Sementes ${cash.shop}. Lucro de uns ${cash.profit}g por semente até o fim da estação.`});
   tasks.push('Limpar mais um pedaço da fazenda com machado, picareta e foice');
   if(p.farming>=1 && st.farm.crops!=='nenhuma') tasks.push('Fazer um espantalho (50 madeira, 1 carvão, 20 fibra)');
-  const tip='Plantem em blocos perto da água para regar mais rápido.';
+  const tip=st.farm.sprinklers?'Plantem dentro do alcance dos aspersores, assim não precisam regar.':'Plantem em blocos perto da água para regar mais rápido.';
   return {goal:'Expandir a plantação',why:`Faltam ${c.daysLeft} dias na estação: ainda dá tempo de colher.`,tasks,tip};
 }
 function socialMission(p,c,bday){
@@ -1563,7 +1564,7 @@ function renderForm(){
      <div class="field" style="grid-column:1 / -1"><label for="f-crabw">Covos</label>${sel('farm.crabWhere',[['','Não temos'],['mar','No mar (praia)'],['doce','No rio ou lago']],f.crabWhere||'','f-crabw')}</div>
      <div class="field" style="grid-column:1 / -1"><label for="f-crops">Plantações lá fora</label>${sel('farm.crops',[['nenhuma','Nenhuma'],['poucas','Poucas (até ~40)'],['muitas','Muitas']],f.crops,'f-crops')}</div></div>
     <div class="checks">
-     ${chk('farm.sprinklers',f.sprinklers,'Temos aspersores de qualidade (ou melhores)','f-spr')}
+     ${chk('farm.sprinklers',f.sprinklers,'Temos aspersores de qualidade (ou melhores) em toda a plantação','f-spr')}
      ${chk('farm.furnace',f.furnace,'Temos fornalha','f-fur')}
      ${chk('farm.coop',f.coop,'Temos galinheiro','f-coop')}
      ${chk('farm.barn',f.barn,'Temos celeiro','f-barn')}
