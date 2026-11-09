@@ -784,8 +784,32 @@ let st=normalize(lsGet());
 let dbDoc=null, saveTimer=null, myRev=null, writing=Promise.resolve(), lastEdit=0, pendingRemote=null;
 let saveMode='local';
 
+// Recompensas dos conjuntos e das salas (página Conjuntos da wiki). set: o que a página marca sozinha
+const BUNDLE_REWARD={
+ sf:{n:'30 Sementes de Primavera'},uf:{n:'30 Sementes de Verão'},ff:{n:'30 Sementes de Outono'},wf:{n:'30 Sementes de Inverno'},
+ con:{n:'Carvoaria',set:[['owned.kiln','have']]},ex:{n:"5 Autumn's Bounty"},
+ sc:{n:'20 Solo Foliar'},uc:{n:'1 Aspersor de qualidade'},fc:{n:'Apiário',set:[['owned.bee','have']]},qc:{n:'Jarra de conserva',set:[['owned.jar','have']]},
+ an:{n:'Prensa de queijo',set:[['owned.cheese','have']]},ar:{n:'Barril',set:[['owned.keg','have']]},
+ lk:{n:'Dressed Spinner (apetrecho de pesca)'},nf:{n:'Anel de Brilho Pequeno'},cp:{n:'3 Covos'},sp:{n:'5 Prato do Mar'},
+ bs:{n:'Fornalha',set:[['farm.furnace',true]]},ge:{n:'5 Omnigeodos'},ad:{n:'Anel de Ímã Pequeno'},
+ ch:{n:'3 Bolo Rosa'},dy:{n:'Gerador de sementes',set:[['owned.seedmaker','have']]},fr:{n:'Máquina de reciclagem',set:[['owned.recycler','have']]},
+ fo:{n:'Aquecedor'},en:{n:'5 Barras de ouro'},
+ v1:{n:'3 Bolos de chocolate'},v2:{n:'30 Fertilizantes de qualidade'},v3:{n:'Para-raios',set:[['owned.lrod','have']]},v4:{n:'Cristalário',set:[['owned.crystal','have']]}
+};
+const ROOM_REWARD={crafts:{n:'ponte da pedreira',set:[['unl.quarry',true]]},pantry:{n:'estufa',set:[['farm.greenhouse',true]]},
+ boiler:{n:'carrinhos da mina',set:[['unl.minecart',true]]},vault:{n:'ônibus',set:[['unl.bus',true]]}};
+// Marca as recompensas uma vez, quando o conjunto ou a sala fica completo. Não desfaz nada se desmarcarem depois.
+function applyRewards(){
+  st.rewarded=st.rewarded||{}; const got=[];
+  const give=(key,rw)=>{ if(st.rewarded[key]) return; st.rewarded[key]=true; (rw.set||[]).forEach(([path,val])=>setByPath(path,val)); if(rw.set) got.push(rw.n); };
+  ROOMS.forEach(r=>{ r.bundles.forEach(b=>{ if(bundleDone(b)&&BUNDLE_REWARD[b.id]) give('b:'+b.id,BUNDLE_REWARD[b.id]); });
+    if(roomDone(r)&&ROOM_REWARD[r.id]) give('r:'+r.id,ROOM_REWARD[r.id]); });
+  return got;
+}
 function commit(opts={}){
   if(st.example && !opts.keepExample){ st.example=false; }
+  const rewarded=applyRewards();
+  if(rewarded.length) setTimeout(()=>showToast(`Recompensa do Centro Comunitário marcada: ${rewarded.join(', ')}.`),0);
   lastEdit=Date.now();
   lsSet(st);
   render(opts);
@@ -1606,7 +1630,7 @@ function renderForm(){
   let cc='';
   const bundleHTML=b=>{
     const n=bundleCount(b), ok=n>=b.need;
-    return `<div class="bundle${ok?' done':''}"><div class="bundle-h"><span>${esc(b.name)}</span><span class="cnt ${ok?'ok':''}">${Math.min(n,b.need)}/${b.need}${b.items.length>b.need?` de ${b.items.length}`:''}</span></div>
+    return `<div class="bundle${ok?' done':''}"><div class="bundle-h"><span>${esc(b.name)}${BUNDLE_REWARD[b.id]?` <span class="en">→ ${esc(BUNDLE_REWARD[b.id].n)}</span>`:''}</span><span class="cnt ${ok?'ok':''}">${Math.min(n,b.need)}/${b.need}${b.items.length>b.need?` de ${b.items.length}`:''}</span></div>
        <div class="items">${b.items.map((it,i)=>{const k=itemKey(b.id,i);return `<button type="button" class="it" data-cc="${k}" aria-pressed="${!!st.cc[k]}" title="${esc(it.h)}">${isQual(it.en)?'★ ':''}${esc(it.n)}${it.en&&it.en!==it.n?` <span class="it-en">${esc(baseEn(it.en))}</span>`:''}</button>`}).join('')}</div></div>`;
   };
   ROOMS.forEach(r=>{
@@ -1617,7 +1641,7 @@ function renderForm(){
   const doneB=ROOMS.flatMap(r=>r.bundles.filter(bundleDone).map(b=>({r,b})));
   if(doneB.length){
     cc+=`<div class="room"><div class="room-h"><b>Conjuntos completos</b><span class="small muted">${doneB.length} de ${ROOMS.reduce((a,r)=>a+r.bundles.length,0)}${countRoomsDone()?` · salas completas: ${ROOMS.filter(roomDone).map(r=>esc(r.name)).join(', ')}`:''}</span></div>`;
-    doneB.forEach(({r,b})=>{ cc+=bundleHTML(b).replace('<span>'+esc(b.name)+'</span>','<span>'+esc(b.name)+' <span class="en">'+esc(r.name)+'</span></span>'); });
+    doneB.forEach(({r,b})=>{ cc+=bundleHTML(b).replace('<span>'+esc(b.name),'<span>'+esc(b.name)+' <span class="en">('+esc(r.name)+')</span>'); });
     cc+=`</div>`;
   }
   h+=sec('cc','Centro Comunitário',`${countRoomsDone()} de 6 salas`,`<p class="small muted" style="margin:0">Toquem nos itens que vocês já entregaram. Os nomes seguem o jogo em português, com o nome em inglês ao lado para conferir. Usamos os conjuntos padrão (não os "aleatórios"). ★ = precisa de estrela de ouro.</p>`+cc);
@@ -1906,6 +1930,7 @@ function copyCode(){
 function shareCode(){ if(syncCode) navigator.share({title:'Código da fazenda',text:syncCode}).catch(()=>{}); }
 
 (async function boot(){
+  if(applyRewards().length) lsSet(st); // conjuntos que já estavam completos
   if(syncCode) syncStart(syncCode,'resume');
   try{ const t=sessionStorage.getItem(LS_KEY+'-tab'); if(t) selectTab(t); }catch(_){}
   render();
