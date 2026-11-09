@@ -538,7 +538,7 @@ const FISH_INFO={
  'Eel':`${MAR}. 16h–2h, só com chuva`,
  'Pufferfish':`${MAR}. 12h–16h, dia de sol`,
  'Ghostfish':'Lagos dentro das minas, nos andares 20 e 60',
- 'Sandfish':'Lago do deserto (precisa do ônibus)',
+ 'Sandfish':'Lago do deserto. O ônibus da Pam sai do ponto de ônibus das 10h às 17h (passagem de 500g)',
  'Woodskip':'Lago do Bosque Secreto (ao norte da Floresta Cinzaseiva; o tronco da entrada só sai com machado de aço)',
  'Chub':`${LAGO}, ou o rio da Floresta Cinzaseiva. Qualquer hora`
 };
@@ -950,13 +950,17 @@ function schedHTML(name,c){
     `<span class="muted">Horário do relógio do jogo, segundo a wiki. Pode mudar em dias de evento.</span></div>`;
 }
 // Hora em que a tarefa começa a fazer sentido, para a lista seguir o dia (fazenda de manhã, lojas, atividades, noite)
-const START_AT=[[/^(water|harvest|last|animals|gh|crabcheck|cave)(-\d)?$/,6],[/^harv-/,6.5],[/^plant-/,7],[/^cart/,8],[/^fest-(squid|trout)/,7],
+const START_AT=[[/^(water|harvest|last|animals|gh|crabcheck|cave)(-\d)?$/,6],[/^cc-/,8.5],[/^harv-/,6.5],[/^plant-/,7],[/^cart/,8],[/^fest-(squid|trout)/,7],
   [/^fest-(sub|coffee)/,17],[/^fest-mermaid/,17.5],[/^fest-(jelly|maze)/,22]];
+function placeOf(txt){ txt=String(txt||''); if(/deserto|Oásis/i.test(txt)) return 'deserto'; if(/Bosque Secreto/i.test(txt)) return 'bosque'; if(/\bandares?\b|minas/i.test(txt)) return 'minas'; if(/Praia|praia|píer/.test(txt)) return 'praia'; return null; }
 function startOf(t){
   const id=t.id||''; const core=id.replace(/^m\d-/,'');
+  if(/^m\d-/.test(id)) return 10;
+  if(/^cc-/.test(id)) return 10.05;
+  if(/^vault-/.test(id)) return 8.6;
   for(const [re,h] of START_AT) if(re.test(core)) return h;
   if(/^m\d-/.test(id)) return 10;
-  return t.prio===1?8:t.prio===3?12:9;
+  return t.prio===1?8:t.prio===3?12:11;
 }
 // Itens de qualidade ouro do conjunto Plantações de Qualidade (não confundir com Barra de ouro)
 function isQual(en){return /^Gold (Parsnip|Melon|Pumpkin|Corn)$/.test(en)}
@@ -1294,6 +1298,21 @@ function buildPlan(){
   }
   const keepFull=/^(water|harvest|last|animals|gh|crabcheck|cave$|harv-|fest-)/;
   if(fullDay){ for(let k=tasks.length-1;k>=0;k--) if(!keepFull.test(tasks[k].id)) tasks.splice(k,1); }
+  // Todo item do Centro Comunitário que dá para pegar hoje vira tarefa, mesmo fora da atividade principal
+  { const covered=new Set();
+    missions.forEach(m=>m&&m.tasks.forEach(t=>((t&&t.fx&&t.fx.cc)||[]).forEach(k=>covered.add(k))));
+    tasks.forEach(t=>((t.fx&&t.fx.cc)||[]).forEach(k=>covered.add(k)));
+    const area={fish:'fish',mine:'mines',forage:'forage'}, skill={fish:'fishing',mine:'mining',forage:'foraging'};
+    cc.filter(x=>x.ok!==false && area[x.it.k] && !(x.keys||[x.key]).some(k=>covered.has(k)) && !/^(Madeira|Pedra)/.test(x.it.n)).forEach(x=>{
+      const verb=x.it.k==='fish'?'Pescar':x.it.k==='mine'?'Pegar':'Coletar';
+      const place=placeOf(x.it.h);
+      const samePlace=place?missions.findIndex(m=>m&&m.tasks.some(t=>t&&placeOf((t.d||'')+' '+(t.t||''))===place)):-1;
+      const inArea=missions.findIndex(m=>m&&(m.id===area[x.it.k]||(x.it.k==='mine'&&m.id==='mines2')));
+      const who=samePlace>=0?samePlace:inArea>=0?inArea:pickFor(skill[x.it.k]);
+      const title=x.it.bar?`Fazer ${x.need>1?x.need:1} ${x.it.n.toLowerCase()} na fornalha e entregar no Centro Comunitário`:`${verb} ${x.it.n} e entregar no Centro Comunitário`;
+      tasks.push(T('cc-'+x.key,2,title,dot(x.it.h)+multiNote(x),who,{cc:x.keys||[x.key]}));
+    });
+  }
   fests.forEach(f=>festTasks(f,c).forEach(t=>tasks.push(t)));
 
   // Tarefas que dependem das missões
