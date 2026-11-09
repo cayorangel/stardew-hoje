@@ -413,9 +413,9 @@ const ROOMS0=[
    {n:'Leite grande',en:'Large Milk',k:'long',req:'barn',h:'Vaca feliz'},
    {n:'Ovo grande (marrom)',en:'Large Brown Egg',k:'long',req:'coop',h:'Galinha marrom feliz'},
    {n:'Ovo grande (branco)',en:'Large Egg',k:'long',req:'coop',h:'Galinha branca feliz'},
-   {n:'Leite grande de cabra',en:'Large Goat Milk',k:'long',req:'barn',h:'Cabra (celeiro grande)'},
-   {n:'Lã',en:'Wool',k:'long',req:'barn',h:'Ovelha ou coelho'},
-   {n:'Ovo de pata',en:'Duck Egg',k:'long',req:'coop',h:'Pata (galinheiro grande)'}]},
+   {n:'Leite grande de cabra',en:'Large Goat Milk',k:'long',req:'barn2',h:'Cabra (celeiro grande)'},
+   {n:'Lã',en:'Wool',k:'long',req:'wool',h:'Ovelha (celeiro de luxo) ou coelho (galinheiro de luxo)'},
+   {n:'Ovo de pata',en:'Duck Egg',k:'long',req:'coop2',h:'Pata (galinheiro grande)'}]},
   {id:'ar',name:'Artesão',need:6,items:[
    {n:'Óleo de trufas',en:'Truffle Oil',k:'long',h:'Porco + prensa de óleo'},
    {n:'Tecido',en:'Cloth',k:'long',h:'Lã no tear'},
@@ -482,7 +482,7 @@ const ROOMS0=[
   {id:'ch',name:'Cozinheiro',need:6,items:[
    {n:'Xarope de ácer',en:'Maple Syrup',k:'long',h:'Torneirinha num ácer'},
    {n:'Broto de samambaia',en:'Fiddlehead Fern',k:'forage',s:[1],req:'woods',h:'Bosque Secreto no verão'},
-   {n:'Trufa',en:'Truffle',k:'long',req:'barn',h:'Porco'},
+   {n:'Trufa',en:'Truffle',k:'long',req:'barn3',h:'Porco (celeiro de luxo)'},
    {n:'Papoula',en:'Poppy',k:'crop',s:[1],h:'Plantar no verão: 7 dias'},
    {n:'Rolinhos de arroz',en:'Maki Roll',k:'long',h:'Cozinhar (casa com cozinha)'},
    {n:'Ovo frito',en:'Fried Egg',k:'long',h:'Cozinhar: 1 ovo'}]},
@@ -490,7 +490,7 @@ const ROOMS0=[
    {n:'Cogumelo vermelho',en:'Red Mushroom',k:'forage',s:[1,2],h:'Bosque Secreto ou minas'},
    {n:'Ouriço-do-mar',en:'Sea Urchin',k:'forage',req:'beach',h:'Poças da praia, depois da ponte consertada'},
    {n:'Girassol',en:'Sunflower',k:'crop',s:[1,2],h:'Plantar: 8 dias'},
-   {n:'Pena de pato',en:'Duck Feather',k:'long',req:'coop',h:'Pato feliz'},
+   {n:'Pena de pato',en:'Duck Feather',k:'long',req:'coop2',h:'Pato feliz (galinheiro grande)'},
    {n:'Água-marinha',en:'Aquamarine',k:'mine',h:'Minas'},
    {n:'Repolho roxo',en:'Red Cabbage',k:'crop',s:[1],req:'y2',h:'Sementes só no ano 2 (ou Carrinho de Viagem)'}]},
   {id:'fr',name:'Pesquisa de Campo',need:4,items:[
@@ -505,7 +505,7 @@ const ROOMS0=[
   {id:'en',name:'Encantador',need:4,items:[
    {n:'Resina de carvalho',en:'Oak Resin',k:'long',h:'Torneirinha num carvalho'},
    {n:'Vinho',en:'Wine',k:'long',h:'Fruta no barril'},
-   {n:'Pé de coelho',en:"Rabbit's Foot",k:'long',req:'barn',h:'Coelho (galinheiro grande)'},
+   {n:'Pé de coelho',en:"Rabbit's Foot",k:'long',req:'coop3',h:'Coelho (galinheiro de luxo)'},
    {n:'Romã',en:'Pomegranate',k:'long',h:'Árvore de romã'}]}
  ]},
  {id:'vault',name:'Cofre',en:'Vault',reward:'Conserta o ônibus (vai ao deserto)',bundles:[
@@ -606,13 +606,9 @@ ROOMS.forEach(r=>r.bundles.forEach(b=>b.items.forEach(it=>{
 })));
 // Construções (Robin) e máquinas (receitas). ok(): já dá para fazer; need(): só faz sentido se...
 const BUILD=[
- {id:'coop',n:'Galinheiro',en:'Coop',robin:1,g:4000,mat:'300 madeira e 100 pedra',why:'Ovos para o conjunto Animal.',cc:1},
- {id:'barn',n:'Celeiro',en:'Barn',robin:1,g:6000,mat:'350 madeira e 150 pedra',why:'Leite e lã para os conjuntos Animal e Artesão.',cc:1},
  {id:'silo',n:'Silo',en:'Silo',robin:1,g:100,mat:'100 pedra, 10 argila e 5 barras de cobre',ok:()=>st.farm.furnace,need:()=>st.farm.coop||st.farm.barn,why:'Guarda o feno do capim cortado com a foice, assim não precisam comprar feno.'},
- {id:'kitchen',n:'Melhoria da casa (cozinha)',en:'House upgrade',robin:1,g:10000,mat:'450 madeira',why:'Libera cozinhar: Ovo frito e Rolinhos de arroz do conjunto Cozinheiro, e comida para energia.',cc:1},
  {id:'stable',n:'Estábulo',en:'Stable',robin:1,g:10000,mat:'100 madeira de lei e 5 barras de ferro',ok:()=>maxTool('axe')>=1&&st.mine>=40,why:'Vem com um cavalo: andam muito mais rápido.'},
  {id:'pond',n:'Lago de peixes',en:'Fish Pond',robin:1,g:5000,mat:'200 pedra, 5 algas marinhas e 5 algas verdes',why:'Cria peixes e dá ovas.'},
- {id:'shed',n:'Galpão',en:'Shed',robin:1,g:15000,mat:'300 madeira',why:'Espaço coberto para muitas máquinas.'},
  {id:'mayo',n:'Máquina de maionese',en:'Mayonnaise Machine',sk:['farming',2],mat:'15 madeira, 15 pedra, 1 cristal de terra e 1 barra de cobre',ok:()=>st.farm.furnace,need:()=>st.farm.coop,why:'Ovo vira maionese, que vende bem melhor.'},
  {id:'tapper',n:'Torneirinha',en:'Tapper',sk:['foraging',3],mat:'40 madeira e 2 barras de cobre',ok:()=>st.farm.furnace,why:'Colocada numa árvore: ácer dá xarope, carvalho dá resina e pinheiro dá alcatrão (conjuntos Cozinheiro, Recursos Exóticos e Encantador).',cc:1},
  {id:'bee',n:'Apiário',en:'Bee House',sk:['farming',3],mat:'40 madeira, 8 carvão, 1 barra de ferro e 1 xarope de ácer',ok:()=>st.mine>=40&&own('tapper'),why:'Dá mel (conjunto Artesão). Rende mais perto de flores.',cc:1},
@@ -676,8 +672,29 @@ function caveNeeds(kind){
 }
 const BOOK_DAYS={0:[11,12,21,22,25],1:[9,12,18,25,27],2:[4,7,8,9,12,19,22,25],3:[5,11,12,19,22,24]};
 function hasPw(i,id){ return !!((st.players[i].pw||{})[id]); }
+// Construções da Robin com níveis (wiki: Carpenter's Shop). O nível atual fica em Fazenda.
+const LEVELED=[
+ {id:'coop',key:'coopLv',label:'Galinheiro',names:['Galinheiro','Galinheiro grande','Galinheiro de luxo'],
+  costs:[[4000,'300 madeira e 100 pedra'],[10000,'400 madeira e 150 pedra'],[20000,'500 madeira e 200 pedra']],
+  why:['Galinhas: ovos para o conjunto Animal.','Libera patos: Ovo de pata e Pena de pato (conjuntos Animal e Tinta).','Libera coelhos: Pé de coelho e Lã (conjuntos Encantador e Animal).'],cc:[1,1,1]},
+ {id:'barn',key:'barnLv',label:'Celeiro',names:['Celeiro','Celeiro grande','Celeiro de luxo'],
+  costs:[[6000,'350 madeira e 150 pedra'],[12000,'450 madeira e 200 pedra'],[25000,'550 madeira e 300 pedra']],
+  why:['Vacas: leite para os conjuntos Animal e Artesão.','Libera cabras: leite de cabra (conjuntos Animal e Artesão).','Libera ovelhas e porcos: Lã e Trufa (conjuntos Animal, Cozinheiro e Artesão).'],cc:[1,1,1]},
+ {id:'house',key:'houseLv',label:'Casa',names:['Casa com cozinha','Casa com quarto das crianças','Casa com porão'],
+  costs:[[10000,'450 madeira'],[65000,'100 madeira de lei'],[100000,'só ouro']],
+  why:['Libera cozinhar: Ovo frito e Rolinhos de arroz do conjunto Cozinheiro, e comida para energia.','Dois quartos novos e a cozinha maior.','Porão com barris para envelhecer vinho e queijo.'],cc:[1,0,0],ok:lv=>lv!==1||maxTool('axe')>=1},
+ {id:'shed',key:'shedLv',label:'Galpão',names:['Galpão','Galpão grande'],
+  costs:[[15000,'300 madeira'],[20000,'550 madeira e 300 pedra']],
+  why:['Espaço coberto para muitas máquinas.','Mais espaço para máquinas.'],cc:[0,0]}
+];
+function leveledNext(){
+  return LEVELED.map(L=>{ const lv=st.farm[L.key]||0; if(lv>=L.names.length||(L.ok&&!L.ok(lv))) return null;
+    if((st.owned||{})['lv-'+L.id]==='no') return null;
+    const [g,mat]=L.costs[lv];
+    return {id:L.id+'-'+(lv+1),n:L.names[lv],robin:1,days:(lv===0||L.id==='house')?3:2,g,mat:mat==='só ouro'?'sem materiais':mat,why:L.why[lv],cc:L.cc[lv],up:lv>0,set:[['farm.'+L.key,lv+1]]}; }).filter(Boolean);
+}
 const SKILL_PT={farming:'Cultivo',mining:'Mineração',foraging:'Coleta',fishing:'Pesca',combat:'Combate'};
-function own(id){ if(id==='coop') return !!st.farm.coop; if(id==='barn') return !!st.farm.barn; return (st.owned||{})[id]==='have'; }
+function own(id){ if(id==='coop') return (st.farm.coopLv||0)>=1; if(id==='barn') return (st.farm.barnLv||0)>=1; return (st.owned||{})[id]==='have'; }
 function wants(id){ if(own(id)) return false; return ((st.owned||{})[id]||'want')==='want'; }
 function maxTool(k){ return Math.max(tl(0,k),tl(1,k)); }
 // Agenda de cada morador, da Stardew Valley Wiki em português (pt.stardewvalleywiki.com)
@@ -757,6 +774,12 @@ function normalize(s){
   out.cc=s.cc||(s.example===false?{}:out.cc); out.done=s.done||{}; out.planted=Array.isArray(s.planted)?s.planted:[]; out.upgrading=Array.isArray(s.upgrading)?s.upgrading:[];
   out.owned=Object.assign({},s.owned||{});
   out.special=Object.assign({},s.special||{});
+  const sf=s.farm||{}, so=s.owned||{};
+  if(sf.coopLv==null) out.farm.coopLv=sf.coop?1:0;
+  if(sf.barnLv==null) out.farm.barnLv=sf.barn?1:0;
+  if(sf.houseLv==null) out.farm.houseLv=so.kitchen==='have'?1:0;
+  if(sf.shedLv==null) out.farm.shedLv=so.shed==='have'?1:0;
+  syncFarm(out);
   out.players.forEach((pl,i)=>{ pl.pw=Object.assign({},((s.players||[])[i]||{}).pw||{}); });
   if(typeof out.bookDays!=='string') out.bookDays='';
   if(out.unl.skull) out.special.skullkey=true;
@@ -805,8 +828,10 @@ function applyRewards(){
     if(roomDone(r)&&ROOM_REWARD[r.id]) give('r:'+r.id,ROOM_REWARD[r.id]); });
   return got;
 }
+function syncFarm(x){ x.farm.coop=(x.farm.coopLv||0)>=1; x.farm.barn=(x.farm.barnLv||0)>=1; }
 function commit(opts={}){
   if(st.example && !opts.keepExample){ st.example=false; }
+  syncFarm(st);
   const rewarded=applyRewards();
   if(rewarded.length) setTimeout(()=>showToast(`Recompensa do Centro Comunitário marcada: ${rewarded.join(', ')}.`),0);
   lastEdit=Date.now();
@@ -968,11 +993,11 @@ function ctxOf(s){
 }
 function reqOk(req,c){
   if(!req) return true;
-  const m={bus:st.unl.bus,woods:st.unl.woods,beach:st.unl.beach,coop:st.farm.coop,barn:st.farm.barn,y2:st.year>=2,
+  const m={bus:st.unl.bus,woods:st.unl.woods,beach:st.unl.beach,coop:st.farm.coopLv>=1,barn:st.farm.barnLv>=1,coop2:st.farm.coopLv>=2,coop3:st.farm.coopLv>=3,barn2:st.farm.barnLv>=2,barn3:st.farm.barnLv>=3,wool:st.farm.coopLv>=3||st.farm.barnLv>=3,y2:st.year>=2,
     mine20:c.maxMine>=20,mine40:c.maxMine>=40,mine80:c.maxMine>=80,axe:Math.max(tl(0,'axe'),tl(1,'axe'))>=1};
   return !!m[req];
 }
-const REQ_LABEL={bus:'precisa do ônibus',woods:'precisa do Bosque Secreto (machado de aço)',beach:'precisa da ponte da praia',coop:'precisa de galinheiro',barn:'precisa de celeiro',y2:'só no ano 2',
+const REQ_LABEL={coop2:'precisa de galinheiro grande',coop3:'precisa de galinheiro de luxo',barn2:'precisa de celeiro grande',barn3:'precisa de celeiro de luxo',wool:'precisa de celeiro ou galinheiro de luxo',bus:'precisa do ônibus',woods:'precisa do Bosque Secreto (machado de aço)',beach:'precisa da ponte da praia',coop:'precisa de galinheiro',barn:'precisa de celeiro',y2:'só no ano 2',
   mine20:'chegar ao andar 20',mine40:'chegar ao andar 40',mine80:'chegar ao andar 80',axe:'precisa de machado de cobre'};
 
 // Itens que faltam e que dá para pegar hoje
@@ -1191,17 +1216,17 @@ function buildPlan(){
   if(maxTool('axe')>=2 && maxTool('pick')>=2) [0,1].forEach(i=>{ if(!hasPw(i,'alley')) tasks.push(T('alley-'+i,3,'Pegar o livro O Bufê do Beco na lixeira dourada','De graça: há uma abertura escondida na cerca leste da cidade, logo ao norte dos trilhos do carrinho de mina perto do Ferreiro. No caminho tem um tronco grande e uma pedra grande: quem tiver machado e picareta de aço abre a passagem. A lixeira fica atrás de uma árvore no fim do caminho. Dá mais chance de achar coisas no lixo.',i,{set:[[`players.${i}.pw.alley`,true]]})); });
   // Construções e máquinas que vocês querem e ainda não têm
   { let n=0, robinUsed=false;
-    const list=BUILD.filter(b=>wants(b.id)&&(!b.need||b.need())&&(!b.ok||b.ok()));
+    const list=[...leveledNext(),...BUILD.filter(b=>wants(b.id)&&(!b.need||b.need())&&(!b.ok||b.ok()))];
     list.sort((a,b)=>(b.cc?1:0)-(a.cc?1:0));
     for(const b of list){
       if(n>=2) break;
       let who='bal';
       if(b.sk){ const [k,lv]=b.sk; const able=[0,1].filter(i=>P[i][k]>=lv); if(!able.length) continue; who=able.length===2?pickFor(k):able[0]; }
-      if(b.robin){ if(robinUsed || !spend(b.g)) continue; robinUsed=true; }
+      if(b.robin){ if(robinUsed || (st.robinUntil||0)>now || !spend(b.g)) continue; robinUsed=true; }
       n++;
-      tasks.push(T('build-'+b.id,b.cc?2:3,b.robin?`Encomendar ${b.n.toLowerCase()} na Robin`:`Fazer ${b.n.toLowerCase()}`,
-        `${b.robin?`Custa ${b.g.toLocaleString('pt-BR')}g, `:'Materiais: '}${b.mat}. ${b.why}${b.sk?` Receita de ${SKILL_PT[b.sk[0]]} ${b.sk[1]}.`:' A Robin leva alguns dias para construir.'}`,who,
-        {set:[[b.id==='coop'?'farm.coop':b.id==='barn'?'farm.barn':'owned.'+b.id,b.id==='coop'||b.id==='barn'?true:'have']],money:b.robin?-b.g:0}));
+      tasks.push(T('build-'+b.id,b.cc?2:3,b.up?`Melhorar para ${b.n.toLowerCase()} na Robin`:b.robin?`Encomendar ${b.n.toLowerCase()} na Robin`:`Fazer ${b.n.toLowerCase()}`,
+        `${b.robin?`Custa ${b.g.toLocaleString('pt-BR')}g, `:'Materiais: '}${b.mat}. ${b.why}${b.sk?` Receita de ${SKILL_PT[b.sk[0]]} ${b.sk[1]}.`:` A Robin leva ${b.days||2} dias e faz uma obra por vez.`}`,who,
+        {set:[...(b.set||[['owned.'+b.id,'have']]),...(b.robin?[['robinUntil',now+(b.days||2)]]:[])],money:b.robin?-b.g:0}));
     }
   }
   if(c.wd!==2 && tl(0,'pack')>=1 && tl(1,'pack')>=1){ const n2=[0,1].filter(i=>tl(i,'pack')===1); if(n2.length && spend(10000)) tasks.push(T('pack2',3,'Comprar a mochila de luxo no Pierre','10.000g, mais 12 espaços.',n2[0],{set:[[`players.${n2[0]}.tools.pack`,2]],money:-10000})); }
@@ -1583,14 +1608,13 @@ function renderForm(){
   h+=sec('faz','Fazenda',{nenhuma:'Sem plantações',poucas:'Poucas plantações',muitas:'Muitas plantações'}[f.crops],`
     <div class="fields">
      <div class="field"><label for="f-mine">Andar das minas</label>${num('mine',st.mine,0,120,'f-mine')}</div>
+     ${LEVELED.map(L=>`<div class="field"><label for="f-${L.key}">${L.label}</label>${sel('farm.'+L.key,[[0,L.id==='house'?'Casa inicial':'Não temos'],...L.names.map((n,v)=>[v+1,n])],f[L.key]||0,'f-'+L.key)}</div>`).join('')}
      <div class="field" style="grid-column:1 / -1"><label for="f-cave">Caverna da fazenda (Demetrius)</label>${sel('farm.cave',[['','Ainda não escolhemos'],['morcegos','Morcegos (frutas)'],['cogumelos','Cogumelos']],f.cave||'','f-cave')}</div>
      <div class="field" style="grid-column:1 / -1"><label for="f-crabw">Covos</label>${sel('farm.crabWhere',[['','Não temos'],['mar','No mar (praia)'],['doce','No rio ou lago']],f.crabWhere||'','f-crabw')}</div>
      <div class="field" style="grid-column:1 / -1"><label for="f-crops">Plantações lá fora</label>${sel('farm.crops',[['nenhuma','Nenhuma'],['poucas','Poucas (até ~40)'],['muitas','Muitas']],f.crops,'f-crops')}</div></div>
     <div class="checks">
      ${chk('farm.sprinklers',f.sprinklers,'Temos aspersores de qualidade (ou melhores) em toda a plantação','f-spr')}
      ${chk('farm.furnace',f.furnace,'Temos fornalha','f-fur')}
-     ${chk('farm.coop',f.coop,'Temos galinheiro','f-coop')}
-     ${chk('farm.barn',f.barn,'Temos celeiro','f-barn')}
      ${chk('farm.silo',f.silo,'Temos silo','f-silo')}
      ${chk('farm.greenhouse',f.greenhouse,'Estufa consertada','f-gh')}
     </div>
@@ -1605,7 +1629,7 @@ function renderForm(){
     const opts=[['want','Queremos'],['have','Já temos'],['no','Não queremos']];
     const rows=BUILD.filter(b=>b.id!=='coop'&&b.id!=='barn').map(b=>`<div class="field"><label for="b-${b.id}">${esc(b.n)} <span class="en" style="text-transform:none;letter-spacing:0">${esc(b.en)}</span></label>${sel('owned.'+b.id,opts,(st.owned||{})[b.id]||'want','b-'+b.id)}</div>`).join('');
     const have=BUILD.filter(b=>own(b.id)).length;
-    h+=sec('build','Construções e máquinas',`${have} de ${BUILD.length}`,`<p class="small muted" style="margin:0">Marquem o que já têm e o que não querem. O que estiver em "Queremos" aparece como tarefa quando já der para fazer (nível de habilidade, materiais e ouro). Galinheiro e celeiro ficam na seção Fazenda.</p><div class="fields">${rows}</div>`);
+    h+=sec('build','Construções e máquinas',`${have} de ${BUILD.length}`,`<p class="small muted" style="margin:0">Marquem o que já têm e o que não querem. O que estiver em "Queremos" aparece como tarefa quando já der para fazer (nível de habilidade, materiais e ouro). Galinheiro, celeiro, casa e galpão (com os níveis) ficam na seção Fazenda.</p><div class="fields">${rows}</div>`);
   }
   {
     const chip=(attr,key,on,label,title)=>`<button type="button" class="it" ${attr}="${key}" aria-pressed="${!!on}" title="${esc(title)}">${esc(label)}</button>`;
@@ -1660,7 +1684,7 @@ function onFormInput(e){
     let v;
     if(el.type==='checkbox') v=el.checked;
     else if(el.type==='number'){ v=parseInt(el.value,10); if(isNaN(v)) return; v=Math.max(+el.min||0,Math.min(+el.max||1e9,v)); }
-    else if(el.tagName==='SELECT' && ['season','players','gear'].some(p=>el.dataset.k.startsWith(p))) v=parseInt(el.value,10);
+    else if(el.tagName==='SELECT' && (['season','players','gear'].some(p=>el.dataset.k.startsWith(p))||/Lv$/.test(el.dataset.k))) v=parseInt(el.value,10);
     else v=el.value;
     setByPath(el.dataset.k,v);
     commit({form:el.type==='text'||el.type==='number'?false:true});
