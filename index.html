@@ -975,8 +975,17 @@ function ccToday(c){
       res.push({it,b,r,score,tag,ok,key:itemKey(b.id,i)});
     });
   }));
-  return res.sort((a,b)=>b.score-a.score);
+  res.sort((a,b)=>b.score-a.score);
+  const byItem=new Map(), out=[];
+  res.forEach(x=>{
+    const k=x.it.en==='Wood'?x.key:x.it.en.replace(/ ×\d+/,'');
+    if(byItem.has(k)){ const y=byItem.get(k); y.keys.push(x.key); y.bnames.push(x.b.name); y.need+=(x.it.qty||1); return; }
+    const y=Object.assign({},x,{keys:[x.key],bnames:[x.b.name],need:x.it.qty||1}); byItem.set(k,y); out.push(y);
+  });
+  return out;
 }
+// "Precisam de 2: um para o conjunto A e outro para o B" quando o mesmo item vale para mais de um conjunto
+function multiNote(x){ return x.keys&&x.keys.length>1?` Precisam de ${x.need}: um para cada conjunto (${x.bnames.join(' e ')}).`:''; }
 
 function cropBundle(en){
   let best=null, qb=null;
@@ -1292,19 +1301,19 @@ function mineMission(p,c,cc){
   here.sort((a,b)=>w(a)-w(b)); back.sort((a,b)=>w(a)-w(b));
   [...here,...back].slice(0,3).forEach(x=>{
     const it=x.it, [a,b]=it.fl;
-    const fx={cc:[x.key]}, id='cc-'+x.key;
+    const fx={cc:x.keys||[x.key]}, id='cc-'+x.key, mn=multiNote(x);
     if(it.en==='Stone') tasks.push({id,fx,t:'Juntar 99 pedras e entregar no Centro Comunitário',d:'Qualquer pedra das minas serve.'});
-    else if(it.bar) tasks.push({id,fx,t:`Fazer 1 ${it.n.toLowerCase()} na fornalha e entregar no Centro Comunitário`,d:`${it.h}.`});
-    else if(b>=lo&&a<=hi) tasks.push({id,fx,t:`Pegar ${it.n} e entregar no Centro Comunitário`,d:`${it.h}. Sai nos andares onde vocês vão passar hoje.`});
-    else { const el=Math.floor(a/5)*5; tasks.push({id,fx,t:`Pegar ${it.n} e entregar no Centro Comunitário`,d:`${it.h}. Não sai nos andares de hoje: voltem pelo elevador ${el?`ao andar ${el}`:'para a entrada das minas'}.`}); }
+    else if(it.bar) tasks.push({id,fx,t:`Fazer ${x.need>1?x.need:1} ${it.n.toLowerCase()} na fornalha e entregar no Centro Comunitário`,d:`${it.h}.${mn}`});
+    else if(b>=lo&&a<=hi) tasks.push({id,fx,t:`Pegar ${it.n} e entregar no Centro Comunitário`,d:`${it.h}. Sai nos andares onde vocês vão passar hoje.${mn}`});
+    else { const el=Math.floor(a/5)*5; tasks.push({id,fx,t:`Pegar ${it.n} e entregar no Centro Comunitário`,d:`${it.h}. Não sai nos andares de hoje: voltem pelo elevador ${el?`ao andar ${el}`:'para a entrada das minas'}.${mn}`}); }
   });
   const ghost=cc.find(x=>x.it.en==='Ghostfish'&&x.ok);
-  if(ghost && c.rodOk) tasks.push({id:'cc-'+ghost.key,fx:{cc:[ghost.key]},t:'Pescar o Peixe-fantasma e entregar no Centro Comunitário',d:`Nos lagos dos andares 20 e 60 (o elevador para no 20 e no 60).`});
+  if(ghost && c.rodOk) tasks.push({id:'cc-'+ghost.key,fx:{cc:ghost.keys||[ghost.key]},t:'Pescar o Peixe-fantasma e entregar no Centro Comunitário',d:`Nos lagos dos andares 20 e 60 (o elevador para no 20 e no 60).`});
   return {goal:deep?'Minas: andares 80 a 120':`Minas: do andar ${lvl} ao ${target}`,why:'',tasks};
 }
 function fishMission(p,c,items,i){
   const tasks=[];
-  items.slice(0,3).forEach(x=>tasks.push({id:'cc-'+x.key,fx:{cc:[x.key]},t:`Pescar ${x.it.n} e entregar no Centro Comunitário`,d:dot(x.it.h)}));
+  items.slice(0,3).forEach(x=>tasks.push({id:'cc-'+x.key,fx:{cc:x.keys||[x.key]},t:`Pescar ${x.it.n} e entregar no Centro Comunitário`,d:dot(x.it.h)+multiNote(x)}));
   if(!items.length) tasks.push({t:'Pescar e vender os peixes',d:c.beachClosed?`Hoje a praia só abre às 22h por causa do festival: pesquem no ${RIO.charAt(0).toLowerCase()+RIO.slice(1)} ou no lago da montanha.`:`De manhã: ${MAR}. À tarde: ${RIO}.`});
   const other=1-i;
   if(!c.beachClosed && p.fishing>=6 && tl(i,'rod')===2 && (c.budget??st.money)>=7500){ c.budget=(c.budget??st.money)-7500; tasks.unshift({id:'rod3',fx:{set:[[`players.${i}.tools.rod`,3]],money:-7500},t:'Comprar a vara de irídio no Willy (7.500g)'}); }
@@ -1321,7 +1330,7 @@ function fishMission(p,c,items,i){
 function forageMission(p,c,items,berry,i){
   const tasks=[];
   if(berry) tasks.push(c.S===0?'Colher amoras-silvestres nos arbustos (época dos dias 15 a 18)':'Colher amoras nos arbustos (época dos dias 8 a 11)');
-  items.filter(x=>!/Madeira/.test(x.it.n)).slice(0,3).forEach(x=>tasks.push({id:'cc-'+x.key,fx:{cc:[x.key]},t:`Coletar ${x.it.n} e entregar no Centro Comunitário`,d:dot(x.it.h)}));
+  items.filter(x=>!/Madeira/.test(x.it.n)).slice(0,3).forEach(x=>tasks.push({id:'cc-'+x.key,fx:{cc:x.keys||[x.key]},t:`Coletar ${x.it.n} e entregar no Centro Comunitário`,d:dot(x.it.h)+multiNote(x)}));
   const con=bundleById('con');
   if(!bundleDone(con)){
     const wk=['con:0','con:1'].find(k=>!st.cc[k]);
@@ -1469,7 +1478,7 @@ function countRoomsDone(){return ROOMS.filter(roomDone).length}
 function ccItemHTML(x){
   return `<div class="cc-item"><div class="cc-top"><span class="n">${esc(x.it.n)} <span class="en">${esc(x.it.en)}</span></span>
    ${x.tag?`<span class="tag ${x.ok===false?'lock':x.tag==='Última semana'?'last':''}">${esc(x.tag)}</span>`:''}</div>
-   <span class="h">${esc(x.it.h)} · ${esc(x.r.name)} → ${esc(x.b.name)}</span></div>`;
+   <span class="h">${esc(x.it.h)} · ${esc(x.r.name)} → ${esc((x.bnames||[x.b.name]).join(' e '))}${x.keys&&x.keys.length>1?` (precisam de ${x.need})`:''}</span></div>`;
 }
 
 /* ---------- Formulário ---------- */
