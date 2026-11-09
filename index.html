@@ -300,8 +300,7 @@ function festTasks(f,c){
   const n=f[3], out=[], T=(id,prio,t,d,who,fx)=>({id:'fest-'+id,prio,t,d,who:who||'bal',fx:fx||null});
   const missKey=(bid,idx)=>{ const b=bundleById(bid); return b&&!bundleDone(b)&&!st.cc[itemKey(bid,idx)]?itemKey(bid,idx):null; };
   if(n==='Festival do Ovo'){
-    const qty=Math.max(0,Math.min(30,Math.floor(((c.budget??st.money)-500)/100)));
-    out.push(T('straw',1,'Comprar sementes de morango na barraca do Pierre',`Só vendem aqui, 100g cada${qty?` (o ouro de vocês dá para uns ${qty})`:''}. Plantem quando voltarem: a primeira colheita sai em 8 dias e depois a cada 4, até o fim da primavera. Comprem antes de falar com o Lewis: depois da caça aos ovos a barraca fecha.`));
+    out.push(T('straw',1,'Comprar sementes de morango na barraca do Pierre',`Só vendem aqui, 100g cada. Plantem quando voltarem: a primeira colheita sai em 8 dias e depois a cada 4, até o fim da primavera. Comprem antes de falar com o Lewis: depois da caça aos ovos a barraca fecha.`));
     out.push(T('hunt',2,'Participar da caça aos ovos','Falar com o Lewis começa a caça e encerra o festival. Vocês voltam para casa às 22h.','both'));
   }
   if(n==='Festival do Deserto' && st.unl.bus){
@@ -1083,7 +1082,7 @@ function buildPlan(){
   const farmerIdx=pickFor('farming');
 
   // Compras só até onde o ouro dá, na ordem: Centro Comunitário, mochila, ferramentas, construções
-  let budget=st.money;
+  let budget=Infinity; // o ouro não é mais controlado: toda compra útil é sugerida
   const spend=cost=>{ if(cost<=budget){budget-=cost;return true} return false; };
   const waterBoth=st.farm.crops==='muitas'&&!st.farm.sprinklers;
 
@@ -1163,7 +1162,7 @@ function buildPlan(){
       tasks.push(T('cave',2,cave==='morcegos'?'Pegar as frutas da caverna da fazenda':'Pegar os cogumelos da caverna da fazenda',
         `${CAVE[cave].how} ${need.length?`Se aparecer, entreguem no Centro Comunitário: ${need.join(', ')}.`:'Guardem algumas para presentes e para máquinas.'}`,pickFor('foraging')));
     }
-    if(!cave && (st.year>1||st.season>=1||st.money>=10000)){
+    if(!cave && (st.year>1||st.season>=1)){
       const nb=caveNeeds('morcegos').length, nm=caveNeeds('cogumelos').length;
       const best=nb>=nm?'morcegos':'cogumelos';
       tasks.push(T('cavechoice',3,'Quando o Demetrius aparecer, escolher o que vai na caverna',
@@ -1180,11 +1179,12 @@ function buildPlan(){
       let any=false;
       list.forEach(b=>[0,1].forEach(i=>{
         if(hasPw(i,b.id) || (b.after && !hasPw(i,b.after))) return;
+        if(tasks.filter(t=>t.id.startsWith('book-')&&t.id.endsWith('-'+i)).length>=3) return;
         if(!spend(b.shop)) return;
         any=true;
         tasks.push(T(`book-${b.id}-${i}`,2,`Comprar e ler o livro ${b.n}`,`${b.shop.toLocaleString('pt-BR')}g no Vendedor de Livros (acima do Mercado Joja). ${b.eff} Cada um precisa ler o seu.`,i,{set:[[`players.${i}.pw.${b.id}`,true]],money:-b.shop}));
       }));
-      if(!any) tasks.push(T('bookvisit',3,'Passar no livreiro (acima do Mercado Joja)','Hoje ele está na cidade. O ouro de vocês ainda não dá para os livros de poder que faltam, mas vale olhar os livros de habilidade.'));
+      if(!any) tasks.push(T('bookvisit',3,'Passar no livreiro (acima do Mercado Joja)','Hoje ele está na cidade. Vocês já têm os livros de poder que ele vende sempre; vale olhar os livros de habilidade.'));
     }
   }
   // O caminho até a lixeira dourada tem um tronco grande e uma pedra grande: precisa de machado e picareta de aço (wiki)
@@ -1582,7 +1582,6 @@ function renderForm(){
   h+=sec('jog','Jogadores',`${esc(P[0].name)} e ${esc(P[1].name)}`,pl+`<p class="small muted" style="margin:0">Os níveis aparecem no menu, aba de habilidades. </p>`);
   h+=sec('faz','Fazenda',{nenhuma:'Sem plantações',poucas:'Poucas plantações',muitas:'Muitas plantações'}[f.crops],`
     <div class="fields">
-     <div class="field"><label for="f-money">Ouro</label>${num('money',st.money,0,99999999,'f-money')}</div>
      <div class="field"><label for="f-mine">Andar das minas</label>${num('mine',st.mine,0,120,'f-mine')}</div>
      <div class="field" style="grid-column:1 / -1"><label for="f-cave">Caverna da fazenda (Demetrius)</label>${sel('farm.cave',[['','Ainda não escolhemos'],['morcegos','Morcegos (frutas)'],['cogumelos','Cogumelos']],f.cave||'','f-cave')}</div>
      <div class="field" style="grid-column:1 / -1"><label for="f-crabw">Covos</label>${sel('farm.crabWhere',[['','Não temos'],['mar','No mar (praia)'],['doce','No rio ou lago']],f.crabWhere||'','f-crabw')}</div>
@@ -1595,7 +1594,7 @@ function renderForm(){
      ${chk('farm.silo',f.silo,'Temos silo','f-silo')}
      ${chk('farm.greenhouse',f.greenhouse,'Estufa consertada','f-gh')}
     </div>
-    <p class="small muted" style="margin:0">Ouro e andar das minas são da fazenda, os dois compartilham. O andar mais fundo aparece no elevador.</p>`);
+    <p class="small muted" style="margin:0">O andar das minas é da fazenda, os dois compartilham. O andar mais fundo aparece no elevador.</p>`);
   {
     const rows=TOOLS.map(([k,l,levels])=>`<div class="field" style="grid-column:1 / -1"><span class="flabel">${l}</span>
       <div class="fields">${[0,1].map(i=>`<div class="field"><label for="t${i}-${k}" class="small muted" style="text-transform:none;letter-spacing:0">${esc(P[i].name)}</label>${sel(`players.${i}.tools.${k}`,levels.map((n,v)=>[v,n]),tl(i,k),`t${i}-${k}`)}</div>`).join('')}</div></div>`).join('');
@@ -1790,7 +1789,7 @@ async function askClaude(){
   out.hidden=false; out.innerHTML='<p class="muted">Pensando no dia de vocês…</p>'; btn.disabled=true;
   const plan=buildPlan(), c=plan.c;
   const summary={
-    data:`Ano ${st.year}, ${SEASONS[c.S]} dia ${c.D} (${WEEK[c.wd]})`, clima:WEATHER[st.weather], amanha:st.forecast?WEATHER[st.forecast]:'desconhecido', sorte:LUCK[st.luck], ouro:st.money,
+    data:`Ano ${st.year}, ${SEASONS[c.S]} dia ${c.D} (${WEEK[c.wd]})`, clima:WEATHER[st.weather], amanha:st.forecast?WEATHER[st.forecast]:'desconhecido', sorte:LUCK[st.luck],
     jogadores:st.players.map(p=>({nome:p.name,cultivo:p.farming,mineracao:p.mining,coleta:p.foraging,pesca:p.fishing,combate:p.combat})), andar_minas:st.mine, equipamentos:st.players.map(pl=>({nome:pl.name,...Object.fromEntries(TOOLS.map(([k,l,lv])=>[l,lv[(pl.tools||{})[k]||0]]))})),
     fazenda:st.farm, liberado:st.unl, festivais_hoje:plan.fests.map(f=>f[3]), aniversario:plan.bday||null,
     salas_completas:ROOMS.filter(roomDone).map(r=>r.name),
