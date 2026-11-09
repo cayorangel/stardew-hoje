@@ -602,7 +602,7 @@ const GIFTS={
 const ROOMS=ROOMS0;
 ROOMS.forEach(r=>r.bundles.forEach(b=>b.items.forEach(it=>{
   if(FISH_INFO[it.en]) it.h=FISH_INFO[it.en];
-  it.qty=+((it.n.match(/×\s*(\d+)/)||[])[1]||(it.en.startsWith('Gold ')?5:1));
+  it.qty=+((it.n.match(/×\s*(\d+)/)||[])[1]||(isQual(it.en)?5:1));
   const mi=MINE_INFO[it.en]; if(mi){ it.fl=[mi[0],mi[1]]; it.h=mi[2]; if(mi[3]) it.bar=1; }
 })));
 // Construções (Robin) e máquinas (receitas). ok(): já dá para fazer; need(): só faz sentido se...
@@ -910,6 +910,9 @@ function startOf(t){
   if(/^m\d-/.test(id)) return 10;
   return t.prio===1?8:t.prio===3?12:9;
 }
+// Itens de qualidade ouro do conjunto Plantações de Qualidade (não confundir com Barra de ouro)
+function isQual(en){return /^Gold (Parsnip|Melon|Pumpkin|Corn)$/.test(en)}
+function baseEn(en){return isQual(en)?en.slice(5):en}
 function giftOk(req){return !req||(req==='bus'?st.unl.bus:req==='island'?st.unl.island:req==='m40'?st.mine>=40:req==='m50'?st.mine>=50:req==='m80'?st.mine>=80:true)}
 function giftText(name){
   const g=(GIFTS[name]||[]).filter(x=>giftOk(x[2]));
@@ -993,8 +996,8 @@ function cropBundle(en){
     if(bundleDone(b)) continue;
     b.items.forEach((it,i)=>{
       if(it.k!=='crop'||st.cc[itemKey(b.id,i)]) return;
-      if(it.en.replace('Gold ','')!==en) return;
-      const cand={b,key:itemKey(b.id,i),qty:it.qty||1,quality:it.en.startsWith('Gold '),left:b.need-bundleCount(b)};
+      if(baseEn(it.en)!==en) return;
+      const cand={b,key:itemKey(b.id,i),qty:it.qty||1,quality:isQual(it.en),left:b.need-bundleCount(b)};
       if(cand.quality) qb=b;
       if(!best||(best.quality&&!cand.quality)) best=cand;
     });
@@ -1189,23 +1192,23 @@ function buildPlan(){
   const forageToday=cc.filter(x=>x.it.k==='forage'&&x.ok);
   const acts=[];
   if(c.minesOpen){
-    let s=3+(c.luck??0)*1.5+Math.min(mineToday.length,3)*0.7+(c.maxMine<120?1:0);
-    if(c.rain) s-=0.5;
+    let s=1+mineToday.length*2+(c.luck??0)*0.8+(c.maxMine<120?0.5:0);
     acts.push({id:'mines',base:s,sk:'mining',build:p=>mineMission(p,c,cc)});
   }
   if(st.unl.skull && (c.luck??0)>=1) acts.push({id:'skull',base:5+(c.luck??0),sk:'combat',build:p=>({goal:'Caverna da Caveira',why:'A sorte está boa e o acesso está liberado: é o melhor dia para descer fundo.',tasks:['Pegar o ônibus para o deserto','Levar muita comida, bombas e escadas','Descer o máximo de andares que der','Voltar antes das 2h'],tip:'Escadas pulam andares: guardem as que acharem.'})});
   if(c.rodOk){
-    let s=2+(c.rain?3:0)+Math.min(fishToday.length,3)*1.2+(c.newbie?0.5:0);
+    // sem peixe do Centro Comunitário, pescar é só dinheiro: fica por último
+    let s=fishToday.length?1+fishToday.length*2+(c.rain?0.5:0):0.3;
     acts.push({id:'fish',base:s,sk:'fishing',build:(p,i)=>fishMission(p,c,fishToday,i)});
   }
   {
     const berry=(c.S===0&&c.D>=15&&c.D<=18)||(c.S===2&&c.D>=8&&c.D<=11);
     const woodNeed=!bundleDone(bundleById('con'));
-    let s=(berry||forageToday.length||woodNeed)?1.5+(berry?3:0)+Math.min(forageToday.length,3)*0.9+(c.newbie?0.5:0):-5;
+    let s=(berry||forageToday.length||woodNeed)?1+forageToday.length*2+(berry?2:0)+(woodNeed?0.5:0):-5;
     acts.push({id:'forage',base:s,sk:'foraging',build:(p,i)=>forageMission(p,c,forageToday,berry,i)});
   }
   if(outdoors && c.daysLeft>=4 && st.farm.crops!=='muitas' && plants.money.length){
-    let s=1.8+(st.farm.crops==='nenhuma'?2:0.8)+(c.D<=7?1:0)+(c.newbie?1.5:0);
+    let s=0.8+(st.farm.crops==='nenhuma'?2:0)+(c.newbie?1.5:0);
     acts.push({id:'farm',base:s,sk:'farming',build:p=>farmMission(p,c,plants)});
   }
   {
@@ -1216,13 +1219,29 @@ function buildPlan(){
   // Distribuir: cada jogador pega a melhor atividade para si, sem repetir
   const assign=[null,null];
   const scored=[];
-  acts.forEach(a=>[0,1].forEach(i=>scored.push({a,i,v:a.base+(a.sk&&pickFor(a.sk)===i?1.5:0)})));
+  acts.forEach(a=>[0,1].forEach(i=>scored.push({a,i,v:a.base+(a.sk&&pickFor(a.sk)===i?0.6:0)})));
   scored.sort((x,y)=>y.v-x.v);
   const used=new Set();
   for(const s of scored){ if(assign[s.i]||used.has(s.a.id)) continue; assign[s.i]=s.a; used.add(s.a.id); if(assign[0]&&assign[1]) break; }
+  { const ccCount={mines:mineToday.length,fish:fishToday.length,forage:forageToday.length};
+    const mi=assign.findIndex(a=>a&&a.id==='mines');
+    if(mi>=0){
+      const oi=1-mi, oa=assign[oi];
+      const oc=oa?(ccCount[oa.id]||0):0;
+      const left=Math.max(0,mineToday.length-3); // a primeira pessoa leva até 3 itens
+      if((oc===0||left>oc) && !(oa&&oa.id==='social'&&bday) && !(oa&&oa.id==='skull')) assign[oi]={id:'mines2'};
+    }
+  }
   const fullDay=fests.some(f=>FULLDAY.has(f[3]));
   if(fullDay){ assign[0]=assign[1]=null; }
-  const missions=assign.map((a,i)=>a?Object.assign({id:a.id},a.build(P[i],i)):null);
+  const missions=assign.map((a,i)=>a&&a.id!=='mines2'?Object.assign({id:a.id},a.build(P[i],i)):null);
+  { const m2=assign.findIndex(a=>a&&a.id==='mines2');
+    if(m2>=0){
+      const ex=new Set(); ((missions[1-m2]||{}).tasks||[]).forEach(t=>((t.fx&&t.fx.cc)||[]).forEach(k=>ex.add(k)));
+      const mm=mineMission(P[m2],c,cc,{exclude:ex,second:true,partner:P[1-m2].name});
+      missions[m2]=Object.assign({id:'mines2'},mm);
+    }
+  }
   const keepFull=/^(water|harvest|last|animals|gh|crabcheck|cave$|harv-|fest-)/;
   if(fullDay){ for(let k=tasks.length-1;k>=0;k--) if(!keepFull.test(tasks[k].id)) tasks.splice(k,1); }
   fests.forEach(f=>festTasks(f,c).forEach(t=>tasks.push(t)));
@@ -1284,17 +1303,17 @@ function buildPlan(){
   return {c,fests,bday,tasks,perPlayer,missions,cc,plants};
 }
 
-function mineMission(p,c,cc){
+function mineMission(p,c,cc,opts={}){
   const lvl=st.mine||0, deep=lvl>=120;
   const target=deep?120:Math.min(120,Math.floor((lvl+10)/5)*5);
   const lo=deep?80:lvl, hi=target;
   const ore=lo<40?'cobre':lo<80?'ferro':'ouro';
   const luck=c.luck===null?'Vejam a sorte na TV: com sorte boa sai mais minério e mais escadas.':c.luck>=1?'A sorte está boa hoje: sai mais minério e mais escadas.':c.luck<=-1?'A sorte está ruim, então não precisam ir tão fundo hoje.':'Sorte neutra: um dia normal de mina.';
   const descDone=Object.keys(st.done||{}).some(k=>/-desc-/.test(k));
-  const tasks=descDone?[]:[{id:'desc-'+lvl,fx:deep?null:{set:[['mine',target]]},t:deep?'Descer pelo elevador até o andar 80 ou mais':`Descer do andar ${lvl} até o ${target}`,
+  const tasks=(descDone||opts.second)?[]:[{id:'desc-'+lvl,fx:deep?null:{set:[['mine',target]]},t:deep?'Descer pelo elevador até o andar 80 ou mais':`Descer do andar ${lvl} até o ${target}`,
     d:`Nesses andares sai minério de ${ore} e carvão: juntem tudo pelo caminho. ${luck} O elevador salva a cada 5 andares.`}];
-  if(descDone) tasks.push({id:'more-'+lvl,t:`Continuar minerando perto do andar ${lvl}`,d:`Vocês já desceram o combinado hoje. Se ainda tiver tempo, sai minério de ${ore} e carvão por aqui.`});
-  const items=cc.filter(x=>x.it.k==='mine'&&x.ok&&x.it.fl);
+  if(descDone && !opts.second) tasks.push({id:'more-'+lvl,t:`Continuar minerando perto do andar ${lvl}`,d:`Vocês já desceram o combinado hoje. Se ainda tiver tempo, sai minério de ${ore} e carvão por aqui.`});
+  const items=cc.filter(x=>x.it.k==='mine'&&x.ok&&x.it.fl&&!(opts.exclude&&(x.keys||[x.key]).some(k=>opts.exclude.has(k))));
   const here=[], back=[];
   items.forEach(x=>{ const [a,b]=x.it.fl; if(x.it.bar){ if(st.farm.furnace && a<=Math.max(lvl,1)) here.push(x); } else if(b>=lo&&a<=hi) here.push(x); else if(b<lo) back.push(x); });
   const w=x=>(x.it.bar?200:0)+(x.it.en==='Stone'?300:0)+(x.it.fl[1]-x.it.fl[0]);
@@ -1304,11 +1323,17 @@ function mineMission(p,c,cc){
     const fx={cc:x.keys||[x.key]}, id='cc-'+x.key, mn=multiNote(x);
     if(it.en==='Stone') tasks.push({id,fx,t:'Juntar 99 pedras e entregar no Centro Comunitário',d:'Qualquer pedra das minas serve.'});
     else if(it.bar) tasks.push({id,fx,t:`Fazer ${x.need>1?x.need:1} ${it.n.toLowerCase()} na fornalha e entregar no Centro Comunitário`,d:`${it.h}.${mn}`});
-    else if(b>=lo&&a<=hi) tasks.push({id,fx,t:`Pegar ${it.n} e entregar no Centro Comunitário`,d:`${it.h}. Sai nos andares onde vocês vão passar hoje.${mn}`});
-    else { const el=Math.floor(a/5)*5; tasks.push({id,fx,t:`Pegar ${it.n} e entregar no Centro Comunitário`,d:`${it.h}. Não sai nos andares de hoje: voltem pelo elevador ${el?`ao andar ${el}`:'para a entrada das minas'}.${mn}`}); }
+    else if(b>=lo&&a<=hi&&!opts.second) tasks.push({id,fx,t:`Pegar ${it.n} e entregar no Centro Comunitário`,d:`${it.h}. Sai nos andares onde vocês vão passar hoje.${mn}`});
+    else { const el=Math.floor(Math.min(Math.max(a,1),Math.max(lvl,1))/5)*5; tasks.push({id,fx,t:`Pegar ${it.n} e entregar no Centro Comunitário`,d:`${it.h}. ${opts.second?'Vão':'Não sai nos andares de hoje: voltem'} pelo elevador ${el?`ao andar ${el}`:'para a entrada das minas'}.${mn}`}); }
   });
   const ghost=cc.find(x=>x.it.en==='Ghostfish'&&x.ok);
-  if(ghost && c.rodOk) tasks.push({id:'cc-'+ghost.key,fx:{cc:ghost.keys||[ghost.key]},t:'Pescar o Peixe-fantasma e entregar no Centro Comunitário',d:`Nos lagos dos andares 20 e 60 (o elevador para no 20 e no 60).`});
+  if(ghost && c.rodOk && !(opts.exclude&&(ghost.keys||[ghost.key]).some(k=>opts.exclude.has(k))) && !opts.second) tasks.push({id:'cc-'+ghost.key,fx:{cc:ghost.keys||[ghost.key]},t:'Pescar o Peixe-fantasma e entregar no Centro Comunitário',d:`Nos lagos dos andares 20 e 60 (o elevador para no 20 e no 60).`});
+  if(opts.second){
+    // segunda pessoa: busca os itens que sobraram pelo elevador; se não sobrou nenhum, desce junto
+    const join={id:'join-'+lvl,t:`Descer junto com ${opts.partner} ${deep?'pelo elevador até o andar 80 ou mais':`até o andar ${target}`}`,d:`Nesses andares sai minério de ${ore} e carvão: juntem tudo pelo caminho. Em dupla dá para descer mais rápido.`};
+    if(!tasks.length || !descDone) tasks.unshift(join);
+    return {goal:`Minas com ${opts.partner}`,why:'',tasks};
+  }
   return {goal:deep?'Minas: andares 80 a 120':`Minas: do andar ${lvl} ao ${target}`,why:'',tasks};
 }
 function fishMission(p,c,items,i){
@@ -1581,7 +1606,7 @@ function renderForm(){
   const bundleHTML=b=>{
     const n=bundleCount(b), ok=n>=b.need;
     return `<div class="bundle${ok?' done':''}"><div class="bundle-h"><span>${esc(b.name)}</span><span class="cnt ${ok?'ok':''}">${Math.min(n,b.need)}/${b.need}${b.items.length>b.need?` de ${b.items.length}`:''}</span></div>
-       <div class="items">${b.items.map((it,i)=>{const k=itemKey(b.id,i);return `<button type="button" class="it" data-cc="${k}" aria-pressed="${!!st.cc[k]}" title="${esc(it.h)}">${it.en.startsWith('Gold ')?'★ ':''}${esc(it.n)}${it.en&&it.en!==it.n?` <span class="it-en">${esc(it.en.replace('Gold ',''))}</span>`:''}</button>`}).join('')}</div></div>`;
+       <div class="items">${b.items.map((it,i)=>{const k=itemKey(b.id,i);return `<button type="button" class="it" data-cc="${k}" aria-pressed="${!!st.cc[k]}" title="${esc(it.h)}">${isQual(it.en)?'★ ':''}${esc(it.n)}${it.en&&it.en!==it.n?` <span class="it-en">${esc(baseEn(it.en))}</span>`:''}</button>`}).join('')}</div></div>`;
   };
   ROOMS.forEach(r=>{
     const open=r.bundles.filter(b=>!bundleDone(b));
