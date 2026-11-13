@@ -1,15 +1,17 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#2E6B3A">
+<meta name="theme-color" content="#111813">
+<meta name="color-scheme" content="dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Stardew Hoje">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="icon" type="image/png" href="icon.png">
+<link rel="manifest" href="manifest.json">
 <title>O Que Fazer Hoje em Stardew</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -91,9 +93,14 @@ button{cursor:pointer}
 @media (max-width:980px){
   .grid{grid-template-columns:minmax(0,1fr)}
   .tabs{display:flex}
-  .grid[data-tab="plano"] #farmCol{display:none}
+  .grid:not([data-tab="fazenda"]) #farmCol{display:none}
   .grid[data-tab="fazenda"] #planCol{display:none}
+  .grid[data-tab="hoje"] #planCol>[data-view]:not([data-view="hoje"]),
+  .grid[data-tab="centro"] #planCol>[data-view]:not([data-view="centro"]),
+  .grid[data-tab="plantar"] #planCol>[data-view]:not([data-view="plantar"]){display:none}
 }
+@media (min-width:981px){.only-m{display:none!important}}
+@media (max-width:980px){.hide-m{display:none!important}}
 .col{display:flex;flex-direction:column;gap:16px;min-width:0}
 
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
@@ -115,7 +122,28 @@ button{cursor:pointer}
 
 /* Listas de tarefas */
 .tasks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
-.task{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:start;padding:8px 6px;border-radius:8px}
+.task{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:start;padding:8px 6px;border-radius:8px}
+.task .more{border:0;background:transparent;color:var(--muted);width:36px;height:36px;margin:-6px -6px 0 0;border-radius:8px;display:grid;place-items:center;padding:0}
+.task .more::before{content:"";width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(45deg)}
+.task.open .more::before{transform:translateY(2px) rotate(-135deg)}
+.task .more:hover{background:var(--panel2);color:var(--ink)}
+.task:not(.open) .d.long{max-height:3em;overflow:hidden;-webkit-mask-image:linear-gradient(#000 55%,transparent);mask-image:linear-gradient(#000 55%,transparent)}
+.donebox{border-top:1px dashed var(--line);margin-top:4px}
+.donebox>summary{list-style:none;cursor:pointer;color:var(--muted);font-weight:700;font-size:.88rem;padding:12px 6px;display:flex;justify-content:space-between;align-items:center}
+.donebox>summary::-webkit-details-marker{display:none}
+.donebox>summary::after{content:"+";font-family:var(--display)}
+.donebox[open]>summary::after{content:"–"}
+.alldone{margin:0;padding:10px 6px;font-weight:600;color:var(--ok)}
+.prog{font-weight:700;font-variant-numeric:tabular-nums;color:var(--muted);font-size:.88rem}
+.progbar{height:6px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);overflow:hidden}
+.progbar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.whoami{display:flex;gap:4px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:3px}
+.whoami button{flex:1;min-width:0;border:0;background:transparent;border-radius:7px;padding:8px 10px;font-weight:700;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.whoami button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .14)}
+.missions[data-me="0"],.missions[data-me="1"]{grid-template-columns:minmax(0,1fr)}
+.missions[data-me="0"] .mission[data-p="1"],.missions[data-me="1"] .mission[data-p="0"]{display:none}
+.missions[data-me="0"] .mission .who,.missions[data-me="1"] .mission .who{display:none}
+.btn-sm{padding:3px 10px;font-size:.8rem}
 .task:hover{background:var(--panel2)}
 .task input{margin-top:4px;width:18px;height:18px;accent-color:var(--accent)}
 .task .t{font-weight:700}
@@ -202,7 +230,7 @@ details.sec>summary .sum{font-family:var(--body);font-size:.8rem;color:var(--mut
 .it[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .save{font-size:.8rem;color:var(--muted)}
 
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom, 0px));background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:10px;display:flex;gap:12px;align-items:center;font-weight:600;z-index:20;max-width:calc(100% - 32px)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom, 0px));background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:10px;display:flex;gap:12px;align-items:center;font-weight:600;z-index:20;width:max-content;max-width:calc(100% - 32px)}
 .toast button{background:transparent;border:1px solid currentColor;color:inherit;border-radius:6px;padding:3px 10px;font-weight:800}
 .plants{display:flex;flex-direction:column}
 .plant{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:9px 2px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
@@ -224,18 +252,49 @@ details.sec>summary .sum{font-family:var(--body);font-size:.8rem;color:var(--mut
   body{padding-bottom:calc(88px + env(safe-area-inset-bottom, 0px))}
   .tabs{position:fixed;left:0;right:0;bottom:0;z-index:15;border-radius:0;border-width:1px 0 0;background:var(--panel);
     padding:8px max(16px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
-  .tabs button{padding:11px}
+  .tabs{gap:4px}
+  .tabs button{padding:11px 4px;min-height:46px;font-size:.92rem}
   .tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
   .toast{bottom:calc(80px + env(safe-area-inset-bottom, 0px))}
 }
+
+/* Faixa compacta que aparece no topo ao rolar (celular) */
+.minibar{display:none}
+@media (max-width:980px){
+  .minibar{display:flex;align-items:center;gap:10px;position:fixed;top:0;left:0;right:0;z-index:16;background:var(--panel);
+    border-bottom:1px solid var(--line);border-top:3px solid var(--season);font-size:.86rem;font-weight:700;cursor:pointer;
+    padding:calc(8px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 9px max(16px, env(safe-area-inset-left, 0px));
+    transform:translateY(-110%);visibility:hidden}
+  .minibar.show{transform:none;visibility:visible}
+  .minibar .mb-date{font-family:var(--display);font-size:1.05rem;color:var(--season);white-space:nowrap}
+  .minibar .mb-w{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .minibar .mb-w.rain{color:var(--sky)} .minibar .mb-l.luckg{color:var(--gold)} .minibar .mb-l.luckb{color:var(--berry)}
+  .minibar .mb-l{color:var(--muted);white-space:nowrap}
+  .minibar .mb-p{margin-left:auto;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .minibar .mb-bar{position:absolute;left:0;bottom:-1px;height:2px;background:var(--accent)}
+}
+@media (max-width:980px) and (prefers-reduced-motion:no-preference){.minibar{transition:transform .2s ease,visibility .2s}}
 @media (max-width:620px){
   body{font-size:15px;padding-block:12px}
   .wrap{gap:12px}
   .card{padding:14px;gap:10px;border-radius:12px}
   .card-h{flex-direction:column;align-items:flex-start;gap:2px}
-  .dateband{padding:14px;gap:10px}
-  .dateband .actions{width:100%}
-  .dateband .actions .btn{width:100%;padding:11px}
+  .dateband{padding:12px 14px 14px;gap:10px;position:relative}
+  .dateband .datebig{width:100%}
+  .dateband .actions{position:absolute;top:12px;right:14px}
+  .datebig h1{font-size:clamp(1.6rem,8vw,2rem);white-space:nowrap}
+  .banner .btn-sm{min-height:40px}
+  .datebig .sub{font-size:.8rem;line-height:1.35}
+  #nextDay{background:var(--panel2);color:var(--ink);border-color:var(--accent);padding:9px 12px;min-height:44px}
+  .pick{min-height:52px;justify-content:center}
+  .banner{padding:10px 12px;font-size:.88rem}
+  .btn{min-height:44px}
+  .btn-sm{min-height:36px}
+  .field input,.field select{min-height:44px}
+  .check{padding-block:4px}
+  .task .more{width:44px;height:44px;margin:-10px -8px 0 0}
+  .whoami button{min-height:42px}
+  .donebox>summary{min-height:48px}
   .mission{padding:12px 0 4px;background:transparent;border:0;border-top:1px solid var(--line);border-radius:0}
   .mission:first-child{border-top:0;padding-top:0}
   .missions{gap:8px}
@@ -245,20 +304,24 @@ details.sec>summary .sum{font-family:var(--body);font-size:.8rem;color:var(--mut
   details.sec>summary{padding:14px}
   .sec-body{padding:0 14px 14px}
   .fields{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .it{padding:6px 11px;font-size:.84rem}
+  .it{padding:8px 12px;font-size:.84rem;min-height:44px;display:inline-flex;align-items:center;gap:4px}
+  .items{gap:8px}
 }
 @media (prefers-reduced-motion:no-preference){.task,.it,.btn{transition:background .15s,border-color .15s}}
 </style>
 </head>
 <body>
+<div class="minibar" id="minibar" aria-hidden="true"></div>
 <div class="wrap">
   <header class="dateband" id="dateband"></header>
-  <div class="banner" id="exampleBanner" hidden><span><b>Exemplo.</b> Estes dados são só para mostrar como funciona. Abram <b>Nossa fazenda</b> e coloquem os dados de vocês.</span></div>
-  <div class="tabs" role="tablist">
-    <button role="tab" id="tab-plano" aria-selected="true" data-tab="plano">Plano do dia</button>
-    <button role="tab" id="tab-fazenda" aria-selected="false" data-tab="fazenda">Nossa fazenda</button>
-  </div>
-  <div class="grid" id="grid" data-tab="plano">
+  <div class="banner" id="exampleBanner" hidden><span><b>Dados de exemplo.</b> Coloquem os de vocês em <b>Nossa fazenda</b>.</span><button type="button" class="btn btn-sm only-m" data-tab="fazenda">Abrir Fazenda</button></div>
+  <nav class="tabs" role="tablist" aria-label="Seções">
+    <button role="tab" id="tab-hoje" aria-selected="true" data-tab="hoje">Hoje</button>
+    <button role="tab" id="tab-centro" aria-selected="false" data-tab="centro">Centro</button>
+    <button role="tab" id="tab-plantar" aria-selected="false" data-tab="plantar">Plantar</button>
+    <button role="tab" id="tab-fazenda" aria-selected="false" data-tab="fazenda">Fazenda</button>
+  </nav>
+  <div class="grid" id="grid" data-tab="hoje">
     <main class="col" id="planCol"><div class="card loading"><b>Carregando…</b><span class="small muted">Se esta mensagem não sumir, o app que abriu o arquivo não roda páginas. Abram o arquivo no Chrome (Android) ou no Safari (iPhone).</span></div></main>
     <aside class="col" id="farmCol"></aside>
   </div>
@@ -1474,17 +1537,47 @@ function renderHeader(plan){
    </div>
    ${plan.fests.length?`<div class="chips">${plan.fests.map(f=>`<span class="chip fest">${esc(f[3])}</span>`).join('')}</div>`:''}
    <div class="actions">
-     <button class="btn primary" id="nextDay">Próximo dia →</button>
+     <button class="btn primary" id="nextDay" title="Ir para o próximo dia">Dormir</button>
    </div>`;
   $('#nextDay').onclick=nextDay;
 }
 
+// Faixa compacta do topo (celular): dia, clima, sorte e progresso de quem está usando este aparelho
+function renderMinibar(plan,me){
+  const c=plan.c, ids=me==='all'?[0,1]:[+me];
+  const list=ids.flatMap(i=>plan.perPlayer[i]), done=list.filter(t=>st.done[t.id]).length;
+  const luckCls=c.luck===null?'':c.luck>=1?'luckg':c.luck<=-1?'luckb':'';
+  $('#minibar').innerHTML=`<span class="mb-date">${SEASONS[c.S]} ${c.D}</span>
+   <span class="mb-w ${c.rain?'rain':''}">${WEATHER_S[st.weather]||''}</span>
+   <span class="mb-l ${luckCls}">Sorte ${(LUCK_S[st.luck]||'').toLowerCase()}</span>
+   <span class="mb-p">${done} de ${list.length}</span>
+   <span class="mb-bar" style="width:${list.length?Math.round(done/list.length*100):0}%"></span>`;
+}
+
+// Quem usa este aparelho: '0', '1' ou 'all'. Fica só neste aparelho (não sincroniza).
+function getMe(){
+  let v=null; try{ v=localStorage.getItem(LS_KEY+'-me'); }catch(_){}
+  if(v==='0'||v==='1'||v==='all') return v;
+  return matchMedia('(max-width:980px)').matches?'0':'all';
+}
+function setMe(v){ try{ localStorage.setItem(LS_KEY+'-me',v); }catch(_){} renderPlan(); }
+
+const openTasks=new Set(), openDone=new Set();
 function taskHTML(t){
-  const done=!!st.done[t.id];
-  const pl=['','Essencial','Ótimo','Se der'][t.prio];
+  const done=!!st.done[t.id], open=openTasks.has(t.id);
   const badge=t.prio===3?`<span class="prio p3">Se der</span>`:'';
-  return `<li class="task ${done?'done':''}"><input type="checkbox" id="t-${t.id}" data-done="${t.id}" ${done?'checked':''} aria-label="${esc(t.t)}">
-   <label for="t-${t.id}"><div class="t">${t.t}${badge}</div>${t.d?`<div class="d">${t.d}</div>`:''}</label></li>`;
+  const long=!!t.d && String(t.d).replace(/<[^>]*>/g,'').length>90;
+  return `<li class="task ${done?'done':''} ${open?'open':''}"><input type="checkbox" id="t-${t.id}" data-done="${t.id}" ${done?'checked':''} aria-label="${esc(String(t.t).replace(/<[^>]*>/g,''))}">
+   <label for="t-${t.id}"><div class="t">${t.t}${badge}</div>${t.d?`<div class="d ${long?'long':''}" id="d-${t.id}">${t.d}</div>`:''}</label>${long?`<button type="button" class="more" data-more="${t.id}" aria-expanded="${open}" aria-controls="d-${t.id}" aria-label="${open?'Esconder detalhes':'Mostrar detalhes'}"></button>`:''}</li>`;
+}
+function taskListHTML(list,i){
+  const todo=list.filter(t=>!st.done[t.id]), dn=list.filter(t=>st.done[t.id]);
+  let h='';
+  if(todo.length) h+=`<ul class="tasks">${todo.map(taskHTML).join('')}</ul>`;
+  else if(!list.length) h+=`<p class="muted small" style="margin:0;padding:10px 6px">Nada sugerido para hoje.</p>`;
+  else h+=`<p class="alldone">Tudo feito por hoje. Quando forem dormir no jogo, toquem em Dormir aqui também.</p>`;
+  if(dn.length) h+=`<details class="donebox" data-donebox="${i}" ${openDone.has(i)?'open':''}><summary>Feitas hoje (${dn.length})</summary><ul class="tasks">${dn.map(taskHTML).join('')}</ul></details>`;
+  return h;
 }
 
 function renderPlan(){
@@ -1496,25 +1589,35 @@ function renderPlan(){
   if(plan.fests.length){
     plan.fests.forEach(f=>{
       const locked=f[3]==='Festival do Deserto'&&!st.unl.bus;
-      h+=`<section class="card fest-card"><div class="card-h"><h2>Hoje: ${esc(f[3])}</h2><span class="small">${esc(f[4])}</span></div>
+      h+=`<section class="card fest-card" data-view="hoje"><div class="card-h"><h2>Hoje: ${esc(f[3])}</h2><span class="small">${esc(f[4])}</span></div>
       <p style="margin:0">${locked?'Vocês ainda não têm o ônibus, então podem ignorar este evento.':esc(f[5])}</p>
       ${!locked?'<p class="small muted" style="margin:0">Façam as tarefas da fazenda antes. Durante o festival o tempo para, e vocês voltam para casa no fim.</p>':''}</section>`;
     });
   }
 
   // Plano por jogador: uma lista só, na ordem
-  h+=`<section class="card"><div class="card-h"><h2>Plano de hoje</h2><span class="small muted">${st.frozen&&st.frozen.abs===absDay(st)?'Plano fixo para hoje. <button type="button" class="btn" id="replan" style="padding:3px 10px;font-size:.8rem">Refazer plano</button>':'Uma lista para cada um, na ordem em que vale fazer'}</span></div><div class="missions">`;
+  const me=getMe(), meIds=me==='all'?[0,1]:[+me];
+  const myList=meIds.flatMap(i=>plan.perPlayer[i]), myDone=myList.filter(t=>st.done[t.id]).length;
+  const frozen=st.frozen&&st.frozen.abs===absDay(st);
+  h+=`<section class="card" data-view="hoje"><div class="card-h"><h2>Plano de hoje</h2><span class="prog">${myDone} de ${myList.length} feitas</span></div>
+    <div class="progbar" aria-hidden="true"><i style="width:${myList.length?Math.round(myDone/myList.length*100):0}%"></i></div>
+    <div class="whoami" role="group" aria-label="Mostrar a lista de quem">
+      ${[['0',P[0].name||'Jogador 1'],['1',P[1].name||'Jogador 2'],['all','Os dois']].map(([v,l])=>`<button type="button" data-me="${v}" aria-pressed="${me===v}">${esc(l)}</button>`).join('')}
+    </div>
+    ${frozen?'<p class="small muted" style="margin:0">Plano fixo para hoje. <button type="button" class="btn btn-sm" id="replan">Refazer plano</button></p>':'<p class="small muted hide-m" style="margin:0">Uma lista para cada um, na ordem em que vale fazer.</p>'}
+    <div class="missions" data-me="${me}">`;
   lastTasks={};
   [0,1].forEach(i=>plan.perPlayer[i].forEach(t=>{ lastTasks[t.id]={...t,pi:i}; }));
   [0,1].forEach(i=>{
-    h+=`<div class="mission"><div class="who"><span class="avatar ${i?'p2':''}">${esc((P[i].name||'?').trim()[0]||'?')}</span>${esc(P[i].name)}</div>
-      <ul class="tasks">${plan.perPlayer[i].map(taskHTML).join('')}</ul></div>`;
+    h+=`<div class="mission" data-p="${i}"><div class="who"><span class="avatar ${i?'p2':''}">${esc((P[i].name||'?').trim()[0]||'?')}</span>${esc(P[i].name)}</div>
+      ${taskListHTML(plan.perPlayer[i],i)}</div>`;
   });
   h+=`</div></section>`;
+  renderMinibar(plan,me);
 
   // CC
   const ccOk=plan.cc.filter(x=>x.ok!==false).slice(0,6), ccLocked=plan.cc.filter(x=>x.ok===false).slice(0,4);
-  h+=`<section class="card"><div class="card-h"><h2>Centro Comunitário: dá pra pegar hoje</h2><span class="small muted">${countRoomsDone()} de 6 salas completas</span></div>`;
+  h+=`<section class="card" data-view="centro"><div class="card-h"><h2>Centro Comunitário: dá pra pegar hoje</h2><span class="small muted">${countRoomsDone()} de 6 salas completas</span></div>`;
   if(!ccOk.length && !ccLocked.length) h+=`<p class="muted" style="margin:0">Nada de pesca, coleta ou mina disponível hoje para os conjuntos que faltam. Foquem em dinheiro e na fazenda.</p>`;
   else h+=`<div class="cc-list">${ccOk.map(ccItemHTML).join('')}</div>`;
   if(ccLocked.length) h+=`<details><summary class="small muted" style="cursor:pointer;font-weight:700">Mais ${ccLocked.length} itens desta estação que ainda estão bloqueados</summary><div class="cc-list" style="margin-top:8px">${ccLocked.map(ccItemHTML).join('')}</div></details>`;
@@ -1523,17 +1626,19 @@ function renderPlan(){
   // Plantio
   const pc=plan.plants.cc, pm=plan.plants.money;
   if(pc.length||pm.length){
-    h+=`<section class="card"><div class="card-h"><h2>O que plantar hoje</h2><span class="small muted">Primeiro o Centro Comunitário, depois dinheiro</span></div>`;
+    h+=`<section class="card" data-view="plantar"><div class="card-h"><h2>O que plantar hoje</h2><span class="small muted">Primeiro o Centro Comunitário, depois dinheiro</span></div>`;
     if(pc.length) h+=`<div class="group-label">1. Para o Centro Comunitário</div><div class="plants">${pc.map(p=>`<div class="plant"><span class="pn">${esc(p.n)} <span class="en">${esc(p.en)}</span></span><span class="pill">${esc(p.bundle.b.name)}</span>
        <span class="pd">${plantedNote(p)}${p.g} dias · semente ${p.seed}g ${esc(p.shop)}${p.q&&p.bundle.quality?'':` · o conjunto pede ${p.bundle.qty||1}: plantem ${Math.max(2,Math.ceil((p.bundle.qty||1)/(p.rg?Math.max(1,p.harvests):1))+1)} (uma é reserva)`}</span>${p.q?qualityHTML(p):''}</div>`).join('')}</div>`;
     if(pm.length) h+=`<div class="group-label">${pc.length?'2. ':''}Para ganhar dinheiro</div><div class="plants">${pm.map(p=>`<div class="plant"><span class="pn">${esc(p.n)} <span class="en">${esc(p.en)}</span></span><span class="pp">+${p.profit}g</span>
        <span class="pd">${p.g} dias${p.rg?`, depois a cada ${p.rg}`:''} · ${p.harvests} ${p.harvests>1?'colheitas':'colheita'} · semente ${p.seed}g${p.note?' · '+esc(p.note):''}</span></div>`).join('')}</div>
        <p class="small muted" style="margin:0">O valor verde é o lucro aproximado por semente até o fim da estação.</p>`;
     h+=`</section>`;
+  } else {
+    h+=`<section class="card only-m" data-view="plantar"><h2>O que plantar hoje</h2><p class="muted" style="margin:0">Nenhuma plantação compensa hoje. Vejam o que dá para pegar na aba Centro ou aproveitem o dia nas minas e na pesca.</p></section>`;
   }
 
   // Calendário
-  h+=`<section class="card"><div class="card-h"><h2>Próximos 7 dias</h2></div><div class="cal">`;
+  h+=`<section class="card" data-view="hoje"><div class="card-h"><h2>Próximos 7 dias</h2></div><div class="cal">`;
   for(let n=0;n<7;n++){
     const d=addDays(st.season,st.day,st.year,n);
     const fs=festOn(d.season,d.day), b=BIRTHDAYS[d.season][d.day], wd=weekday(d.day);
@@ -1547,7 +1652,7 @@ function renderPlan(){
   h+=`</div></section>`;
 
   // Claude
-  h+=`<section class="card" id="aiCard" ${sampleApi?'':'hidden'}><div class="card-h"><h2>Pedir um plano ao Claude</h2><span class="small muted">Um plano escrito, com base em tudo acima</span></div>
+  h+=`<section class="card" id="aiCard" data-view="hoje" ${sampleApi?'':'hidden'}><div class="card-h"><h2>Pedir um plano ao Claude</h2><span class="small muted">Um plano escrito, com base em tudo acima</span></div>
     <div class="actions"><button class="btn primary" id="askAi">Montar plano para hoje</button></div>
     <div class="ai-out" id="aiOut" hidden></div></section>`;
 
@@ -1720,7 +1825,14 @@ function render(opts={}){
 
 /* ---------- Eventos ---------- */
 document.addEventListener('change',e=>{
-  if(e.target.dataset.done){ toggleTask(e.target.dataset.done,e.target.checked); return; }
+  if(e.target.dataset.done){
+    const id=e.target.dataset.done, on=e.target.checked;
+    toggleTask(id,on);
+    // Não cobre um aviso de "Desfazer" mais importante (Dormir, Carregar dados) que ainda está na tela
+    const t=$('#toast');
+    if(on && (t.hidden || t.dataset.kind==='task')){ showToast('Marcada como feita.','Desfazer',()=>toggleTask(id,false)); t.dataset.kind='task'; }
+    return;
+  }
   if(e.target.closest('#farmCol')||e.target.closest('#dateband')) onFormInput(e);
 });
 document.addEventListener('input',e=>{
@@ -1730,6 +1842,13 @@ document.addEventListener('focusout',e=>{
   if(e.target.dataset&&e.target.dataset.k&&e.target.closest('#farmCol')){ setTimeout(()=>{ if(!document.activeElement||!document.activeElement.closest('#farmCol')){ if(pendingRemote){applyRemote(pendingRemote);pendingRemote=null}else renderForm(); } },50); }
 });
 document.addEventListener('click',e=>{
+  const meb=e.target.closest('button[data-me]');
+  if(meb){ setMe(meb.dataset.me); return; }
+  const mo=e.target.closest('button[data-more]');
+  if(mo){ const id=mo.dataset.more, li=mo.closest('.task'), open=!li.classList.contains('open');
+    li.classList.toggle('open',open); mo.setAttribute('aria-expanded',String(open)); mo.setAttribute('aria-label',open?'Esconder detalhes':'Mostrar detalhes');
+    if(open) openTasks.add(id); else openTasks.delete(id); return; }
+  if(e.target.closest('#minibar')){ window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'}); return; }
   const b=e.target.closest('[data-cc]');
   if(b){ const k=b.dataset.cc; if(st.cc[k]) delete st.cc[k]; else st.cc[k]=true; commit(); return; }
   if(e.target.id==='replan'){ st.frozen=null; commit({keepExample:true}); return; }
@@ -1749,10 +1868,14 @@ document.addEventListener('click',e=>{
   if(tab && tab.tagName==='BUTTON'){ selectTab(tab.dataset.tab); }
 });
 document.addEventListener('toggle',e=>{
-  const d=e.target; if(!d.dataset||!d.dataset.sec) return;
+  const d=e.target;
+  if(d.dataset&&d.dataset.donebox!=null){ const i=+d.dataset.donebox; if(d.open) openDone.add(i); else openDone.delete(i); return; }
+  if(!d.dataset||!d.dataset.sec) return;
   openSecs[d.dataset.sec]=d.open; try{localStorage.setItem(LS_KEY+'-open',JSON.stringify(openSecs))}catch(_){}
 },true);
 function selectTab(t){
+  if(t==='plano') t='hoje'; // nome antigo da aba
+  if(!['hoje','centro','plantar','fazenda'].includes(t)) t='hoje';
   $('#grid').dataset.tab=t;
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t)));
   try{sessionStorage.setItem(LS_KEY+'-tab',t)}catch(_){}
@@ -1794,11 +1917,11 @@ function loadData(){
   undoState=clone(st);
   st=normalize(data.state); st.example=false;
   commit();
-  selectTab('plano');
+  selectTab('hoje');
   showToast(`Carregado: ${SEASONS[st.season]} ${st.day}, ano ${st.year}.`,'Desfazer',()=>{st=undoState;commit()});
 }
 function showToast(msg,btnLabel,fn){
-  const t=$('#toast'); t.innerHTML=`<span>${esc(msg)}</span>${btnLabel?`<button type="button" id="toastBtn">${esc(btnLabel)}</button>`:''}`; t.hidden=false;
+  const t=$('#toast'); t.dataset.kind=''; t.innerHTML=`<span>${esc(msg)}</span>${btnLabel?`<button type="button" id="toastBtn">${esc(btnLabel)}</button>`:''}`; t.hidden=false;
   if(btnLabel) $('#toastBtn').onclick=()=>{t.hidden=true;fn()};
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.hidden=true,7000);
 }
@@ -1809,7 +1932,7 @@ function nextDay(){
   st.season=d.season; st.day=d.day; st.year=d.year;
   st.weather=st.forecast||(d.season===3?'neve':'sol');
   if(d.season===3&&st.weather==='chuva') st.weather='neve';
-  st.forecast=''; st.luck=''; st.done={}; st.frozen=null;
+  st.forecast=''; st.luck=''; st.done={}; st.frozen=null; openTasks.clear(); openDone.clear();
   aiText='';
   if(d.day===1) showToast(`Bem-vindos ao ${SEASONS[d.season]}! Confiram o clima e a sorte na TV.`,'Desfazer',()=>{st=undoState;commit()});
   else showToast(`${SEASONS[d.season]} ${d.day}. Confiram o clima e a sorte na TV.`,'Desfazer',()=>{st=undoState;commit()});
@@ -1963,7 +2086,7 @@ async function joinSync(){
   if(!code){ syncMsg('O código tem 20 letras e números, no formato XXXX-XXXX-XXXX-XXXX-XXXX. Confiram e tentem de novo.','err'); return; }
   syncMsg('Entrando…');
   const r=await syncStart(code,'join');
-  if(r==='ok'){ selectTab('plano'); showToast(`Sincronizado: ${SEASONS[st.season]} ${st.day}, ano ${st.year}.`); }
+  if(r==='ok'){ selectTab('hoje'); showToast(`Sincronizado: ${SEASONS[st.season]} ${st.day}, ano ${st.year}.`); }
   else if(r==='notfound') syncMsg('Não achei uma fazenda com esse código. Confiram as letras: o código foi criado no outro aparelho?','err');
   else syncMsg('Não deu para conectar ao banco. Confiram a internet e tentem de novo.','err');
 }
@@ -1980,6 +2103,14 @@ function shareCode(){ if(syncCode) navigator.share({title:'Código da fazenda',t
   if(syncCode) syncStart(syncCode,'resume');
   try{ const t=sessionStorage.getItem(LS_KEY+'-tab'); if(t) selectTab(t); }catch(_){}
   render();
+  // Faixa compacta aparece quando a faixa de data sai da tela
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(([en])=>$('#minibar').classList.toggle('show',!en.isIntersecting),{threshold:0}).observe($('#dateband'));
+  }
+  // Funcionar sem internet e poder instalar na tela inicial
+  if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1')){
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
   if(!window.claude||!window.claude.use) return;
   claude.use('sample').then(s=>{ if(s){ sampleApi=s; const c=$('#aiCard'); if(c) c.hidden=false; } }).catch(()=>{});
   try{
