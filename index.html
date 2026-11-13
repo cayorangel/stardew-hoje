@@ -1016,8 +1016,32 @@ function schedHTML(name,c){
 const START_AT=[[/^(water|harvest|last|animals|gh|crabcheck|cave)(-\d)?$/,6],[/^cc-/,8.5],[/^harv-/,6.5],[/^plant-/,7],[/^cart/,8],[/^fest-(squid|trout)/,7],
   [/^fest-(sub|coffee)/,17],[/^fest-mermaid/,17.5],[/^fest-(jelly|maze)/,22]];
 function placeOf(txt){ txt=String(txt||''); if(/deserto|Oásis/i.test(txt)) return 'deserto'; if(/Bosque Secreto/i.test(txt)) return 'bosque'; if(/\bandares?\b|minas/i.test(txt)) return 'minas'; if(/Praia|praia|píer/.test(txt)) return 'praia'; return null; }
+// Lojas: horário de atendimento e dia de folga (Stardew Valley Wiki). wd: 0=segunda … 6=domingo.
+// Tarefas de loja vão para as 9h: a loja fecha à tarde, a mina e a coleta dá para fazer o dia todo.
+const SHOPS={
+  pierre:{h:'9h–17h',at:9,   closed:c=>c.wd===2},                         // fecha às quartas
+  clint: {h:'9h–16h',at:9.1, closed:c=>c.wd===4&&countRoomsDone()===6},   // fecha às sextas depois do Centro restaurado
+  robin: {h:'9h–17h',at:9.2, closed:c=>c.wd===1},                         // fecha às terças (aeróbica)
+  marnie:{h:'9h–16h',at:9.3, closed:c=>c.wd===0||c.wd===1},               // fecha segunda e terça
+  willy: {h:'9h–17h',at:9.4, closed:c=>c.wd===5&&!c.rain}                 // fecha aos sábados, a não ser que chova
+};
+function shopOf(t){
+  const core=String(t.id||'').replace(/^m\d-/,'');
+  if(/^pack/.test(core)) return 'pierre';
+  if(/^(upg|pickup)-|^furnace(-\d)?$/.test(core)) return 'clint';
+  if(/^rod[23]$/.test(core)) return 'willy';
+  if(/^build-/.test(core) && /na Robin/.test(t.t||'')) return 'robin';
+  return null;
+}
+// Coloca o horário da loja no título, como no Carrinho de Viagem
+function withShopHours(t){
+  const s=shopOf(t); if(!s) return t;
+  const h=SHOPS[s].h; if(String(t.t).includes(h)) return t;
+  return {...t,t:`${t.t} (${h})`};
+}
 function startOf(t){
   const id=t.id||''; const core=id.replace(/^m\d-/,'');
+  const shop=shopOf(t); if(shop) return SHOPS[shop].at;
   if(/^m\d-/.test(id)) return 10;
   if(/^cc-/.test(id)) return 10.05;
   if(/^vault-/.test(id)) return 8.6;
@@ -1225,7 +1249,7 @@ function buildPlan(){
   { const fl=Math.max(P[0].farming,P[1].farming), fi=pickFor('farming');
     if(!st.farm.sprinklers && st.farm.crops!=='nenhuma' && ((fl>=9&&st.unl.skull)||(fl>=6&&st.mine>=80))) tasks.push(T('sprink',2,fl>=9&&st.unl.skull?'Fazer aspersores de irídio':'Fazer aspersores de qualidade',
       fl>=9&&st.unl.skull?'Receita de Cultivo 9: 1 barra de ouro + 1 de irídio + 1 conjunto de pilhas. Rega 24 quadrados em volta.':'Receita de Cultivo 6: 1 barra de ferro + 1 de ouro + 1 quartzo refinado. Rega os 8 quadrados em volta.',fi,{set:[['farm.sprinklers',true]]})); }
-  if(!st.farm.furnace && c.minesOpen) tasks.push(T('furnace',2,'Levar minério de cobre para o Clint','Ele ensina a fazer a fornalha, que transforma minério em barras.','act:mines',{set:[['farm.furnace',true]]}));
+  if(!st.farm.furnace && c.minesOpen && !SHOPS.clint.closed(c)) tasks.push(T('furnace',2,'Levar minério de cobre para o Clint','Ele ensina a fazer a fornalha, que transforma minério em barras.','act:mines',{set:[['farm.furnace',true]]}));
   if(c.wd!==2) [0,1].filter(i=>tl(i,'pack')===0).forEach(i=>{ if(spend(2000)) tasks.push(T('pack-'+i,2,'Comprar a mochila grande no Pierre','2.000g. São 12 espaços a mais, menos viagens para casa.',i,{set:[[`players.${i}.tools.pack`,1]],money:-2000})); });
   // Covos: recolher todo dia e mudar de lugar quando o conjunto precisar
   if(st.farm.crabWhere && !bundleDone(bundleById('cp')) && !(c.beachClosed && st.farm.crabWhere==='mar')){
@@ -1241,7 +1265,8 @@ function buildPlan(){
   }
   // Ferramentas que estão com o Clint
   st.upgrading=(st.upgrading||[]).filter(u=>u&&u.readyAbs);
-  st.upgrading.forEach(u=>{ if(now>=u.readyAbs) tasks.push(T(`pickup-${u.id}`,1,`Buscar ${TOOL_ART[u.tool]} no Clint`,`Já está pronta: agora é de ${LV[u.lv].toLowerCase()}. O Clint atende das 9h às 16h.`,u.i,{set:[[`players.${u.i}.tools.${u.tool}`,u.lv]],unupg:u.id})); });
+  if(SHOPS.clint.closed(c) && st.upgrading.some(u=>now>=u.readyAbs)) tasks.push(T('clintclosed',3,'Ferramenta pronta no Clint, mas ele fecha hoje','Às sextas o Clint não atende. Busquem amanhã, a partir das 9h.'));
+  if(!SHOPS.clint.closed(c)) st.upgrading.forEach(u=>{ if(now>=u.readyAbs) tasks.push(T(`pickup-${u.id}`,1,`Buscar ${TOOL_ART[u.tool]} no Clint`,`Já está pronta: agora é de ${LV[u.lv].toLowerCase()}.`,u.i,{set:[[`players.${u.i}.tools.${u.tool}`,u.lv]],unupg:u.id})); });
   // Chuva verde (só no verão): mato gigante e árvores de chuva verde por todo o vale
   if(c.green){
     tasks.push(T('green',2,'Aproveitar a chuva verde: cortar o mato gigante e pegar Sementes Musgosas',
@@ -1289,7 +1314,7 @@ function buildPlan(){
       if(n>=2) break;
       let who='bal';
       if(b.sk){ const [k,lv]=b.sk; const able=[0,1].filter(i=>P[i][k]>=lv); if(!able.length) continue; who=able.length===2?pickFor(k):able[0]; }
-      if(b.robin){ if(robinUsed || (st.robinUntil||0)>now || !spend(b.g)) continue; robinUsed=true; }
+      if(b.robin){ if(robinUsed || SHOPS.robin.closed(c) || (st.robinUntil||0)>now || !spend(b.g)) continue; robinUsed=true; }
       n++;
       tasks.push(T('build-'+b.id,b.cc?2:3,b.up?`Melhorar para ${b.n.toLowerCase()} na Robin`:b.robin?`Encomendar ${b.n.toLowerCase()} na Robin`:`Fazer ${b.n.toLowerCase()}`,
         `${b.robin?`Custa ${b.g.toLocaleString('pt-BR')}g, `:'Materiais: '}${b.mat}. ${b.why}${b.sk?` Receita de ${SKILL_PT[b.sk[0]]} ${b.sk[1]}.`:` A Robin leva ${b.days||2} dias e faz uma obra por vez.`}`,who,
@@ -1401,7 +1426,7 @@ function buildPlan(){
         ...(st.farm.sprinklers?[wcan]:[])
       ];
       for(const [k,okToday] of order){
-        const lv=tl(i,k); if(lv>=4||!okToday||!barOk(lv)) continue;
+        const lv=tl(i,k); if(lv>=4||!okToday||!barOk(lv)||SHOPS.clint.closed(c)) continue;
         if(k==='wcan' && st.farm.sprinklers && ['pick','axe','hoe'].some(o=>tl(i,o)<4&&barOk(tl(i,o)))) continue; // só quando não houver outra ferramenta para melhorar
         const cost=UPG[lv][0]; if(cost>bud) continue;
         bud-=cost;
@@ -1434,6 +1459,7 @@ function buildPlan(){
   if(st.frozen && st.frozen.abs===absDay(st)){ perPlayer[0]=clone(st.frozen.lists[0]||[]); perPlayer[1]=clone(st.frozen.lists[1]||[]); }
   const ids=new Set(perPlayer.flat().map(t=>t.id));
   Object.entries(st.done||{}).forEach(([id,v])=>{ if(v&&v.snap&&!ids.has(id)) perPlayer[v.snap.who===1?1:0].push({...v.snap,id}); });
+  perPlayer.forEach((l,k)=>{ perPlayer[k]=l.map(withShopHours); });
   perPlayer.forEach(l=>l.sort((a,b)=>(startOf(a)-startOf(b))||(a.ord-b.ord)));
 
   return {c,fests,bday,tasks,perPlayer,missions,cc,plants};
@@ -1477,10 +1503,10 @@ function fishMission(p,c,items,i){
   items.slice(0,3).forEach(x=>tasks.push({id:'cc-'+x.key,fx:{cc:x.keys||[x.key]},t:`Pescar ${x.it.n} e entregar no Centro Comunitário`,d:dot(x.it.h)+multiNote(x)}));
   if(!items.length) tasks.push({t:'Pescar e vender os peixes',d:c.beachClosed?`Hoje a praia só abre às 22h por causa do festival: pesquem no ${RIO.charAt(0).toLowerCase()+RIO.slice(1)} ou no lago da montanha.`:`De manhã: ${MAR}. À tarde: ${RIO}.`});
   const other=1-i;
-  if(!c.beachClosed && p.fishing>=6 && tl(i,'rod')===2 && (c.budget??st.money)>=7500){ c.budget=(c.budget??st.money)-7500; tasks.unshift({id:'rod3',fx:{set:[[`players.${i}.tools.rod`,3]],money:-7500},t:'Comprar a vara de irídio no Willy (7.500g)'}); }
+  if(!c.beachClosed && !SHOPS.willy.closed(c) && p.fishing>=6 && tl(i,'rod')===2 && (c.budget??st.money)>=7500){ c.budget=(c.budget??st.money)-7500; tasks.unshift({id:'rod3',fx:{set:[[`players.${i}.tools.rod`,3]],money:-7500},t:'Comprar a vara de irídio no Willy (7.500g)'}); }
   if(p.fishing>=2 && tl(i,'rod')<2){
     if(tl(other,'rod')>=2) tasks.unshift(`Pegar a vara de ${tl(other,'rod')===3?'irídio':'fibra de vidro'} de ${st.players[other].name} emprestada`);
-    else if(!c.beachClosed && (c.budget??st.money)>=1800){ c.budget=(c.budget??st.money)-1800; tasks.unshift({id:'rod2',fx:{set:[[`players.${i}.tools.rod`,2]],money:-1800},t:'Comprar a vara de fibra de vidro e isca no Willy (1.800g)'}); }
+    else if(!c.beachClosed && !SHOPS.willy.closed(c) && (c.budget??st.money)>=1800){ c.budget=(c.budget??st.money)-1800; tasks.unshift({id:'rod2',fx:{set:[[`players.${i}.tools.rod`,2]],money:-1800},t:'Comprar a vara de fibra de vidro e isca no Willy (1.800g)'}); }
   }
   if(p.fishing>=3 && !c.beachClosed && !st.farm.crabWhere && st.mine>=40 && !bundleDone(bundleById('cp'))) tasks.push({id:'crab',fx:{set:[['farm.crabWhere','mar'],['farm.crab',true]]},t:'Fazer 2 covos e colocar no mar',d:'Cada covo: 40 madeira + 3 barras de ferro (receita de Pesca 3). Coloquem isca dentro todo dia.'});
   const why=c.rain?'Dia de chuva é o melhor para pescar: aparecem peixes raros.':items.length?'Tem peixe dos conjuntos disponível hoje.':'Peixe dá dinheiro rápido e treina a habilidade.';
