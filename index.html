@@ -721,6 +721,78 @@ const SPECIAL=[
  {id:'onion',n:'Domínio das Cebolinhas',eff:'Cebolinhas valem 5× mais.'},
  {id:'townkey',n:'Chave da Vila',eff:'Entrar nas construções da vila a qualquer hora.'}
 ];
+// Animais da Marnie (preços da versão 1.6). b/lv: construção e nível exigidos; gives: itens do Centro Comunitário que dependem dele
+const ANIMALS=[
+ {id:'chicken',n:'Galinha',art:'uma',b:'coop',lv:1,g:800,days:3,gives:['Large Egg','Large Brown Egg','Fried Egg'],why:'Ovos grandes (conjunto Animal) e ovo para o Ovo frito (Cozinheiro).'},
+ {id:'duck',n:'Pato',art:'um',b:'coop',lv:2,g:1200,days:5,gives:['Duck Egg','Duck Feather'],why:'Ovo de pata (conjunto Animal) e Pena de pato (conjunto Tinta).'},
+ {id:'rabbit',n:'Coelho',art:'um',b:'coop',lv:3,g:8000,days:6,gives:['Wool',"Rabbit's Foot",'Cloth'],why:'Lã (conjunto Animal), Pé de coelho (Encantador) e lã para o Tecido (Artesão).'},
+ {id:'cow',n:'Vaca',art:'uma',b:'barn',lv:1,g:1500,days:5,gives:['Large Milk','Cheese'],why:'Leite grande (conjunto Animal) e leite para o Queijo (Artesão).'},
+ {id:'goat',n:'Cabra',art:'uma',b:'barn',lv:2,g:4000,days:5,gives:['Large Goat Milk','Goat Cheese'],why:'Leite grande de cabra (conjunto Animal) e Queijo de cabra (Artesão).'},
+ {id:'pig',n:'Porco',art:'um',b:'barn',lv:3,g:16000,days:10,gives:['Truffle','Truffle Oil'],why:'Trufa (Cozinheiro) e Óleo de trufas (Artesão).'},
+ {id:'sheep',n:'Ovelha',art:'uma',b:'barn',lv:3,g:8000,days:4,gives:['Wool','Cloth'],why:'Lã (conjunto Animal) e lã para o Tecido (Artesão).'}
+];
+function hasAnimal(id){ return !!(st.animals||{})[id]; }
+// Mudas de árvore frutífera (Pierre, versão 1.6). s: estação em que dá fruta
+const TREES=[
+ {id:'apple',en:'Apple',n:'maçã',g:4000,s:2},{id:'pomegranate',en:'Pomegranate',n:'romã',g:6000,s:2},
+ {id:'apricot',en:'Apricot',n:'damasco',g:2000,s:0},{id:'cherry',en:'Cherry',n:'cereja',g:3400,s:0},
+ {id:'orange',en:'Orange',n:'laranja',g:4000,s:1},{id:'peach',en:'Peach',n:'pêssego',g:6000,s:1}
+];
+function hasTree(id){ return (st.owned||{})['tree-'+id]==='have'; }
+// Missões da história (Stardew Valley Wiki, página Quests). at: [ano, estação, dia] em que a carta chega.
+// get(c): dá para fazer hoje; auto(): o jogo já conta como feita pelo que está marcado na página.
+const inSeasonOrGH=(c,ss)=>ss.includes(c.S)||!!st.farm.greenhouse;
+const QUESTS=[
+ {id:'intro',n:'Apresentações',who:'Lewis',at:[1,0,1],t:'Falar com todos os 28 moradores da cidade',d:'Basta conversar uma vez com cada um. A missão aparece no diário desde o primeiro dia.',r:'amizade com todos',get:()=>true,prio:3},
+ {id:'friends',n:'Como fazer amigos',who:'Lewis',at:[1,0,1],after:'intro',t:'Dar um presente para qualquer morador',d:'Qualquer presente serve, até uma coleta.',r:'100g',get:()=>true,prio:3},
+ {id:'beach',n:'Para a praia',who:'Willy',at:[1,0,2],only:1,t:'Ir à praia antes das 17h e falar com o Willy',d:'A praia fica ao sul da cidade. O Willy espera no píer.',r:'Vara de bambu',get:()=>true,prio:1},
+ {id:'advance',n:'Avanço',who:'Lewis',at:[1,0,1],t:'Fazer um espantalho',d:'Precisa de Cultivo nível 1. Materiais: 50 madeira, 1 carvão e 20 fibra.',r:'100g',get:()=>Math.max(st.players[0].farming,st.players[1].farming)>=1,prio:3},
+ {id:'archaeology',n:'Arqueologia',who:'Gunther',at:[1,0,5],t:'Doar um mineral ou artefato ao museu do Gunther',d:'Entrem no museu (ao lado do Ferreiro) com qualquer mineral das minas ou artefato e doem para o Gunther.',r:'250g',get:c=>c.minesOpen,prio:2},
+ {id:'initiation',n:'Iniciação',who:'Marlon',at:[1,0,5],t:'Derrotar 10 gosmas',d:'Nas minas, no Bosque Secreto ou na fazenda. A carta chega depois de chegar ao andar 5.',r:'entrada na Guilda dos Aventureiros (loja de armas)',get:c=>c.minesOpen&&st.mine>=5,auto:()=>st.mine>=40,prio:2},
+ {id:'axe',n:'O machado perdido da Robin',who:'Robin',at:[1,0,11],t:'Achar o machado da Robin e devolver para ela',d:'Fica na Floresta Cinzaseiva, perto do cano do esgoto (sul da floresta).',r:'250g e 1 coração com a Robin',get:()=>true,prio:2},
+ {id:'jodi',n:'O pedido da Jodi',who:'Jodi',at:[1,0,19],t:'Levar uma Couve-flor para a Jodi',d:'Couve-flor: semente de primavera (80g no Pierre), fica pronta em 12 dias.',r:'350g e 1 coração',get:c=>inSeasonOrGH(c,[0]),grow:12,prio:2},
+ {id:'shorts',n:'O "short" do prefeito',who:'Lewis',at:[1,1,3],t:'Achar o short roxo do Lewis e devolver para ele',d:'Está no quarto da Marnie, no Rancho da Marnie (entrem durante o dia). Depois levem para o Lewis, sem que ninguém veja.',r:'750g e 1 coração com o Lewis',get:()=>true,prio:2},
+ {id:'pam',n:'A Pam está com sede',who:'Pam',at:[1,1,14],t:'Levar uma Cerveja clara (Pale Ale) para a Pam',d:'Lúpulo no barril vira Cerveja clara. Lúpulo é semente de verão (60g) e precisa de treliça.',r:'350g e 1 coração',get:c=>own('keg')&&inSeasonOrGH(c,[1]),prio:2},
+ {id:'melon',n:'Pesquisa de plantações',who:'Demetrius',at:[1,1,20],t:'Levar um Melão para o Demetrius',d:'Melão: semente de verão (80g no Pierre), fica pronto em 12 dias.',r:'550g e 1 coração',get:c=>inSeasonOrGH(c,[1]),grow:12,prio:2},
+ {id:'knee',n:'Terapia para o joelho',who:'George',at:[1,1,25],t:'Levar uma Pimenta Picante para o George',d:'Pimenta Picante: semente de verão (40g no Pierre), fica pronta em 5 dias.',r:'200g e 1 coração',get:c=>inSeasonOrGH(c,[1]),grow:5,prio:2},
+ {id:'amaranth',n:'A alegria das vacas',who:'Marnie',at:[1,2,3],t:'Levar um Amaranto para a Marnie',d:'Amaranto: semente de outono (70g no Pierre), fica pronto em 7 dias. Colham com a foice.',r:'500g e 1 coração',get:c=>inSeasonOrGH(c,[2]),grow:7,prio:2},
+ {id:'basket',n:'Cesta de amoras',who:'Linus',at:[1,2,8],t:'Achar a cesta do Linus e devolver para ele',d:'A cesta está no caminho a oeste do ponto de ônibus, perto da entrada do túnel. O Linus mora na barraca ao norte do lago da montanha.',r:'1 coração com o Linus',get:()=>true,prio:2},
+ {id:'pumpkin',n:'Esculpindo abóboras',who:'Caroline',at:[1,2,19],t:'Levar uma Abóbora para a Caroline',d:'Abóbora: semente de outono (100g no Pierre), fica pronta em 13 dias.',r:'500g e 1 coração',get:c=>inSeasonOrGH(c,[2]),grow:13,prio:2},
+ {id:'squid',n:'Pegue uma lula',who:'Willy',at:[1,3,2],t:'Pescar uma Lula e levar para o Willy',d:'Lula: praia no inverno, das 18h às 2h.',r:'800g e 1 coração',get:c=>c.S===3&&c.rodOk,prio:2},
+ {id:'clintEmily',n:'A tentativa do Clint',who:'Clint',at:[1,3,6],t:'Dar uma Ametista para a Emily "em nome do Clint"',d:'Ametista sai em qualquer andar das minas. Entreguem pela missão do diário.',r:'1 coração com a Emily',get:c=>c.minesOpen,prio:2},
+ {id:'reagent',n:'Um reagente sombrio',who:'Feiticeiro',at:[1,3,12],t:'Levar uma Essência nula para o Feiticeiro',d:'Sai dos Brutos das sombras nas minas, andares 80 a 119.',r:'1.000g e 1 coração',get:()=>st.mine>=80,prio:2},
+ {id:'favorClint',n:'Um favor para o Clint',who:'Clint',at:[1,3,17],t:'Levar uma Barra de ferro para o Clint',d:'5 minérios de ferro (andares 40–79) + 1 carvão na fornalha.',r:'500g e 1 coração',get:()=>st.mine>=40&&st.farm.furnace,prio:2},
+ {id:'robinWood',n:'O pedido da Robin',who:'Robin',at:[1,3,21],t:'Levar 10 madeiras de lei para a Robin',d:'Tocos grandes com machado de cobre ou melhor.',r:'500g e 1 coração',get:()=>maxTool('axe')>=1,prio:2},
+ {id:'stew',n:'Ensopado de peixe',who:'Gus',at:[1,3,26],t:'Pescar um Albacora e levar para o Gus',d:'Albacora: praia no outono e no inverno, das 6h às 11h e das 18h às 2h.',r:'400g e 1 coração',get:c=>(c.S===2||c.S===3)&&c.rodOk,prio:2},
+ {id:'mystery',n:'Um mistério de inverno',who:'—',at:[1,3,1],t:'Seguir a figura misteriosa e ganhar a Lupa',d:'Saiam da fazenda para o ponto de ônibus entre 6h e 16h para ver a cena. Depois examinem o arbusto à direita do parquinho, na cidade.',r:'Lupa (acha Recados Secretos)',get:c=>c.S===3,auto:()=>!!st.special.magnifier,set:[['special.magnifier',true]],prio:2},
+ {id:'emilyFruit',n:'Fruta fresca',who:'Emily',at:[2,0,6],t:'Levar um Damasco para a Emily',d:'Da árvore de damasco na primavera, ou do Carrinho de Viagem (sexta e domingo).',r:'600g e 1 coração',get:c=>c.S===0,prio:2},
+ {id:'granny',n:'O presente da vovó',who:'Evelyn',at:[2,0,15],t:'Levar um Alho-poró para a Evelyn',d:'Alho-poró: coleta de primavera na montanha e na floresta.',r:'500g e 1 coração',get:c=>c.S===0,prio:2},
+ {id:'pierreNotice',n:'O aviso do Pierre',who:'Pierre',at:[2,0,21],t:'Levar um Sashimi para o Pierre',d:'Sashimi: 1 peixe qualquer na cozinha. A receita vem do Linus com 3 corações.',r:'1.000g e 1 coração',get:()=>(st.farm.houseLv||0)>=1,prio:2},
+ {id:'aquatic',n:'Pesquisa aquática',who:'Demetrius',at:[2,1,6],t:'Pescar um Baiacu e levar para o Demetrius',d:'Baiacu: praia no verão, das 12h às 16h, em dia de sol.',r:'1.000g e 1 coração',get:c=>c.S===1&&!c.rain&&c.rodOk,prio:2},
+ {id:'soldier',n:'A estrela de um soldado',who:'Kent',at:[2,1,15],t:'Levar uma Carambola para o Kent',d:'Carambola: semente no Oásis do deserto (400g), pronta em 13 dias.',r:'500g e 1 coração',get:c=>st.unl.bus&&inSeasonOrGH(c,[1]),prio:2},
+ {id:'mayorNeed',n:'A necessidade do prefeito',who:'Lewis',at:[2,1,21],t:'Levar um Óleo de trufas para o Lewis',d:'Trufa do porco no gerador de óleo.',r:'750g e 1 coração',get:()=>own('oil')&&hasAnimal('pig'),prio:2},
+ {id:'lobster',n:'Procura-se: lagosta',who:'Gus',at:[2,2,6],t:'Levar uma Lagosta para o Gus',d:'Sai nos covos no mar.',r:'500g e 1 coração',get:()=>st.farm.crabWhere==='mar',prio:2},
+ {id:'juice',n:'A Pam precisa de energia',who:'Pam',at:[2,2,19],t:'Levar um Conjunto de pilhas para a Pam',d:'O para-raios gera pilhas em noites de tempestade.',r:'400g e 1 coração',get:()=>own('lrod'),prio:2},
+ {id:'staff',n:'Cajado de poder',who:'Feiticeiro',at:[2,3,5],t:'Levar uma Barra de irídio para o Feiticeiro',d:'Minério de irídio sai na Caverna da Caveira.',r:'5.000g e 1 coração',get:()=>st.unl.skull,prio:2},
+ {id:'lingcod',n:'Pegue um lingcod',who:'Willy',at:[2,3,13],t:'Pescar um Lingcod e levar para o Willy',d:'Lingcod: rio ou lago da montanha no inverno, qualquer hora.',r:'550g e 1 coração',get:c=>c.S===3&&c.rodOk,prio:2},
+ {id:'spirits',n:'Espíritos exóticos',who:'Gus',at:[2,3,19],t:'Levar um Coco para o Gus',d:'Coco: coleta no deserto.',r:'600g e 1 coração',get:()=>st.unl.bus,prio:2},
+ {id:'qi',n:'O misterioso Qi',who:'Sr. Qi',at:[1,0,1],t:'Seguir os bilhetes do Sr. Qi até o Cartão do Clube',d:'1) Ponham um Conjunto de pilhas na caixa do túnel (oeste do ponto de ônibus); 2) uma Concha arco-íris na caixa da estação de trem; 3) 10 Beterrabas na geladeira do Lewis; 4) uma Essência solar na boca do dragão de areia, no deserto; 5) examinem a pilha de madeira ao lado da casa da fazenda.',r:'Cartão do Clube (Cassino)',get:()=>st.unl.bus&&own('lrod'),auto:()=>!!st.special.club,set:[['special.club',true]],prio:3},
+ {id:'qiChallenge',n:'O desafio do Qi',who:'Sr. Qi',at:[1,0,1],t:'Chegar ao andar 25 da Caverna da Caveira',d:'A carta chega no dia seguinte à primeira entrada na caverna. Levem comida e escadas.',r:'10.000g',get:()=>st.unl.skull,prio:3},
+ {id:'talisman',n:'Talismã Sombrio',who:'Krobus',at:[1,0,1],t:'Buscar o Talismã Sombrio para abrir a ferrovia',d:'Falem com o Krobus no esgoto e atravessem o Covil do Inseto Mutante até o talismã. Depois voltem à caverna bloqueada da ferrovia.',r:'acesso ao Pântano da Bruxa',get:()=>countRoomsDone()===6&&!!st.special.rusty,prio:2},
+ {id:'goblin',n:'Problema com o goblin',who:'Capanga',at:[1,0,1],after:'talisman',t:'Dar Maionese nula para o capanga e levar a Tinta Mágica ao Feiticeiro',d:'Maionese nula: Ovo nulo (Krobus vende aos sábados) na máquina de maionese.',r:'construções do Feiticeiro',get:()=>own('mayo'),prio:2}
+];
+function questAbs(q){ return (q.at[0]-1)*112+q.at[1]*28+q.at[2]; }
+function questDone(q){ return !!(st.quests||{})[q.id] || (q.auto?q.auto():false); }
+// Missões que já existem no jogo até hoje (sem as que dependem de algo ainda não liberado)
+function questsSoFar(){
+  const now=absDay(st);
+  return QUESTS.filter(q=>{
+    if(q.only) return now>=questAbs(q) && (now===questAbs(q)||questDone(q)) ;
+    if(now<questAbs(q)) return false;
+    if(q.after && !questDone(QUESTS.find(x=>x.id===q.after))) return false;
+    return true;
+  });
+}
 // Caverna da fazenda (Demetrius): o que sai em cada opção, segundo a wiki
 const CAVE={
  morcegos:{n:'Morcegos (frutas)',items:['Cherry','Pomegranate','Peach','Apple','Orange','Apricot','Spice Berry','Wild Plum','Blackberry','Salmonberry'],
@@ -804,7 +876,7 @@ const CROPS={
  0:[['Chirívia','Parsnip',4,0,20,35],['Batata','Potato',6,0,50,80],['Couve-flor','Cauliflower',12,0,80,175],['Vagem','Green Bean',10,3,60,40,'treliça'],
     ['Couve','Kale',6,0,70,110],['Alho','Garlic',4,0,40,60,'y2'],['Morango','Strawberry',8,4,100,120,'fest'],['Tulipa','Tulip',6,0,20,30],['Jasmim-azul','Blue Jazz',7,0,30,50],['Ruibarbo','Rhubarb',13,0,100,220,'oasis']],
  1:[['Mirtilo','Blueberry',13,4,80,150],['Melão','Melon',12,0,80,250],['Pimenta Picante','Hot Pepper',5,3,40,40],['Tomate','Tomato',11,4,50,60],['Rabanete','Radish',6,0,40,90],
-    ['Trigo','Wheat',4,0,10,25,'multi'],['Milho','Corn',14,4,150,50,'multi'],['Lúpulo','Hops',11,1,60,25,'treliça'],['Girassol','Sunflower',8,0,200,80,'multi'],['Papoula','Poppy',7,0,100,140],
+    ['Trigo','Wheat',4,0,10,25,'multi'],['Papoula','Poppy',7,0,100,140],['Milho','Corn',14,4,150,50,'multi'],['Lúpulo','Hops',11,1,60,25,'treliça'],['Girassol','Sunflower',8,0,200,80,'multi'],['Papoula','Poppy',7,0,100,140],
     ['Repolho roxo','Red Cabbage',9,0,100,260,'y2'],['Carambola','Starfruit',13,0,400,750,'oasis']],
  2:[['Oxicoco','Cranberries',7,5,240,150],['Abóbora','Pumpkin',13,0,100,320],['Berinjela','Eggplant',5,5,20,60],['Inhame','Yam',10,0,60,160],['Acelga chinesa','Bok Choy',4,0,50,80],
     ['Amaranto','Amaranth',7,0,70,150],['Uva','Grape',10,3,60,80,'treliça'],['Alcachofra','Artichoke',8,0,30,160,'y2'],['Milho','Corn',14,4,150,50],['Trigo','Wheat',4,0,10,25],
@@ -837,12 +909,15 @@ function normalize(s){
   out.cc=s.cc||(s.example===false?{}:out.cc); out.done=s.done||{}; out.planted=Array.isArray(s.planted)?s.planted:[]; out.upgrading=Array.isArray(s.upgrading)?s.upgrading:[];
   out.owned=Object.assign({},s.owned||{});
   out.special=Object.assign({},s.special||{});
+  out.quests=Object.assign({},s.quests||{});
   const sf=s.farm||{}, so=s.owned||{};
   if(sf.coopLv==null) out.farm.coopLv=sf.coop?1:0;
   if(sf.barnLv==null) out.farm.barnLv=sf.barn?1:0;
   if(sf.houseLv==null) out.farm.houseLv=so.kitchen==='have'?1:0;
   if(sf.shedLv==null) out.farm.shedLv=so.shed==='have'?1:0;
   syncFarm(out);
+  // animais: versões antigas não guardavam; quem tem galinheiro/celeiro já tem galinha/vaca
+  out.animals=s.animals?Object.assign({},s.animals):{chicken:out.farm.coopLv>=1,cow:out.farm.barnLv>=1};
   out.players.forEach((pl,i)=>{ pl.pw=Object.assign({},((s.players||[])[i]||{}).pw||{}); });
   if(typeof out.bookDays!=='string') out.bookDays='';
   if(out.unl.skull) out.special.skullkey=true;
@@ -1022,11 +1097,13 @@ const SHOPS={
   pierre:{h:'9h–17h',at:9,   closed:c=>c.wd===2},                         // fecha às quartas
   clint: {h:'9h–16h',at:9.1, closed:c=>c.wd===4&&countRoomsDone()===6},   // fecha às sextas depois do Centro restaurado
   robin: {h:'9h–17h',at:9.2, closed:c=>c.wd===1},                         // fecha às terças (aeróbica)
-  marnie:{h:'9h–16h',at:9.3, closed:c=>c.wd===0||c.wd===1},               // fecha segunda e terça
+  marnie:{h:'9h–16h',at:9.15, closed:c=>c.wd===0||c.wd===1},               // fecha segunda e terça
   willy: {h:'9h–17h',at:9.4, closed:c=>c.wd===5&&!c.rain}                 // fecha aos sábados, a não ser que chova
 };
 function shopOf(t){
+  if(t.shop) return t.shop;
   const core=String(t.id||'').replace(/^m\d-/,'');
+  if(/^animal-/.test(core)) return 'marnie';
   if(/^pack/.test(core)) return 'pierre';
   if(/^(upg|pickup)-|^furnace(-\d)?$/.test(core)) return 'clint';
   if(/^rod[23]$/.test(core)) return 'willy';
@@ -1334,8 +1411,11 @@ function buildPlan(){
   const forageToday=cc.filter(x=>x.it.k==='forage'&&x.ok);
   const acts=[];
   if(c.minesOpen){
-    let s=1+mineToday.length*2+(c.luck??0)*0.8+(c.maxMine<120?0.5:0);
-    acts.push({id:'mines',base:s,sk:'mining',build:p=>mineMission(p,c,cc)});
+    // Mina só com objetivo: itens do Centro Comunitário ou andares novos (até o 120). Descer por descer não vira tarefa.
+    if(mineToday.length || c.maxMine<120){
+      let s=mineToday.length?1+mineToday.length*2+(c.luck??0)*0.8+(c.maxMine<120?0.5:0):0.4+(c.luck??0)*0.3;
+      acts.push({id:'mines',base:s,sk:'mining',build:p=>mineMission(p,c,cc)});
+    }
   }
   if(st.unl.skull && (c.luck??0)>=1) acts.push({id:'skull',base:5+(c.luck??0),sk:'combat',build:p=>({goal:'Caverna da Caveira',why:'A sorte está boa e o acesso está liberado: é o melhor dia para descer fundo.',tasks:['Pegar o ônibus para o deserto','Levar muita comida, bombas e escadas','Descer o máximo de andares que der','Voltar antes das 2h'],tip:'Escadas pulam andares: guardem as que acharem.'})});
   if(c.rodOk){
@@ -1371,7 +1451,7 @@ function buildPlan(){
       const oi=1-mi, oa=assign[oi];
       const oc=oa?(ccCount[oa.id]||0):0;
       const left=Math.max(0,mineToday.length-3); // a primeira pessoa leva até 3 itens
-      if((oc===0||left>oc) && !(oa&&oa.id==='social'&&bday) && !(oa&&oa.id==='skull')) assign[oi]={id:'mines2'};
+      if(left>0 && (oc===0||left>oc) && !(oa&&oa.id==='social'&&bday) && !(oa&&oa.id==='skull')) assign[oi]={id:'mines2'};
     }
   }
   const fullDay=fests.some(f=>FULLDAY.has(f[3]));
@@ -1401,6 +1481,8 @@ function buildPlan(){
       tasks.push(T('cc-'+x.key,2,title,dot(x.it.h)+multiNote(x),who,{cc:x.keys||[x.key]}));
     });
   }
+  longTasks(c,now,T).forEach(t=>tasks.push(t));
+  questTasks(c,T).forEach(t=>tasks.push(t));
   fests.forEach(f=>festTasks(f,c).forEach(t=>tasks.push(t)));
 
   // Tarefas que dependem das missões
@@ -1465,6 +1547,79 @@ function buildPlan(){
   return {c,fests,bday,tasks,perPlayer,missions,cc,plants};
 }
 
+// Itens do Centro Comunitário que dependem de animais, máquinas, árvores e cozinha (o que não é coleta, pesca, mina nem plantio)
+function longTasks(c,now,T){
+  const out=[], missing=new Map(); // en -> {keys, bnames, need, it}
+  ROOMS.forEach(r=>r.bundles.forEach(b=>{ if(bundleDone(b)) return;
+    b.items.forEach((it,i)=>{ const k=itemKey(b.id,i); if(st.cc[k]||it.k!=='long') return;
+      const y=missing.get(it.en)||{keys:[],bnames:[],need:0,it,bs:[]}; y.keys.push(k); y.bnames.push(b.name); y.bs.push(b); y.need+=it.qty||1; missing.set(it.en,y); }); }));
+  const has=en=>missing.has(en);
+  const kitchen=(st.farm.houseLv||0)>=1, wool=hasAnimal('sheep')||hasAnimal('rabbit'), noWinter=c.S!==3;
+  // Animais que faltam comprar (o que já existe cobre o item)
+  const robinBusy=(st.robinUntil||0)>now;
+  if(!SHOPS.marnie.closed(c)){
+    const covered=new Set(); ANIMALS.forEach(a=>{ if(hasAnimal(a.id)) a.gives.forEach(g=>covered.add(g)); });
+    ANIMALS.forEach(a=>{
+      if(hasAnimal(a.id)) return;
+      const lv=st.farm[a.b+'Lv']||0; if(lv<a.lv) return;
+      if(robinBusy && lv===a.lv) return; // a construção ainda está em obra
+      const need=a.gives.filter(g=>has(g)&&!covered.has(g)); if(!need.length) return;
+      a.gives.forEach(g=>covered.add(g));
+      out.push(T('animal-'+a.id,2,`Comprar ${a.art} ${a.n.toLowerCase()} na Marnie`,
+        `${a.g.toLocaleString('pt-BR')}g. ${a.why} Fica adulto em ${a.days} dias e só então começa a produzir. Tem que ter espaço livre no ${a.b==='coop'?'galinheiro':'celeiro'}.`,
+        'bal',{set:[['animals.'+a.id,true]],money:-a.g}));
+    });
+  }
+  const add=(en,t,d,who)=>{ const y=missing.get(en); if(!y) return; missing.delete(en);
+    out.push(T('cc-'+y.keys[0],2,t,dot(d)+(y.keys.length>1?` Precisam de ${y.need}: um para cada conjunto (${y.bnames.join(' e ')}).`:''),who||'bal',{cc:y.keys})); };
+  const AN='Produto grande ou especial sai com o animal feliz e com muitos corações: carinho todo dia, comida e deixar sair no sol';
+  // Torneirinha
+  if(own('tapper')){
+    [['Maple Syrup','Xarope de ácer','ácer',9],['Oak Resin','Resina de carvalho','carvalho',7],['Pine Tar','Alcatrão de pinho','pinheiro',5]].forEach(([en,n,tree,d])=>
+      add(en,`Pegar ${n} da torneirinha e entregar no Centro Comunitário`,`Se ainda não tem torneirinha num ${tree}, coloquem uma hoje: fica pronto em ${d} dias`,pickFor('foraging')));
+  }
+  if(hasAnimal('cow')) add('Large Milk','Guardar um Leite grande e entregar no Centro Comunitário',AN);
+  if(hasAnimal('chicken')){
+    add('Large Egg','Guardar um Ovo grande (branco) e entregar no Centro Comunitário',AN+'. Precisa de galinha branca');
+    add('Large Brown Egg','Guardar um Ovo grande (marrom) e entregar no Centro Comunitário',AN+'. Precisa de galinha marrom (a cor vem sorteada na compra)');
+  }
+  if(hasAnimal('goat')) add('Large Goat Milk','Guardar um Leite grande de cabra e entregar no Centro Comunitário',AN);
+  if(hasAnimal('duck')){
+    add('Duck Egg','Guardar um Ovo de pata e entregar no Centro Comunitário','O pato bota a cada 2 dias. '+AN);
+    add('Duck Feather','Guardar uma Pena de pato e entregar no Centro Comunitário','Pato com muitos corações às vezes deixa uma pena no lugar do ovo. '+AN);
+  }
+  if(hasAnimal('rabbit')) add("Rabbit's Foot",'Guardar um Pé de coelho e entregar no Centro Comunitário','Coelho com muitos corações às vezes deixa um no lugar da lã. Sorte boa ajuda. '+AN);
+  if(wool) add('Wool','Guardar uma Lã e entregar no Centro Comunitário',hasAnimal('sheep')?'A ovelha precisa ser tosquiada com a tesoura (Marnie, 1.000g).':'O coelho deixa lã no chão do galinheiro.');
+  if(hasAnimal('pig') && noWinter) add('Truffle','Achar uma Trufa e entregar no Centro Comunitário','O porco cava trufas quando sai do celeiro em dia sem chuva (fora do inverno).');
+  if(own('cheese') && hasAnimal('cow')) add('Cheese','Fazer Queijo e entregar no Centro Comunitário','Leite na prensa de queijo: fica pronto em ~3 horas.');
+  if(own('cheese') && hasAnimal('goat')) add('Goat Cheese','Fazer Queijo de cabra e entregar no Centro Comunitário','Leite de cabra na prensa de queijo.');
+  if(own('loom') && wool) add('Cloth','Fazer Tecido e entregar no Centro Comunitário','Lã no tear: fica pronto em 4 horas.');
+  if(own('oil') && hasAnimal('pig')) add('Truffle Oil','Fazer Óleo de trufas e entregar no Centro Comunitário','Trufa no gerador de óleo.');
+  if(own('bee') && noWinter) add('Honey','Pegar Mel do apiário e entregar no Centro Comunitário','O apiário dá mel a cada 4 dias, fora do inverno.');
+  if(own('jar')) add('Jelly','Fazer Geleia e entregar no Centro Comunitário','Qualquer fruta (amora, uva, ameixa…) na jarra de conserva: fica pronta em 2 a 3 dias.');
+  if(own('keg')) add('Wine','Fazer Vinho e entregar no Centro Comunitário','Qualquer fruta no barril: fica pronto em uns 7 dias.');
+  if(kitchen && (hasAnimal('chicken')||hasAnimal('duck'))) add('Fried Egg','Fazer um Ovo frito e entregar no Centro Comunitário','Na cozinha da casa: 1 ovo. A receita já vem com a cozinha.');
+  if(kitchen) add('Maki Roll','Fazer Rolinhos de arroz e entregar no Centro Comunitário','1 peixe qualquer + 1 alga marinha (praia) + 1 arroz (Pierre). A receita o Gus vende no Saloon.');
+  if(has('Hay') && !SHOPS.marnie.closed(c)){ const y=missing.get('Hay'); missing.delete('Hay');
+    out.push({...T('cc-'+y.keys[0],2,'Comprar 10 feno na Marnie e entregar no Centro Comunitário','50g cada (500g no total). Com silo, também dá para cortar capim com a foice.','bal',{cc:y.keys,money:-500}),shop:'marnie'}); }
+  // Árvores frutíferas: colher as que já têm; comprar muda das que faltam (maçã e romã servem para vários conjuntos)
+  TREES.forEach(tr=>{ if(hasTree(tr.id) && c.S===tr.s) add(tr.en,`Colher ${tr.n} da árvore e entregar no Centro Comunitário`,`A árvore dá 1 fruta por dia na estação dela`); });
+  if(c.wd!==2){
+    const ar=bundleById('ar'), arLeft=bundleDone(ar)?0:ar.need-bundleCount(ar);
+    const arDoable=ar.items.filter((it,i)=>!st.cc[itemKey('ar',i)] && !missing.has(it.en)).length; // já têm caminho hoje
+    const treesOwned=TREES.filter(tr=>hasTree(tr.id)).length;
+    const tr=TREES.find(tr=>has(tr.en) && !hasTree(tr.id) && (tr.id==='apple'||tr.id==='pomegranate'||arDoable+treesOwned<arLeft));
+    if(tr) out.push({...T('tree-'+tr.id,3,`Comprar e plantar uma muda de ${tr.n} no Pierre`,
+      `${tr.g.toLocaleString('pt-BR')}g. Leva 28 dias para crescer e dá fruta no ${SEASONS[tr.s].toLowerCase()}. Plantem com 1 quadrado livre em volta, longe de outras árvores. Serve para: ${missing.get(tr.en).bnames.join(', ')}.`,
+      'bal',{set:[['owned.tree-'+tr.id,'have']],money:-tr.g}),shop:'pierre'});
+  }
+  return out;
+}
+// Missões da história que dá para fazer hoje
+function questTasks(c,T){
+  return questsSoFar().filter(q=>!questDone(q) && q.get(c)).map(q=>
+    T('q-'+q.id,q.prio||2,`Missão: ${q.t}`,`${dot(q.d)}${q.grow&&!st.farm.greenhouse&&c.daysLeft<q.grow?' Não dá mais tempo de plantar nesta estação: só se tiverem guardado uma.':''} Pedido de ${q.who}. Recompensa: ${q.r}.`,'bal',{set:[['quests.'+q.id,true],...(q.set||[])]}));
+}
 function mineMission(p,c,cc,opts={}){
   const lvl=st.mine||0, deep=lvl>=120;
   const target=deep?120:Math.min(120,Math.floor((lvl+10)/5)*5);
@@ -1472,9 +1627,9 @@ function mineMission(p,c,cc,opts={}){
   const ore=lo<40?'cobre':lo<80?'ferro':'ouro';
   const luck=c.luck===null?'Vejam a sorte na TV: com sorte boa sai mais minério e mais escadas.':c.luck>=1?'A sorte está boa hoje: sai mais minério e mais escadas.':c.luck<=-1?'A sorte está ruim, então não precisam ir tão fundo hoje.':'Sorte neutra: um dia normal de mina.';
   const descDone=Object.keys(st.done||{}).some(k=>/-desc-/.test(k));
-  const tasks=(descDone||opts.second)?[]:[{id:'desc-'+lvl,fx:deep?null:{set:[['mine',target]]},t:deep?'Descer pelo elevador até o andar 80 ou mais':`Descer do andar ${lvl} até o ${target}`,
+  const tasks=(descDone||opts.second||deep)?[]:[{id:'desc-'+lvl,fx:deep?null:{set:[['mine',target]]},t:deep?'Descer pelo elevador até o andar 80 ou mais':`Descer do andar ${lvl} até o ${target}`,
     d:`Nesses andares sai minério de ${ore} e carvão: juntem tudo pelo caminho. ${luck} O elevador salva a cada 5 andares.`}];
-  if(descDone && !opts.second) tasks.push({id:'more-'+lvl,t:`Continuar minerando perto do andar ${lvl}`,d:`Vocês já desceram o combinado hoje. Se ainda tiver tempo, sai minério de ${ore} e carvão por aqui.`});
+  if(descDone && !opts.second && !deep) tasks.push({id:'more-'+lvl,t:`Continuar minerando perto do andar ${lvl}`,d:`Vocês já desceram o combinado hoje. Se ainda tiver tempo, sai minério de ${ore} e carvão por aqui.`});
   const items=cc.filter(x=>x.it.k==='mine'&&x.ok&&x.it.fl&&!(opts.exclude&&(x.keys||[x.key]).some(k=>opts.exclude.has(k))));
   const here=[], back=[];
   items.forEach(x=>{ const [a,b]=x.it.fl; if(x.it.bar){ if(st.farm.furnace && a<=Math.max(lvl,1)) here.push(x); } else if(b>=lo&&a<=hi) here.push(x); else if(b<lo) back.push(x); });
@@ -1485,18 +1640,18 @@ function mineMission(p,c,cc,opts={}){
     const fx={cc:x.keys||[x.key]}, id='cc-'+x.key, mn=multiNote(x);
     if(it.en==='Stone') tasks.push({id,fx,t:'Juntar 99 pedras e entregar no Centro Comunitário',d:'Qualquer pedra das minas serve.'});
     else if(it.bar) tasks.push({id,fx,t:`Fazer ${x.need>1?x.need:1} ${it.n.toLowerCase()} na fornalha e entregar no Centro Comunitário`,d:`${it.h}.${mn}`});
-    else if(b>=lo&&a<=hi&&!opts.second) tasks.push({id,fx,t:`Pegar ${it.n} e entregar no Centro Comunitário`,d:`${it.h}. Sai nos andares onde vocês vão passar hoje.${mn}`});
-    else { const el=Math.floor(Math.min(Math.max(a,1),Math.max(lvl,1))/5)*5; tasks.push({id,fx,t:`Pegar ${it.n} e entregar no Centro Comunitário`,d:`${it.h}. ${opts.second?'Vão':'Não sai nos andares de hoje: voltem'} pelo elevador ${el?`ao andar ${el}`:'para a entrada das minas'}.${mn}`}); }
+    else if(b>=lo&&a<=hi&&!opts.second&&!deep) tasks.push({id,fx,t:`Pegar ${it.n} e entregar no Centro Comunitário`,d:`${it.h}. Sai nos andares onde vocês vão passar hoje.${mn}`});
+    else { const el=Math.floor(Math.min(Math.max(a,1),Math.max(lvl,1))/5)*5; tasks.push({id,fx,t:`Pegar ${it.n} e entregar no Centro Comunitário`,d:`${it.h}. ${opts.second||deep?'Vão':'Não sai nos andares de hoje: voltem'} pelo elevador ${el?`ao andar ${el}`:'para a entrada das minas'}.${mn}`}); }
   });
   const ghost=cc.find(x=>x.it.en==='Ghostfish'&&x.ok);
   if(ghost && c.rodOk && !(opts.exclude&&(ghost.keys||[ghost.key]).some(k=>opts.exclude.has(k))) && !opts.second) tasks.push({id:'cc-'+ghost.key,fx:{cc:ghost.keys||[ghost.key]},t:'Pescar o Peixe-fantasma e entregar no Centro Comunitário',d:`Nos lagos dos andares 20 e 60 (o elevador para no 20 e no 60).`});
   if(opts.second){
     // segunda pessoa: busca os itens que sobraram pelo elevador; se não sobrou nenhum, desce junto
     const join={id:'join-'+lvl,t:`Descer junto com ${opts.partner} ${deep?'pelo elevador até o andar 80 ou mais':`até o andar ${target}`}`,d:`Nesses andares sai minério de ${ore} e carvão: juntem tudo pelo caminho. Em dupla dá para descer mais rápido.`};
-    if(!tasks.length || !descDone) tasks.unshift(join);
+    if(!deep && (!tasks.length || !descDone)) tasks.unshift(join);
     return {goal:`Minas com ${opts.partner}`,why:'',tasks};
   }
-  return {goal:deep?'Minas: andares 80 a 120':`Minas: do andar ${lvl} ao ${target}`,why:'',tasks};
+  return {goal:deep?'Minas: buscar itens do Centro Comunitário':`Minas: do andar ${lvl} ao ${target}`,why:'',tasks};
 }
 function fishMission(p,c,items,i){
   const tasks=[];
@@ -1794,6 +1949,17 @@ function renderForm(){
     body+=`<div class="bundle"><div class="bundle-h"><span>Itens especiais (da fazenda)</span><span class="cnt">${SPECIAL.filter(x=>st.special[x.id]).length}/${SPECIAL.length}</span></div><div class="items">${SPECIAL.map(x=>chip('data-sp',x.id,st.special[x.id],x.n,x.eff)).join('')}</div></div>`;
     h+=sec('pw','Poderes',`${cnt} livros lidos`,body);
   }
+  {
+    const chip=(attr,key,on,label,title)=>`<button type="button" class="it" ${attr}="${key}" aria-pressed="${!!on}" title="${esc(title)}">${esc(label)}</button>`;
+    const an=`<div class="bundle"><div class="bundle-h"><span>Animais que temos</span><span class="cnt">${ANIMALS.filter(a=>hasAnimal(a.id)).length}/${ANIMALS.length}</span></div><div class="items">${ANIMALS.map(a=>chip('data-an',a.id,hasAnimal(a.id),a.n,`${a.why} ${a.g.toLocaleString('pt-BR')}g na Marnie.`)).join('')}</div></div>`;
+    const tr=`<div class="bundle"><div class="bundle-h"><span>Árvores frutíferas plantadas</span><span class="cnt">${TREES.filter(t=>hasTree(t.id)).length}/${TREES.length}</span></div><div class="items">${TREES.map(t=>chip('data-tree',t.id,hasTree(t.id),t.n.charAt(0).toUpperCase()+t.n.slice(1),`Muda: ${t.g.toLocaleString('pt-BR')}g no Pierre. Dá fruta no ${SEASONS[t.s].toLowerCase()}.`)).join('')}</div></div>`;
+    h+=sec('anim','Animais e árvores',`${ANIMALS.filter(a=>hasAnimal(a.id)).length} tipos de animal`,`<p class="small muted" style="margin:0">Toquem nos animais e árvores que já têm. O plano sugere comprar o que falta para o Centro Comunitário (por exemplo, o pato quando o galinheiro fica grande).</p>`+an+tr);
+  }
+  {
+    const qs=questsSoFar(), dn=qs.filter(questDone).length;
+    const row=q=>`<button type="button" class="it" data-q="${q.id}" aria-pressed="${questDone(q)}" title="${esc(q.t+'. '+q.d+' Recompensa: '+q.r+'.')}">${esc(q.n)} <span class="it-en">${esc(q.who)}</span></button>`;
+    h+=sec('quests','Missões da história',`${dn} de ${qs.length} feitas`,`<p class="small muted" style="margin:0">Missões do diário que já apareceram até hoje. Toquem nas que vocês já fizeram. As que faltam viram tarefa no plano quando der para fazer (por exemplo, a de plantação só na estação certa).</p><div class="bundle"><div class="items">${qs.map(row).join('')}</div></div>`);
+  }
   h+=sec('lib','Lugares liberados',`${Object.values(u).filter(Boolean).length} de 8`,`<div class="checks">
      ${chk('unl.cc',u.cc,'Já vimos a cena do Centro Comunitário','u-cc')}
      ${chk('unl.beach',u.beach,'Ponte da praia consertada (leste da praia)','u-beach')}
@@ -1880,6 +2046,12 @@ document.addEventListener('click',e=>{
   if(e.target.id==='replan'){ st.frozen=null; commit({keepExample:true}); return; }
   const pwb=e.target.closest('[data-pw]');
   if(pwb){ const [i,id]=pwb.dataset.pw.split(':'); const pl=st.players[+i]; pl.pw=pl.pw||{}; if(pl.pw[id]) delete pl.pw[id]; else pl.pw[id]=true; commit(); return; }
+  const anb=e.target.closest('[data-an]');
+  if(anb){ const id=anb.dataset.an; st.animals=st.animals||{}; st.animals[id]=!st.animals[id]; commit(); return; }
+  const trb=e.target.closest('[data-tree]');
+  if(trb){ const k='tree-'+trb.dataset.tree; st.owned=st.owned||{}; if(st.owned[k]==='have') delete st.owned[k]; else st.owned[k]='have'; commit(); return; }
+  const qb=e.target.closest('[data-q]');
+  if(qb){ const q=QUESTS.find(x=>x.id===qb.dataset.q); st.quests=st.quests||{}; const on=!questDone(q); if(on) st.quests[q.id]=true; else { delete st.quests[q.id]; (q.set||[]).forEach(([path])=>setByPath(path,false)); } commit(); return; }
   const spb=e.target.closest('[data-sp]');
   if(spb){ const id=spb.dataset.sp; if(st.special[id]) delete st.special[id]; else st.special[id]=true; commit(); return; }
   const sid=e.target.closest&&e.target.closest('#copyData,#shareData,#loadData,#createSync,#joinSync,#copyCode,#shareCode,#stopSync');
