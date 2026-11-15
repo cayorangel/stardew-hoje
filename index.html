@@ -229,6 +229,13 @@ details.sec>summary .sum{font-family:var(--body);font-size:.8rem;color:var(--mut
 .it .it-en{font-size:.72rem;opacity:.65;font-weight:600}
 .it[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .save{font-size:.8rem;color:var(--muted)}
+.qlist{display:flex;flex-direction:column;gap:8px}
+.qrow{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:8px}
+.qrow .qn{font-size:.88rem;font-weight:700;min-width:0;flex:1 1 160px}
+.qrow .qn small{display:block;font-weight:500;color:var(--muted);font-size:.76rem}
+.qseg{display:inline-flex;gap:4px}
+.qseg .it[data-qs$=":off"][aria-pressed="true"]{background:var(--panel2);color:var(--ink);border-color:var(--muted)}
+.qseg .it[data-qs$=":done"][aria-pressed="true"]{background:transparent;color:var(--ok);border-color:var(--ok)}
 
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom, 0px));background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:10px;display:flex;gap:12px;align-items:center;font-weight:600;z-index:20;width:max-content;max-width:calc(100% - 32px)}
 .toast button{background:transparent;border:1px solid currentColor;color:inherit;border-radius:6px;padding:3px 10px;font-weight:800}
@@ -951,6 +958,7 @@ function normalize(s){
   out.owned=Object.assign({},s.owned||{});
   out.special=Object.assign({},s.special||{});
   out.quests=Object.assign({},s.quests||{});
+  out.qActive=Object.assign({},s.qActive||{});
   const sf=s.farm||{}, so=s.owned||{};
   if(sf.coopLv==null) out.farm.coopLv=sf.coop?1:0;
   if(sf.barnLv==null) out.farm.barnLv=sf.barn?1:0;
@@ -1687,7 +1695,7 @@ function reqMet(q){ return !q.req || ((st.hearts||{})[q.req.who]||0)>=q.req.h; }
 function questTasks(c,T){
   if(!st.hearts) st.hearts={};
   const out=[];
-  questsSoFar().filter(q=>!questDone(q)).forEach(q=>{
+  questsSoFar().filter(q=>!questDone(q) && (st.qActive||{})[q.id]).forEach(q=>{ // só as que vocês ativaram
     if(!reqMet(q)){
       const r=q.req, cor=r.h===1?'1 coração':`${r.h} corações`;
       out.push(T('qreq-'+q.id,q.prio||2,`Chegar a ${cor} com ${r.who} (para a missão: ${q.t.charAt(0).toLowerCase()+q.t.slice(1)})`,
@@ -2036,9 +2044,12 @@ function renderForm(){
     h+=sec('anim','Animais e árvores',`${ANIMALS.filter(a=>hasAnimal(a.id)).length} tipos de animal`,`<p class="small muted" style="margin:0">Toquem nos animais e árvores que já têm. O plano sugere comprar o que falta para o Centro Comunitário (por exemplo, o pato quando o galinheiro fica grande).</p>`+an+tr);
   }
   {
-    const qs=questsSoFar(), dn=qs.filter(questDone).length;
-    const row=q=>`<button type="button" class="it" data-q="${q.id}" aria-pressed="${questDone(q)}" title="${esc(q.t+'. '+q.d+(q.req?' Precisa de '+q.req.h+' corações com '+q.req.who+'.':'')+' Recompensa: '+q.r+'.')}">${esc(q.n)} <span class="it-en">${esc(q.who)}</span></button>`;
-    h+=sec('quests','Missões da história',`${dn} de ${qs.length} feitas`,`<p class="small muted" style="margin:0">Missões do diário que já apareceram até hoje. Toquem nas que vocês já fizeram. As que faltam viram tarefa no plano quando der para fazer (por exemplo, a de plantação só na estação certa).</p><div class="bundle"><div class="items">${qs.map(row).join('')}</div></div>`);
+    const qs=questsSoFar(), dn=qs.filter(questDone).length, act=qs.filter(q=>!questDone(q)&&st.qActive[q.id]).length;
+    const stOf=q=>questDone(q)?'done':st.qActive[q.id]?'on':'off';
+    const row=q=>{ const v=stOf(q), b=(k,l)=>`<button type="button" class="it" data-qs="${q.id}:${k}" aria-pressed="${v===k}">${l}</button>`;
+      return `<div class="qrow"><div class="qn">${esc(q.n)} <span class="it-en muted">· ${esc(q.who)}</span><small>${esc(q.t)}${q.req?` · precisa de ${q.req.h} corações com ${esc(q.req.who)}`:''}</small></div><div class="qseg" role="group" aria-label="${esc(q.n)}">${b('off','Inativa')}${b('on','Ativa')}${b('done','Feita')}</div></div>`; };
+    const order={on:0,off:1,done:2};
+    h+=sec('quests','Missões da história',`${act} ativa${act===1?'':'s'} · ${dn} de ${qs.length} feitas`,`<p class="small muted" style="margin:0">Missões do diário que já apareceram até hoje. Todas começam inativas: só as que vocês marcarem como <b>Ativa</b> viram tarefa no plano (quando der para fazer, por exemplo a de plantação só na estação certa). Ao marcar a tarefa no plano, a missão vira <b>Feita</b>.</p><div class="qlist">${qs.slice().sort((a,b)=>order[stOf(a)]-order[stOf(b)]).map(row).join('')}</div>`);
   }
   h+=sec('lib','Lugares liberados',`${Object.values(u).filter(Boolean).length} de 8`,`<div class="checks">
      ${chk('unl.cc',u.cc,'Já vimos a cena do Centro Comunitário','u-cc')}
@@ -2130,6 +2141,11 @@ document.addEventListener('click',e=>{
   if(anb){ const id=anb.dataset.an; st.animals=st.animals||{}; st.animals[id]=!st.animals[id]; commit(); return; }
   const trb=e.target.closest('[data-tree]');
   if(trb){ const k='tree-'+trb.dataset.tree; st.owned=st.owned||{}; if(st.owned[k]==='have') delete st.owned[k]; else st.owned[k]='have'; commit(); return; }
+  const qsb=e.target.closest('[data-qs]');
+  if(qsb){ const [id,k]=qsb.dataset.qs.split(':'); const q=QUESTS.find(x=>x.id===id); st.quests=st.quests||{}; st.qActive=st.qActive||{};
+    if(k==='done'){ st.quests[id]=true; (q.set||[]).forEach(([path,val])=>setByPath(path,val)); }
+    else { if(st.quests[id]){ delete st.quests[id]; (q.set||[]).forEach(([path])=>setByPath(path,false)); } if(k==='on') st.qActive[id]=true; else delete st.qActive[id]; }
+    commit(); return; }
   const qb=e.target.closest('[data-q]');
   if(qb){ const q=QUESTS.find(x=>x.id===qb.dataset.q); st.quests=st.quests||{}; const on=!questDone(q); if(on) st.quests[q.id]=true; else { delete st.quests[q.id]; (q.set||[]).forEach(([path])=>setByPath(path,false)); } commit(); return; }
   const spb=e.target.closest('[data-sp]');
