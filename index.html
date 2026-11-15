@@ -822,11 +822,43 @@ const LEVELED=[
   costs:[[15000,'300 madeira'],[20000,'550 madeira e 300 pedra']],
   why:['Espaço coberto para muitas máquinas.','Mais espaço para máquinas.'],cc:[0,0]}
 ];
+// Itens do Centro Comunitário que cada nível de construção libera (galinheiro, celeiro, casa)
+const LEVEL_CC={coop:[['Large Egg','Large Brown Egg','Fried Egg'],['Duck Egg','Duck Feather'],['Wool',"Rabbit's Foot",'Cloth']],
+  barn:[['Large Milk','Cheese'],['Large Goat Milk','Goat Cheese'],['Wool','Truffle','Truffle Oil','Cloth']],house:[['Fried Egg','Maki Roll'],[],[]],shed:[[],[]]};
+function ccMissingEn(){ const out=new Set(); ROOMS.forEach(r=>r.bundles.forEach(b=>{ if(bundleDone(b)) return; b.items.forEach((it,i)=>{ if(!st.cc[itemKey(b.id,i)]) out.add(it.en); }); })); return out; }
+// Este nível (ou um nível acima dele, que exige este antes) libera algo que ainda falta no Centro
+function levelHelpsCC(id,lv){ const miss=ccMissingEn(); return (LEVEL_CC[id]||[]).slice(lv).some(l=>l.some(en=>miss.has(en)))?1:0; }
+function ccPurchasePending(tasks){
+  if(['v1','v2','v3','v4'].some(id=>!bundleDone(bundleById(id)))) return true;
+  if(leveledNext().some(b=>b.cc)) return true;
+  return tasks.some(t=>/^(animal-|tree-)/.test(t.id)||(/^build-/.test(t.id)&&/na Robin/.test(t.t||'')&&t.prio<=2)); // máquinas usam materiais, não ouro
+}
+// A ferramenta faz falta hoje para esta pessoa? (não dá para deixar no Clint e usar no mesmo dia)
+const TOOL_USE={
+  pick:{acts:['mines','mines2','skull'],re:/\bmina|andar|minério|elevador|picareta|pedra/i,kinds:['mine'],quests:['reagent','clintEmily','favorClint','initiation','archaeology','staff','qiChallenge']},
+  axe:{acts:['forage'],re:/madeira|machado|toco|tronco/i,keys:['con:0','con:1','con:3'],quests:['robinWood']},
+  hoe:{acts:['farm'],re:/plantar|cavar|enxada|muda/i,ids:['dig']}
+};
+function toolUsedToday(k,i,mid,tasks,missions,assign){
+  const u=TOOL_USE[k]; if(!u) return false;
+  if(mid && u.acts.includes(mid)) return true;
+  const mine=t=>{ const w=t.who; if(w===i||w==='both'||w==='bal') return true; if(typeof w==='string'&&w.startsWith('act:')){ const o=assign.findIndex(a=>a&&a.id===w.slice(4)); return o<0||o===i; } return false; };
+  const needs=t=>{
+    if(!t) return false; const id=String(t.id||'');
+    if(/^upg-/.test(id)) return false;
+    if(u.re.test(String(t.t||''))) return true;
+    if(u.ids && u.ids.some(x=>id===x)) return true;
+    if(u.quests && u.quests.some(q=>id==='q-'+q)) return true;
+    return ((t.fx&&t.fx.cc)||[]).some(key=>{ if(u.keys&&u.keys.includes(key)) return true; const [b,ix]=key.split(':'); const bb=bundleById(b); const it=bb&&bb.items[+ix]; return !!(it&&u.kinds&&u.kinds.includes(it.k)); });
+  };
+  if(tasks.some(t=>mine(t)&&needs(t))) return true;
+  const m=missions[i]; return !!(m && m.tasks.some(t=>needs(typeof t==='string'?{t}:t)));
+}
 function leveledNext(){
   return LEVELED.map(L=>{ const lv=st.farm[L.key]||0; if(lv>=L.names.length||(L.ok&&!L.ok(lv))) return null;
     if((st.owned||{})['lv-'+L.id]==='no') return null;
     const [g,mat]=L.costs[lv];
-    return {id:L.id+'-'+(lv+1),n:L.names[lv],robin:1,days:(lv===0||L.id==='house')?3:2,g,mat:mat==='só ouro'?'sem materiais':mat,why:L.why[lv],cc:L.cc[lv],up:lv>0,set:[['farm.'+L.key,lv+1]]}; }).filter(Boolean);
+    return {id:L.id+'-'+(lv+1),n:L.names[lv],robin:1,days:(lv===0||L.id==='house')?3:2,g,mat:mat==='só ouro'?'sem materiais':mat,why:L.why[lv],cc:levelHelpsCC(L.id,lv),up:lv>0,set:[['farm.'+L.key,lv+1]]}; }).filter(Boolean);
 }
 const SKILL_PT={farming:'Cultivo',mining:'Mineração',foraging:'Coleta',fishing:'Pesca',combat:'Combate'};
 function own(id){ if(id==='coop') return (st.farm.coopLv||0)>=1; if(id==='barn') return (st.farm.barnLv||0)>=1; return (st.owned||{})[id]==='have'; }
@@ -1327,7 +1359,8 @@ function buildPlan(){
     if(!st.farm.sprinklers && st.farm.crops!=='nenhuma' && ((fl>=9&&st.unl.skull)||(fl>=6&&st.mine>=80))) tasks.push(T('sprink',2,fl>=9&&st.unl.skull?'Fazer aspersores de irídio':'Fazer aspersores de qualidade',
       fl>=9&&st.unl.skull?'Receita de Cultivo 9: 1 barra de ouro + 1 de irídio + 1 conjunto de pilhas. Rega 24 quadrados em volta.':'Receita de Cultivo 6: 1 barra de ferro + 1 de ouro + 1 quartzo refinado. Rega os 8 quadrados em volta.',fi,{set:[['farm.sprinklers',true]]})); }
   if(!st.farm.furnace && c.minesOpen && !SHOPS.clint.closed(c)) tasks.push(T('furnace',2,'Levar minério de cobre para o Clint','Ele ensina a fazer a fornalha, que transforma minério em barras.','act:mines',{set:[['farm.furnace',true]]}));
-  if(c.wd!==2) [0,1].filter(i=>tl(i,'pack')===0).forEach(i=>{ if(spend(2000)) tasks.push(T('pack-'+i,2,'Comprar a mochila grande no Pierre','2.000g. São 12 espaços a mais, menos viagens para casa.',i,{set:[[`players.${i}.tools.pack`,1]],money:-2000})); });
+  const packLater=[];
+  if(c.wd!==2) [0,1].filter(i=>tl(i,'pack')===0).forEach(i=>{ packLater.push(T('pack-'+i,3,'Comprar a mochila grande no Pierre','2.000g. São 12 espaços a mais, menos viagens para casa.',i,{set:[[`players.${i}.tools.pack`,1]],money:-2000})); });
   // Covos: recolher todo dia e mudar de lugar quando o conjunto precisar
   if(st.farm.crabWhere && !bundleDone(bundleById('cp')) && !(c.beachClosed && st.farm.crabWhere==='mar')){
     const cp=bundleById('cp'), SEA=[0,2,3,4,5,8,9], FRESH=[1,6,7];
@@ -1398,7 +1431,7 @@ function buildPlan(){
         {set:[...(b.set||[['owned.'+b.id,'have']]),...(b.robin?[['robinUntil',now+(b.days||2)]]:[])],money:b.robin?-b.g:0}));
     }
   }
-  if(c.wd!==2 && tl(0,'pack')>=1 && tl(1,'pack')>=1){ const n2=[0,1].filter(i=>tl(i,'pack')===1); if(n2.length && spend(10000)) tasks.push(T('pack2',3,'Comprar a mochila de luxo no Pierre','10.000g, mais 12 espaços.',n2[0],{set:[[`players.${n2[0]}.tools.pack`,2]],money:-10000})); }
+  if(c.wd!==2 && tl(0,'pack')>=1 && tl(1,'pack')>=1){ const n2=[0,1].filter(i=>tl(i,'pack')===1); if(n2.length) packLater.push(T('pack2',3,'Comprar a mochila de luxo no Pierre','10.000g, mais 12 espaços.',n2[0],{set:[[`players.${n2[0]}.tools.pack`,2]],money:-10000})); }
   if(c.wd===4||c.wd===6){
     const want=missingNames(['long','crop'],3);
     tasks.push(T('cart',3,'Passar no Carrinho de Viagem (floresta, 6h–20h)',want.length?`Procurem itens que faltam nos conjuntos, como ${want.join(', ')}.`:'Às vezes ela vende sementes e itens raros.','act:forage'));
@@ -1483,6 +1516,8 @@ function buildPlan(){
   }
   longTasks(c,now,T).forEach(t=>tasks.push(t));
   questTasks(c,T).forEach(t=>tasks.push(t));
+  // Mochila é conforto: só aparece quando nenhuma compra que ajuda o Centro Comunitário está pendente
+  if(!ccPurchasePending(tasks)) packLater.forEach(t=>{ if(spend(t.fx.money?-t.fx.money:0)) tasks.push(t); });
   fests.forEach(f=>festTasks(f,c).forEach(t=>tasks.push(t)));
 
   // Tarefas que dependem das missões
@@ -1498,13 +1533,14 @@ function buildPlan(){
     [0,1].forEach(i=>{
       if((st.upgrading||[]).some(u=>u.i===i)) return;
       const mid=missions[i]&&missions[i].id;
+      const uses=k=>toolUsedToday(k,i,mid,tasks,missions,assign);
       // com aspersores em toda a plantação o regador quase não é usado: vira a última opção
       const wcan=['wcan',st.farm.sprinklers?true:((c.tomorrowRain&&!c.rain)||c.S===3||!hasCrops||(i!==farmerIdx&&!waterBoth))];
       const order=[
         ...(st.farm.sprinklers?[]:[wcan]),
-        ['pick',mid!=='mines'&&mid!=='skull'],
-        ['axe',mid!=='forage'],
-        ['hoe',c.S===3],
+        ['pick',!uses('pick')],
+        ['axe',!uses('axe')],
+        ['hoe',!uses('hoe')],
         ...(st.farm.sprinklers?[wcan]:[])
       ];
       for(const [k,okToday] of order){
