@@ -235,7 +235,6 @@ details.sec>summary .sum{font-family:var(--body);font-size:.8rem;color:var(--mut
 .qrow .qn small{display:block;font-weight:500;color:var(--muted);font-size:.76rem}
 .qseg{display:inline-flex;gap:4px}
 .qseg .it[data-qs$=":off"][aria-pressed="true"]{background:var(--panel2);color:var(--ink);border-color:var(--muted)}
-.qseg .it[data-qs$=":done"][aria-pressed="true"]{background:transparent;color:var(--ok);border-color:var(--ok)}
 
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom, 0px));background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:10px;display:flex;gap:12px;align-items:center;font-weight:600;z-index:20;width:max-content;max-width:calc(100% - 32px)}
 .toast button{background:transparent;border:1px solid currentColor;color:inherit;border-radius:6px;padding:3px 10px;font-weight:800}
@@ -1703,7 +1702,7 @@ function questTasks(c,T){
       return;
     }
     if(!q.get(c)) return;
-    out.push(T('q-'+q.id,q.prio||2,`Missão: ${q.t}`,`${dot(q.d)}${q.grow&&!st.farm.greenhouse&&c.daysLeft<q.grow?' Não dá mais tempo de plantar nesta estação: só se tiverem guardado uma.':''} Pedido de ${q.who}. Recompensa: ${q.r}.`+(SCHED[q.who]?schedHTML(q.who,c):''),'bal',{set:[['quests.'+q.id,true],...(q.set||[])]}));
+    out.push(T('q-'+q.id,q.prio||2,`Missão: ${q.t}`,`${dot(q.d)}${q.grow&&!st.farm.greenhouse&&c.daysLeft<q.grow?' Não dá mais tempo de plantar nesta estação: só se tiverem guardado uma.':''} Pedido de ${q.who}. Recompensa: ${q.r}.`+(SCHED[q.who]?schedHTML(q.who,c):''),'bal',{set:[['quests.'+q.id,true],['qActive.'+q.id,false],...(q.set||[])]})); // feita: volta a ficar inativa
   });
   return out;
 }
@@ -2044,12 +2043,11 @@ function renderForm(){
     h+=sec('anim','Animais e árvores',`${ANIMALS.filter(a=>hasAnimal(a.id)).length} tipos de animal`,`<p class="small muted" style="margin:0">Toquem nos animais e árvores que já têm. O plano sugere comprar o que falta para o Centro Comunitário (por exemplo, o pato quando o galinheiro fica grande).</p>`+an+tr);
   }
   {
-    const qs=questsSoFar(), dn=qs.filter(questDone).length, act=qs.filter(q=>!questDone(q)&&st.qActive[q.id]).length;
-    const stOf=q=>questDone(q)?'done':st.qActive[q.id]?'on':'off';
+    const qs=questsSoFar();
+    const stOf=q=>!questDone(q)&&st.qActive[q.id]?'on':'off', act=qs.filter(q=>stOf(q)==='on').length;
     const row=q=>{ const v=stOf(q), b=(k,l)=>`<button type="button" class="it" data-qs="${q.id}:${k}" aria-pressed="${v===k}">${l}</button>`;
-      return `<div class="qrow"><div class="qn">${esc(q.n)} <span class="it-en muted">· ${esc(q.who)}</span><small>${esc(q.t)}${q.req?` · precisa de ${q.req.h} corações com ${esc(q.req.who)}`:''}</small></div><div class="qseg" role="group" aria-label="${esc(q.n)}">${b('off','Inativa')}${b('on','Ativa')}${b('done','Feita')}</div></div>`; };
-    const order={on:0,off:1,done:2};
-    h+=sec('quests','Missões da história',`${act} ativa${act===1?'':'s'} · ${dn} de ${qs.length} feitas`,`<p class="small muted" style="margin:0">Missões do diário que já apareceram até hoje. Todas começam inativas: só as que vocês marcarem como <b>Ativa</b> viram tarefa no plano (quando der para fazer, por exemplo a de plantação só na estação certa). Ao marcar a tarefa no plano, a missão vira <b>Feita</b>.</p><div class="qlist">${qs.slice().sort((a,b)=>order[stOf(a)]-order[stOf(b)]).map(row).join('')}</div>`);
+      return `<div class="qrow"><div class="qn">${esc(q.n)} <span class="it-en muted">· ${esc(q.who)}</span><small>${esc(q.t)}${q.req?` · precisa de ${q.req.h} corações com ${esc(q.req.who)}`:''}</small></div><div class="qseg" role="group" aria-label="${esc(q.n)}">${b('off','Inativa')}${b('on','Ativa')}</div></div>`; };
+    h+=sec('quests','Missões da história',`${act} ativa${act===1?'':'s'}`,`<p class="small muted" style="margin:0">Missões do diário que já apareceram até hoje. Todas começam inativas: só as que vocês marcarem como <b>Ativa</b> viram tarefa no plano (quando der para fazer, por exemplo a de plantação só na estação certa). Quando a tarefa é marcada no plano, a missão volta a ficar inativa.</p><div class="qlist">${qs.slice().sort((a,b)=>(stOf(a)==='on'?0:1)-(stOf(b)==='on'?0:1)).map(row).join('')}</div>`);
   }
   h+=sec('lib','Lugares liberados',`${Object.values(u).filter(Boolean).length} de 8`,`<div class="checks">
      ${chk('unl.cc',u.cc,'Já vimos a cena do Centro Comunitário','u-cc')}
@@ -2143,8 +2141,8 @@ document.addEventListener('click',e=>{
   if(trb){ const k='tree-'+trb.dataset.tree; st.owned=st.owned||{}; if(st.owned[k]==='have') delete st.owned[k]; else st.owned[k]='have'; commit(); return; }
   const qsb=e.target.closest('[data-qs]');
   if(qsb){ const [id,k]=qsb.dataset.qs.split(':'); const q=QUESTS.find(x=>x.id===id); st.quests=st.quests||{}; st.qActive=st.qActive||{};
-    if(k==='done'){ st.quests[id]=true; (q.set||[]).forEach(([path,val])=>setByPath(path,val)); }
-    else { if(st.quests[id]){ delete st.quests[id]; (q.set||[]).forEach(([path])=>setByPath(path,false)); } if(k==='on') st.qActive[id]=true; else delete st.qActive[id]; }
+    if(k==='on'){ if(st.quests[id]){ delete st.quests[id]; (q.set||[]).forEach(([path])=>setByPath(path,false)); } st.qActive[id]=true; }
+    else delete st.qActive[id];
     commit(); return; }
   const qb=e.target.closest('[data-q]');
   if(qb){ const q=QUESTS.find(x=>x.id===qb.dataset.q); st.quests=st.quests||{}; const on=!questDone(q); if(on) st.quests[q.id]=true; else { delete st.quests[q.id]; (q.set||[]).forEach(([path])=>setByPath(path,false)); } commit(); return; }
