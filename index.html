@@ -751,7 +751,9 @@ const QUESTS=[
  {id:'initiation',n:'Iniciação',who:'Marlon',at:[1,0,5],t:'Derrotar 10 gosmas',d:'Nas minas, no Bosque Secreto ou na fazenda. A carta chega depois de chegar ao andar 5.',r:'entrada na Guilda dos Aventureiros (loja de armas)',get:c=>c.minesOpen&&st.mine>=5,auto:()=>st.mine>=40,prio:2},
  {id:'axe',n:'O machado perdido da Robin',who:'Robin',at:[1,0,11],t:'Achar o machado da Robin e devolver para ela',d:'Fica na Floresta Cinzaseiva, perto do cano do esgoto (sul da floresta).',r:'250g e 1 coração com a Robin',get:()=>true,prio:2},
  {id:'jodi',n:'O pedido da Jodi',who:'Jodi',at:[1,0,19],t:'Levar uma Couve-flor para a Jodi',d:'Couve-flor: semente de primavera (80g no Pierre), fica pronta em 12 dias.',r:'350g e 1 coração',get:c=>inSeasonOrGH(c,[0]),grow:12,prio:2},
- {id:'shorts',n:'O "short" do prefeito',who:'Lewis',at:[1,1,3],t:'Achar o short roxo do Lewis e devolver para ele',d:'Está no quarto da Marnie, no Rancho da Marnie (entrem durante o dia). Depois levem para o Lewis, sem que ninguém veja.',r:'750g e 1 coração com o Lewis',get:()=>true,prio:2},
+ {id:'shorts',n:'O "short" do prefeito',who:'Lewis',at:[1,1,3],t:'Achar o short roxo do Lewis e devolver para ele',d:'Está no quarto da Marnie, no Rancho da Marnie (entrem durante o dia, com o rancho aberto). Depois levem para o Lewis, sem que ninguém veja.',r:'750g e 1 coração com o Lewis',get:()=>true,prio:2,
+  req:{who:'Marnie',h:2,why:'A porta do quarto da Marnie só abre para quem tem 2 corações com ela. Basta um de vocês chegar lá: amizade é de cada jogador.',
+   how:'Conversem com ela todo dia (cada conversa conta) e deem 2 presentes por semana. Ela gosta de Quartzo (pedra branca que sai em qualquer andar das minas) e de legumes da plantação, como Abóbora e Inhame; ama Torta de abóbora e Diamante. A missão do Amaranto dela também dá 1 coração. Com 1 presente que ela gosta por vez e conversa diária, leva umas 2 semanas.'}},
  {id:'pam',n:'A Pam está com sede',who:'Pam',at:[1,1,14],t:'Levar uma Cerveja clara (Pale Ale) para a Pam',d:'Lúpulo no barril vira Cerveja clara. Lúpulo é semente de verão (60g) e precisa de treliça.',r:'350g e 1 coração',get:c=>own('keg')&&inSeasonOrGH(c,[1]),prio:2},
  {id:'melon',n:'Pesquisa de plantações',who:'Demetrius',at:[1,1,20],t:'Levar um Melão para o Demetrius',d:'Melão: semente de verão (80g no Pierre), fica pronto em 12 dias.',r:'550g e 1 coração',get:c=>inSeasonOrGH(c,[1]),grow:12,prio:2},
  {id:'knee',n:'Terapia para o joelho',who:'George',at:[1,1,25],t:'Levar uma Pimenta Picante para o George',d:'Pimenta Picante: semente de verão (40g no Pierre), fica pronta em 5 dias.',r:'200g e 1 coração',get:c=>inSeasonOrGH(c,[1]),grow:5,prio:2},
@@ -767,7 +769,9 @@ const QUESTS=[
  {id:'mystery',n:'Um mistério de inverno',who:'—',at:[1,3,1],t:'Seguir a figura misteriosa e ganhar a Lupa',d:'Saiam da fazenda para o ponto de ônibus entre 6h e 16h para ver a cena. Depois examinem o arbusto à direita do parquinho, na cidade.',r:'Lupa (acha Recados Secretos)',get:c=>c.S===3,auto:()=>!!st.special.magnifier,set:[['special.magnifier',true]],prio:2},
  {id:'emilyFruit',n:'Fruta fresca',who:'Emily',at:[2,0,6],t:'Levar um Damasco para a Emily',d:'Da árvore de damasco na primavera, ou do Carrinho de Viagem (sexta e domingo).',r:'600g e 1 coração',get:c=>c.S===0,prio:2},
  {id:'granny',n:'O presente da vovó',who:'Evelyn',at:[2,0,15],t:'Levar um Alho-poró para a Evelyn',d:'Alho-poró: coleta de primavera na montanha e na floresta.',r:'500g e 1 coração',get:c=>c.S===0,prio:2},
- {id:'pierreNotice',n:'O aviso do Pierre',who:'Pierre',at:[2,0,21],t:'Levar um Sashimi para o Pierre',d:'Sashimi: 1 peixe qualquer na cozinha. A receita vem do Linus com 3 corações.',r:'1.000g e 1 coração',get:()=>(st.farm.houseLv||0)>=1,prio:2},
+ {id:'pierreNotice',n:'O aviso do Pierre',who:'Pierre',at:[2,0,21],t:'Levar um Sashimi para o Pierre',d:'Sashimi: 1 peixe qualquer na cozinha. A receita vem do Linus com 3 corações.',r:'1.000g e 1 coração',get:()=>(st.farm.houseLv||0)>=1,prio:2,
+  req:{who:'Linus',h:3,why:'A receita de Sashimi chega pelo correio quando um de vocês tem 3 corações com o Linus.',
+   how:'Conversem com ele todo dia e deem 2 presentes por semana. Ele gosta de coletas (cogumelos, avelã, alho-poró, raiz-forte, narciso) e ama Inhame (plantação de outono). Evitem dar minerais. A missão da cesta de amoras dele também dá 1 coração.'}},
  {id:'aquatic',n:'Pesquisa aquática',who:'Demetrius',at:[2,1,6],t:'Pescar um Baiacu e levar para o Demetrius',d:'Baiacu: praia no verão, das 12h às 16h, em dia de sol.',r:'1.000g e 1 coração',get:c=>c.S===1&&!c.rain&&c.rodOk,prio:2},
  {id:'soldier',n:'A estrela de um soldado',who:'Kent',at:[2,1,15],t:'Levar uma Carambola para o Kent',d:'Carambola: semente no Oásis do deserto (400g), pronta em 13 dias.',r:'500g e 1 coração',get:c=>st.unl.bus&&inSeasonOrGH(c,[1]),prio:2},
  {id:'mayorNeed',n:'A necessidade do prefeito',who:'Lewis',at:[2,1,21],t:'Levar um Óleo de trufas para o Lewis',d:'Trufa do porco no gerador de óleo.',r:'750g e 1 coração',get:()=>own('oil')&&hasAnimal('pig'),prio:2},
@@ -1653,17 +1657,34 @@ function longTasks(c,now,T){
     const ar=bundleById('ar'), arLeft=bundleDone(ar)?0:ar.need-bundleCount(ar);
     const arDoable=ar.items.filter((it,i)=>!st.cc[itemKey('ar',i)] && !missing.has(it.en)).length; // já têm caminho hoje
     const treesOwned=TREES.filter(tr=>hasTree(tr.id)).length;
-    const tr=TREES.find(tr=>has(tr.en) && !hasTree(tr.id) && (tr.id==='apple'||tr.id==='pomegranate'||arDoable+treesOwned<arLeft));
+    // A muda leva 28 dias (uma estação inteira). Só vale comprar na estação anterior à da fruta:
+    // plantando antes disso a primeira fruta sai no mesmo dia, e o dinheiro fica parado à toa.
+    // Na própria estação da fruta já é tarde: só daria fruta no ano seguinte. Na estufa dá fruta o ano todo.
+    const treeTime=tr=>!!st.farm.greenhouse || c.S===(tr.s+3)%4;
+    const tr=TREES.find(tr=>has(tr.en) && !hasTree(tr.id) && treeTime(tr) && (tr.id==='apple'||tr.id==='pomegranate'||arDoable+treesOwned<arLeft));
     if(tr) out.push({...T('tree-'+tr.id,3,`Comprar e plantar uma muda de ${tr.n} no Pierre`,
-      `${tr.g.toLocaleString('pt-BR')}g. Leva 28 dias para crescer e dá fruta no ${SEASONS[tr.s].toLowerCase()}. Plantem com 1 quadrado livre em volta, longe de outras árvores. Serve para: ${missing.get(tr.en).bnames.join(', ')}.`,
+      `${tr.g.toLocaleString('pt-BR')}g. Leva 28 dias para crescer e dá fruta no ${SEASONS[tr.s].toLowerCase()}${st.farm.greenhouse?' (na estufa, o ano todo)':': plantando nesta estação, fica pronta para a próxima'}. Plantem com 1 quadrado livre em volta, longe de outras árvores. Serve para: ${missing.get(tr.en).bnames.join(', ')}.`,
       'bal',{set:[['owned.tree-'+tr.id,'have']],money:-tr.g}),shop:'pierre'});
   }
   return out;
 }
 // Missões da história que dá para fazer hoje
+// Missões que pedem amizade com alguém (ex.: entrar no quarto da Marnie) viram antes uma tarefa de ganhar os corações
+function reqMet(q){ return !q.req || ((st.hearts||{})[q.req.who]||0)>=q.req.h; }
 function questTasks(c,T){
-  return questsSoFar().filter(q=>!questDone(q) && q.get(c)).map(q=>
-    T('q-'+q.id,q.prio||2,`Missão: ${q.t}`,`${dot(q.d)}${q.grow&&!st.farm.greenhouse&&c.daysLeft<q.grow?' Não dá mais tempo de plantar nesta estação: só se tiverem guardado uma.':''} Pedido de ${q.who}. Recompensa: ${q.r}.`,'bal',{set:[['quests.'+q.id,true],...(q.set||[])]}));
+  if(!st.hearts) st.hearts={};
+  const out=[];
+  questsSoFar().filter(q=>!questDone(q)).forEach(q=>{
+    if(!reqMet(q)){
+      const r=q.req, cor=r.h===1?'1 coração':`${r.h} corações`;
+      out.push(T('qreq-'+q.id,q.prio||2,`Chegar a ${cor} com ${r.who} (para a missão: ${q.t.charAt(0).toLowerCase()+q.t.slice(1)})`,
+        `${r.why} ${r.how} Marquem quando os corações aparecerem no menu de amizades: aí a missão entra no plano.`+schedHTML(r.who,c),'bal',{set:[['hearts.'+r.who,r.h]]}));
+      return;
+    }
+    if(!q.get(c)) return;
+    out.push(T('q-'+q.id,q.prio||2,`Missão: ${q.t}`,`${dot(q.d)}${q.grow&&!st.farm.greenhouse&&c.daysLeft<q.grow?' Não dá mais tempo de plantar nesta estação: só se tiverem guardado uma.':''} Pedido de ${q.who}. Recompensa: ${q.r}.`+(SCHED[q.who]?schedHTML(q.who,c):''),'bal',{set:[['quests.'+q.id,true],...(q.set||[])]}));
+  });
+  return out;
 }
 function mineMission(p,c,cc,opts={}){
   const lvl=st.mine||0, deep=lvl>=120;
@@ -1997,12 +2018,12 @@ function renderForm(){
   {
     const chip=(attr,key,on,label,title)=>`<button type="button" class="it" ${attr}="${key}" aria-pressed="${!!on}" title="${esc(title)}">${esc(label)}</button>`;
     const an=`<div class="bundle"><div class="bundle-h"><span>Animais que temos</span><span class="cnt">${ANIMALS.filter(a=>hasAnimal(a.id)).length}/${ANIMALS.length}</span></div><div class="items">${ANIMALS.map(a=>chip('data-an',a.id,hasAnimal(a.id),a.n,`${a.why} ${a.g.toLocaleString('pt-BR')}g na Marnie.`)).join('')}</div></div>`;
-    const tr=`<div class="bundle"><div class="bundle-h"><span>Árvores frutíferas plantadas</span><span class="cnt">${TREES.filter(t=>hasTree(t.id)).length}/${TREES.length}</span></div><div class="items">${TREES.map(t=>chip('data-tree',t.id,hasTree(t.id),t.n.charAt(0).toUpperCase()+t.n.slice(1),`Muda: ${t.g.toLocaleString('pt-BR')}g no Pierre. Dá fruta no ${SEASONS[t.s].toLowerCase()}.`)).join('')}</div></div>`;
+    const tr=`<div class="bundle"><div class="bundle-h"><span>Árvores frutíferas plantadas</span><span class="cnt">${TREES.filter(t=>hasTree(t.id)).length}/${TREES.length}</span></div><div class="items">${TREES.map(t=>chip('data-tree',t.id,hasTree(t.id),t.n.charAt(0).toUpperCase()+t.n.slice(1),`Muda: ${t.g.toLocaleString('pt-BR')}g no Pierre. Dá fruta no ${SEASONS[t.s].toLowerCase()}. A muda leva 28 dias: o plano sugere comprar no ${SEASONS[(t.s+3)%4].toLowerCase()}.`)).join('')}</div></div>`;
     h+=sec('anim','Animais e árvores',`${ANIMALS.filter(a=>hasAnimal(a.id)).length} tipos de animal`,`<p class="small muted" style="margin:0">Toquem nos animais e árvores que já têm. O plano sugere comprar o que falta para o Centro Comunitário (por exemplo, o pato quando o galinheiro fica grande).</p>`+an+tr);
   }
   {
     const qs=questsSoFar(), dn=qs.filter(questDone).length;
-    const row=q=>`<button type="button" class="it" data-q="${q.id}" aria-pressed="${questDone(q)}" title="${esc(q.t+'. '+q.d+' Recompensa: '+q.r+'.')}">${esc(q.n)} <span class="it-en">${esc(q.who)}</span></button>`;
+    const row=q=>`<button type="button" class="it" data-q="${q.id}" aria-pressed="${questDone(q)}" title="${esc(q.t+'. '+q.d+(q.req?' Precisa de '+q.req.h+' corações com '+q.req.who+'.':'')+' Recompensa: '+q.r+'.')}">${esc(q.n)} <span class="it-en">${esc(q.who)}</span></button>`;
     h+=sec('quests','Missões da história',`${dn} de ${qs.length} feitas`,`<p class="small muted" style="margin:0">Missões do diário que já apareceram até hoje. Toquem nas que vocês já fizeram. As que faltam viram tarefa no plano quando der para fazer (por exemplo, a de plantação só na estação certa).</p><div class="bundle"><div class="items">${qs.map(row).join('')}</div></div>`);
   }
   h+=sec('lib','Lugares liberados',`${Object.values(u).filter(Boolean).length} de 8`,`<div class="checks">
