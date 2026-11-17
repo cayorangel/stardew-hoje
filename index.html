@@ -1374,7 +1374,11 @@ function buildPlan(){
         `Sementes de ${pl.seed}g ${pl.shop}.${st.farm.sprinklers?' Plantem dentro do alcance dos aspersores.':''} Ficam prontas em ${pl.g} dias: em ${SEASONS[ready.season]} ${ready.day} a colheita aparece aqui.`,who,{plant:rec,money:-cost}));
     });
   }
-  if(c.S===3 && !bundleDone(bundleById('wf'))) tasks.push(T('dig',2,'Cavar a terra com a enxada','Na fazenda e na floresta aparecem Raiz de Inverno e Inhame de neve, do conjunto Recursos de Inverno.'));
+  // Só Raiz de inverno (wf:0) e Inhame de neve (wf:2) saem cavando; Fruta de cristal e Flor de açafrão se coletam no chão
+  if(c.S===3 && !bundleDone(bundleById('wf'))){
+    const digMiss=[[0,'Raiz de inverno'],[2,'Inhame de neve']].filter(([i])=>!st.cc[itemKey('wf',i)]).map(x=>x[1]);
+    if(digMiss.length) tasks.push(T('dig',2,'Cavar a terra com a enxada',`Na fazenda e na floresta aparece${digMiss.length>1?'m':''} ${digMiss.join(' e ')}, do conjunto Recursos de Inverno.`));
+  }
   { const fl=Math.max(P[0].farming,P[1].farming), fi=pickFor('farming');
     if(!st.farm.sprinklers && st.farm.crops!=='nenhuma' && ((fl>=9&&st.unl.skull)||(fl>=6&&st.mine>=80))) tasks.push(T('sprink',2,fl>=9&&st.unl.skull?'Fazer aspersores de irídio':'Fazer aspersores de qualidade',
       fl>=9&&st.unl.skull?'Receita de Cultivo 9: 1 barra de ouro + 1 de irídio + 1 conjunto de pilhas. Rega 24 quadrados em volta.':'Receita de Cultivo 6: 1 barra de ferro + 1 de ouro + 1 quartzo refinado (quartzo na fornalha). Rega os 8 quadrados em volta.',fi,{set:[['farm.sprinklers',true]]})); }
