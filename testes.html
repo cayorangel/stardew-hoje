@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Testes do planejador</title>
+<style>
+  body{font:15px/1.45 system-ui,sans-serif;margin:16px;background:#fff;color:#1b1b1b}
+  @media (prefers-color-scheme:dark){body{background:#151515;color:#eee}}
+  #total{font-weight:700;margin:8px 0 12px}
+  .ok{color:#2e7d32}.falha{color:#c62828}.pulado{color:#888}
+  li{margin:2px 0}
+  iframe{width:100%;height:300px;border:1px solid #8884;margin-top:16px;pointer-events:none} /* só para ver: o app de teste não recebe toques */
+</style>
+</head>
+<body>
+<h1>Testes do planejador</h1>
+<p>Esta página abre o app em modo teste (nada é salvo nem sincronizado) e confere o comportamento. Ela não faz parte do app.</p>
+<div id="total">Rodando…</div>
+<ol id="lista"></ol>
+<iframe id="app" title="App em modo teste"></iframe>
+<script>
+// ---------- Executor ----------
+const TESTES=[];
+const NO_PC=['localhost','127.0.0.1'].includes(location.hostname);
+function teste(nome,fn,opts={}){ TESTES.push({nome,fn,opts}); }
+function ok(cond,msg){ if(!cond) throw new Error(msg||'condição falsa'); }
+function igual(a,b,msg){ if(a!==b) throw new Error((msg||'diferente')+` (esperado ${JSON.stringify(b)}, veio ${JSON.stringify(a)})`); }
+const espera=ms=>new Promise(r=>setTimeout(r,ms));
+function abrirApp(){
+  return new Promise(res=>{ const f=document.getElementById('app'); f.onload=()=>res(f.contentWindow); f.src='index.html?teste=1&r='+Date.now(); });
+}
+function mesclar(a,b){ for(const k in b){ const v=b[k]; if(v&&typeof v==='object'&&!Array.isArray(v)&&a[k]&&typeof a[k]==='object'&&!Array.isArray(a[k])) mesclar(a[k],v); else a[k]=v; } return a; }
+// Estado limpo + patch, aplicado no app
+function estado(app,patch={}){
+  const s=app.eval('normalize')({example:false});
+  mesclar(s,JSON.parse(JSON.stringify(patch)));
+  app.eval('(x=>{ st=x; st.frozen=null; commit(); })')(s);
+  return app.eval('st');
+}
+// Tarefas do dia, achatadas
+function plano(app){
+  const p=app.eval('buildPlan')();
+  const todas=[...(p.tasks||[]), ...((p.perPlayer||[]).flat()), ...((p.missions||[]).filter(Boolean).flatMap(m=>m.tasks||[]))];
+  const vistos=new Set(), out=[];
+  todas.forEach(t=>{ if(typeof t==='string') t={id:'',t}; const k=t.id?String(t.id).replace(/^m\d-/,''):'|'+t.t; if(vistos.has(k)) return; vistos.add(k); out.push({id:String(t.id||''),t:String(t.t||''),d:String(t.d||'')}); });
+  return out;
+}
+const temId=(app,re)=>plano(app).some(t=>re.test(t.id));
+
+// ---------- Tarefa 1: modo teste ----------
+const LS='sdv-hoje-v1', SYNC='sdv-hoje-v1-sync';
+teste('modo teste não toca no localStorage', async ()=>{
+  const antes=localStorage.getItem(LS);
+  localStorage.setItem(LS,'SENTINELA');
+  try{
+    const app=await abrirApp();
+    estado(app,{year:1,season:0,day:5});
+    app.eval('commit')();
+    igual(localStorage.getItem(LS),'SENTINELA','o app gravou no localStorage');
+  } finally { if(antes===null) localStorage.removeItem(LS); else localStorage.setItem(LS,antes); }
+},{soPC:true});
+teste('modo teste não sincroniza', async ()=>{
+  const antes=localStorage.getItem(SYNC);
+  localStorage.setItem(SYNC,'TESTE-0000-0000');
+  try{
+    const app=await abrirApp();
+    await espera(1500);
+    const rede=app.performance.getEntriesByType('resource').map(e=>e.name).filter(n=>/firebase|firestore/.test(n));
+    igual(rede.length,0,'o app tentou falar com o Firebase: '+rede.join(', '));
+  } finally { if(antes===null) localStorage.removeItem(SYNC); else localStorage.setItem(SYNC,antes); }
+},{soPC:true});
+teste('estado antigo carrega', async app=>{
+  const s=app.eval('normalize')({players:[{tools:{rod:3}},{}],owned:{silo:'have'}});
+  igual(s.players[0].tools.rod,3,'vara do jogador 1');
+});
+teste('plano de base gera tarefas', async app=>{
+  estado(app,{year:1,season:0,day:5});
+  ok(plano(app).length>0,'plano vazio');
+});
+
+// ---------- Estado de "fim de jogo": tudo comprado e liberado; cada teste tira só o que testa ----------
+function fimDeJogo(app,extra={}){
+  const owned={}; app.eval('BUILD').forEach(b=>owned[b.id]='have');
+  app.eval('TREES').forEach(t=>owned['tree-'+t.id]='have');
+  const animals={}; app.eval('ANIMALS').forEach(a=>animals[a.id]=true);
+  const cc={}; app.eval('ROOMS').forEach(r=>r.bundles.forEach(b=>b.items.forEach((_,i)=>cc[b.id+':'+i]=true)));
+  const tools={}; app.eval('TOOLS').forEach(([k,l,lv])=>tools[k]=lv.length-1);
+  const pl=n=>({name:n,farming:10,mining:10,foraging:10,fishing:10,combat:10,tools:{...tools},pw:{masteryFarming:true,masteryMining:true,masteryFishing:true,shortsRod:true}});
+  const base={year:3,season:0,day:11,weather:'sol',luck:'0',mine:120,owned,animals,cc,
+    players:[pl('Jogador 1'),pl('Jogador 2')],
+    farm:{coopLv:3,barnLv:3,houseLv:3,shedLv:2,furnace:true,sprinklers:true,silo:true,greenhouse:true,crops:'muitas',cave:'cogumelos'},
+    unl:{cc:true,beach:true,woods:true,bus:true,minecart:true,quarry:true,skull:true,island:true},
+    quests:{talisman:true,goblin:true},special:{rusty:true,skullkey:true}};
+  return estado(app,mesclar(base,extra));
+}
+const ids=(app,re)=>plano(app).filter(t=>re.test(t.id)).map(t=>t.id);
+
+// ---------- Tarefa 2: construções e fila de coleção ----------
+teste('moinho sugerido', async app=>{
+  fimDeJogo(app,{owned:{mill:'want'}});
+  ok(temId(app,/^build-mill$/),'sem build-mill: '+ids(app,/./).join(','));
+});
+teste('coleção espera prioridade', async app=>{
+  fimDeJogo(app,{owned:{mill:'want',clock:'want'}});
+  ok(temId(app,/^build-mill$/),'sem build-mill');
+  igual(ids(app,/^col-/).length,0,'apareceu coleção junto com prioridade');
+});
+teste('uma coleção por dia', async app=>{
+  fimDeJogo(app,{owned:{clock:'want',obEarth:'want',well:'want',petbowl:'want'}});
+  igual(ids(app,/^col-/).length,1,'coleções no dia: '+ids(app,/^col-/).join(','));
+});
+teste('nunca mais de 2 construções', async app=>{
+  const owned={}; app.eval('BUILD').forEach(b=>owned[b.id]='want');
+  fimDeJogo(app,{owned,farm:{coopLv:0,barnLv:0,shedLv:0}});
+  ok(ids(app,/^build-/).length<=2,'construções no dia: '+ids(app,/^build-/).join(','));
+  igual(ids(app,/^col-/).length,0,'coleção junto com construções');
+});
+teste('não queremos some', async app=>{
+  fimDeJogo(app,{owned:{clock:'no'}});
+  igual(ids(app,/clock/).length,0,'relógio apareceu');
+});
+teste('obelisco sem a missão', async app=>{
+  fimDeJogo(app,{owned:{obEarth:'want'},quests:{goblin:false}});
+  igual(ids(app,/obEarth/).length,0,'obelisco apareceu sem a missão Caminho bloqueado');
+});
+teste('passo da missão do Feiticeiro', async app=>{
+  fimDeJogo(app,{owned:{obEarth:'want'},quests:{goblin:false}});
+  ok(temId(app,/^col-step-goblin$/),'sem o passo Caminho bloqueado: '+ids(app,/^col-/).join(','));
+});
+teste('níveis corrigidos (torneirinha 4, carvoaria 2)', async app=>{
+  const B=app.eval('BUILD');
+  igual(B.find(b=>b.id==='tapper').sk[1],4,'torneirinha');
+  igual(B.find(b=>b.id==='kiln').sk[1],2,'carvoaria');
+});
+teste('construções da 1.6 no catálogo', async app=>{
+  const en=new Set(app.eval('BUILD').map(b=>b.en));
+  ['Mill','Well','Slime Hutch','Pet Bowl','Earth Obelisk','Water Obelisk','Desert Obelisk','Island Obelisk','Junimo Hut','Gold Clock'].forEach(n=>ok(en.has(n),'falta '+n));
+});
+
+// Muda o estado atual do app e recalcula
+function ajusta(app,fn){ const s=app.eval('st'); fn(s); s.frozen=null; app.eval('commit')(); }
+const tarefa=(app,id)=>plano(app).find(t=>t.id===id);
+
+// ---------- Tarefa 3: máquinas e Pedidos Especiais ----------
+teste('nomes do jogo nas construções novas', async app=>{
+  const B=app.eval('BUILD'), n=id=>B.find(b=>b.id===id).n;
+  igual(n('hutch'),'Casa de Gosmas'); igual(n('petbowl'),'Tigela para Animal'); igual(n('junimo'),'Cabana dos Junimos');
+});
+teste('minhocário com pesca 4', async app=>{
+  fimDeJogo(app,{owned:{wormBin:'want'}});
+  ajusta(app,s=>s.players.forEach(p=>p.fishing=4));
+  ok(temId(app,/^build-wormBin$/),'sem build-wormBin');
+});
+teste('sem pesca 4 não aparece', async app=>{
+  fimDeJogo(app,{owned:{wormBin:'want'}});
+  ajusta(app,s=>s.players.forEach(p=>p.fishing=3));
+  igual(ids(app,/wormBin/).length,0,'minhocário apareceu');
+});
+teste('qi e escritório nunca sugeridos', async app=>{
+  fimDeJogo(app,{owned:{ostrichInc:'want',heavyTapper:'want'}});
+  igual(ids(app,/ostrichInc|heavyTapper/).length,0,'apareceu');
+});
+teste('barril de madeira só com porão', async app=>{
+  fimDeJogo(app,{owned:{cask:'want'},farm:{houseLv:2}});
+  igual(ids(app,/cask/).length,0,'apareceu sem porão');
+  ajusta(app,s=>s.farm.houseLv=3);
+  ok(temId(app,/^build-cask$/),'não apareceu com porão');
+});
+teste('receita de loja: comprar e depois fazer', async app=>{
+  fimDeJogo(app,{owned:{smoker:'want'}});
+  const r=tarefa(app,'build-smoker-recipe'); ok(r,'sem compra da receita'); ok(/10\.000g/.test(r.d)&&/Peixaria/.test(r.t+r.d),'texto: '+r.t+' '+r.d);
+  ajusta(app,s=>s.owned.smoker='recipe');
+  ok(temId(app,/^build-smoker$/),'sem fazer o defumador depois da receita');
+});
+teste('máquinas da wiki todas no catálogo', async app=>{
+  const en=new Set(app.eval('BUILD').map(b=>b.en));
+  ['Mayonnaise Machine','Bee House','Preserves Jar','Cheese Press','Loom','Keg','Oil Maker','Cask','Fish Smoker','Dehydrator','Charcoal Kiln','Crystalarium','Heavy Furnace','Lightning Rod','Solar Panel','Recycling Machine','Seed Maker','Slime Incubator','Ostrich Incubator','Slime Egg-Press','Tapper','Heavy Tapper','Worm Bin','Deluxe Worm Bin','Bone Mill','Geode Crusher','Mushroom Log','Bait Maker'].forEach(n=>ok(en.has(n),'falta '+n));
+});
+const SO={owned:{geodeCrusher:'want',boneMill:'want',solar:'want'},unl:{island:false}};
+teste('quadro na segunda', async app=>{
+  fimDeJogo(app,mesclar({year:1,season:2,day:8,soSeen:-1},JSON.parse(JSON.stringify(SO))));
+  const t=tarefa(app,'so-board'); ok(t,'sem so-board');
+  ok(/Patrulha da Caverna/.test(t.d)&&/Fragmentos do Passado/.test(t.d),'faltam pedidos: '+t.d);
+  ok(!/Ingredientes da Ilha/.test(t.d),'Ingredientes da Ilha sem a ilha');
+  ajusta(app,s=>s.unl.island=true);
+  ok(/Ingredientes da Ilha/.test(tarefa(app,'so-board').d),'Ingredientes da Ilha com a ilha');
+});
+teste('quadro persiste', async app=>{
+  fimDeJogo(app,mesclar({year:1,season:2,day:10,soSeen:-1},JSON.parse(JSON.stringify(SO))));
+  ok(tarefa(app,'so-board'),'sumiu na quarta sem marcar');
+});
+teste('quadro marcado some até a próxima segunda', async app=>{
+  const seg=app.eval('absDay')({year:1,season:2,day:8});
+  fimDeJogo(app,mesclar({year:1,season:2,day:10,soSeen:seg},JSON.parse(JSON.stringify(SO))));
+  ok(!tarefa(app,'so-board'),'apareceu depois de marcado');
+  ajusta(app,s=>s.day=15);
+  ok(tarefa(app,'so-board'),'não voltou na segunda seguinte');
+});
+teste('antes do outono 2 não aparece', async app=>{
+  fimDeJogo(app,mesclar({year:1,season:1,day:8,soSeen:-1},JSON.parse(JSON.stringify(SO))));
+  ok(!tarefa(app,'so-board'),'apareceu no verão do ano 1');
+});
+teste('receita libera a máquina', async app=>{
+  fimDeJogo(app,mesclar({year:1,season:2,day:8,soSeen:-1},JSON.parse(JSON.stringify(SO))));
+  igual(ids(app,/^build-geodeCrusher$/).length,0,'esmagador sem receita');
+  ajusta(app,s=>s.owned.geodeCrusher='recipe');
+  ok(!/Patrulha da Caverna/.test((tarefa(app,'so-board')||{d:''}).d),'pedido continua na lista');
+  ok(temId(app,/^build-geodeCrusher$/),'esmagador não sugerido com receita');
+});
+teste('sem pedidos pendentes não aparece', async app=>{
+  fimDeJogo(app,{year:1,season:2,day:8,soSeen:-1,owned:{geodeCrusher:'recipe',boneMill:'no',solar:'recipe'}});
+  ok(!tarefa(app,'so-board'),'apareceu sem pedidos pendentes');
+});
+
+// ---------- Tarefa 4: ferramentas e short do Lewis ----------
+teste('estado antigo sem campos novos', async app=>{
+  const s=app.eval('normalize')({players:[{tools:{rod:2}},{tools:{}}]});
+  [0,1].forEach(i=>{ igual(s.players[i].tools.trash,0,'lata '+i); igual(s.players[i].tools.pan,0,'bateia '+i); igual(s.players[i].tools.scythe,0,'foice '+i); });
+  igual(s.players[0].tools.rod,2,'vara mantida');
+});
+teste('vara 4 só depois da maestria', async app=>{
+  fimDeJogo(app); ajusta(app,s=>{ s.players[0].tools.rod=3; s.players[0].pw.masteryFishing=false; });
+  ok(temId(app,/^col-mastery-fishing-0$/),'sem passo da maestria de Pesca: '+ids(app,/^col-/).join(','));
+  igual(ids(app,/^rod4/).length,0,'vara avançada antes da maestria');
+  ajusta(app,s=>s.players[0].pw.masteryFishing=true);
+  const t=tarefa(app,'rod4-0'); ok(t,'sem rod4-0'); ok(/25\.000g/.test(t.t+t.d),'preço: '+t.t);
+});
+teste('lata de lixo não passa na frente das ferramentas', async app=>{
+  fimDeJogo(app); ajusta(app,s=>{ s.players[0].tools.trash=0; s.players[0].tools.hoe=0; });
+  ok(temId(app,/^upg-0-hoe-1$/),'sem melhoria da enxada');
+  igual(ids(app,/trash/).length,0,'lata de lixo apareceu junto');
+});
+teste('lata de lixo é coleção', async app=>{
+  fimDeJogo(app); ajusta(app,s=>{ s.players[0].tools.trash=0; });
+  ok(temId(app,/^col-upgtrash-0-1$/),'sem melhoria da lata: '+ids(app,/./).join(','));
+});
+teste('bateia depois do Aquário', async app=>{
+  fimDeJogo(app); ajusta(app,s=>{ s.players[0].tools.pan=0; });
+  ok(temId(app,/^col-step-pan$/),'sem passo da bateia: '+ids(app,/^col-/).join(','));
+});
+teste('melhoria da bateia no Clint', async app=>{
+  fimDeJogo(app); ajusta(app,s=>{ s.players[0].tools.pan=1; });
+  const t=tarefa(app,'upg-0-pan-2'); ok(t,'sem melhoria da bateia'); ok(/5\.000g/.test(t.d),'custo: '+t.d);
+});
+teste('seção mostra 5 níveis de vara', async app=>{
+  fimDeJogo(app);
+  igual(app.document.getElementById('t0-rod').options.length,5,'opções da vara');
+});
+teste('short na vara avançada', async app=>{
+  fimDeJogo(app); ajusta(app,s=>{ s.players[0].pw.shortsRod=false; });
+  const t=tarefa(app,'tool-shorts-0'); ok(t,'sem tool-shorts-0'); ok(/Escadaria/.test(t.d),'texto: '+t.d);
+  ajusta(app,s=>{ s.players[0].pw.shortsRod=true; });
+  ok(!tarefa(app,'tool-shorts-0'),'continua depois de marcado');
+  ajusta(app,s=>{ s.players[0].pw.shortsRod=false; s.players[0].tools.rod=3; });
+  ok(!tarefa(app,'tool-shorts-0'),'apareceu com vara 3');
+});
+teste('sem sugestão do short ornado', async app=>{
+  fimDeJogo(app); ajusta(app,s=>{ s.players.forEach(p=>p.pw.shortsRod=false); });
+  igual(ids(app,/shortsGold/).length,0,'short ornado sugerido');
+});
+
+// ---------- Tarefa 5: animais, árvores e itens dos animais ----------
+teste('dinossauro vira passo', async app=>{
+  fimDeJogo(app,{animals:{dino:false}});
+  const t=tarefa(app,'col-animal-dino'); ok(t,'sem passo do dinossauro: '+ids(app,/^col-/).join(',')); ok(/Ovo de Dinossauro/.test(t.t+t.d),'texto: '+t.t);
+});
+teste('dinossauro não queremos', async app=>{
+  fimDeJogo(app,{animals:{dino:false},owned:{'an-dino':'no'}});
+  igual(ids(app,/dino/).length,0,'dinossauro apareceu');
+});
+teste('banana só com a ilha', async app=>{
+  fimDeJogo(app,{owned:{'tree-banana':'want'},unl:{island:false}});
+  igual(ids(app,/banana/).length,0,'banana sem a ilha');
+  ajusta(app,s=>s.unl.island=true);
+  ok(temId(app,/^col-tree-banana$/),'banana com a ilha: '+ids(app,/^col-/).join(','));
+});
+teste('balde de leite com vaca', async app=>{
+  fimDeJogo(app,{owned:{pail:'want'}});
+  ok(temId(app,/^build-pail$/),'sem balde de leite');
+});
+teste('avestruz precisa da incubadora', async app=>{
+  fimDeJogo(app,{animals:{ostrich:false},owned:{ostrichInc:'want'}});
+  igual(ids(app,/ostrich/).length,0,'avestruz sem incubadora');
+});
+teste('vaca que não cobre o Centro vira coleção', async app=>{
+  fimDeJogo(app,{animals:{goat:false}});
+  ok(temId(app,/^col-animal-goat$/),'sem coleção da cabra: '+ids(app,/./).join(','));
+});
+teste('seção conta animais', async app=>{
+  fimDeJogo(app);
+  ok(/\/12</.test(app.document.body.innerHTML)||/12 tipos|de 12/.test(app.document.body.textContent),'contador de 12 animais');
+  igual(app.eval('ANIMALS').length,12,'animais no catálogo');
+});
+
+// ---------- Tarefa 6: contadores ----------
+const resumo=(app,id)=>(app.document.querySelector(`[data-sec="${id}"] .sum`)||{}).textContent||'';
+teste('resumo de construções', async app=>{
+  // O Centro completo do fim de jogo marca as recompensas como "Já temos"; por isso compara antes e depois
+  const owned={}; app.eval('BUILD').forEach(b=>owned[b.id]='want');
+  fimDeJogo(app,{owned});
+  const total=app.eval('BUILD').filter(b=>b.id!=='coop'&&b.id!=='barn').length;
+  const m=resumo(app,'build').match(/^(\d+) de (\d+)$/); ok(m,'formato: '+resumo(app,'build'));
+  igual(+m[2],total,'total do catálogo');
+  ajusta(app,s=>s.owned.clock='have');
+  igual(+resumo(app,'build').match(/^(\d+)/)[1],+m[1]+1,'não contou o item marcado');
+});
+teste('resumo de ferramentas', async app=>{
+  fimDeJogo(app);
+  ok(/9 de 9/.test(resumo(app,'eq')),'resumo: '+resumo(app,'eq'));
+  ajusta(app,s=>s.players[1].tools.rod=3);
+  ok(/8 de 9/.test(resumo(app,'eq')),'resumo com vara 3: '+resumo(app,'eq'));
+});
+teste('resumo de animais', async app=>{
+  fimDeJogo(app);
+  ok(/12 de 12/.test(resumo(app,'anim')),'resumo: '+resumo(app,'anim'));
+});
+
+// ---------- Revisão final: correções ----------
+teste('modo teste isola armazenamento e sincronização', async ()=>{
+  const antes=localStorage.getItem(SYNC);
+  const app=await abrirApp();
+  try{
+    app.localStorage.setItem(SYNC,'VAZOU'); app.sessionStorage.setItem('sdv-hoje-v1-tab','VAZOU');
+    igual(localStorage.getItem(SYNC),antes,'o iframe gravou o código de sincronização real');
+    const r=await app.eval('syncStart')('TESTE-1111-1111','join');
+    await espera(800);
+    const rede=app.performance.getEntriesByType('resource').map(e=>e.name).filter(n=>/firebase|firestore/.test(n));
+    igual(rede.length,0,'syncStart falou com o Firebase');
+  } finally { if(localStorage.getItem(SYNC)!==antes){ if(antes===null) localStorage.removeItem(SYNC); else localStorage.setItem(SYNC,antes); } }
+},{soPC:true});
+teste('app de teste não recebe toques', async ()=>{
+  igual(getComputedStyle(document.getElementById('app')).pointerEvents,'none','iframe aceita toques');
+});
+teste('coleção muda de um dia para o outro', async app=>{
+  fimDeJogo(app,{owned:{well:'want',petbowl:'want',clock:'want'}});
+  const a=ids(app,/^col-/)[0];
+  ajusta(app,s=>s.day=12);
+  const b=ids(app,/^col-/)[0];
+  ok(a&&b&&a!==b,`mesma coleção nos dois dias: ${a} / ${b}`);
+});
+teste('galinha azul só depois dos corações do Shane', async app=>{
+  fimDeJogo(app,{animals:{chickenBlue:false}});
+  igual(ids(app,/chickenBlue/).length,0,'galinha azul sem os corações');
+  ajusta(app,s=>{ s.hearts=s.hearts||{}; s.hearts.Shane=8; });
+  ok(temId(app,/^col-animal-chickenBlue$/),'galinha azul com 8 corações');
+});
+teste('galinha dourada e auto-acariciador nunca sugeridos', async app=>{
+  fimDeJogo(app,{animals:{chickenGold:false},owned:{autoPet:'want'}});
+  igual(ids(app,/chickenGold|autoPet/).length,0,'apareceu');
+});
+teste('passo da missão grava ao marcar', async app=>{
+  fimDeJogo(app,{owned:{obEarth:'want'},quests:{goblin:false}});
+  const t=app.eval('buildPlan')().tasks.find(x=>x.id==='col-step-goblin');
+  ok(t&&t.fx&&(t.fx.set||[]).some(([k,v])=>k==='quests.goblin'&&v===true),'o passo não marca a missão');
+});
+teste('árvore tem Não queremos', async app=>{
+  fimDeJogo(app,{owned:{'tree-banana':'want'}});
+  const b=app.document.querySelector('[data-trs="banana:no"]'); ok(b,'sem botão Não queremos na banana');
+  b.click(); igual(app.eval('st').owned['tree-banana'],'no','não gravou');
+});
+teste('lata de lixo espera ferramenta usada hoje', async app=>{
+  fimDeJogo(app); ajusta(app,s=>{ s.players[0].tools.hoe=0; s.players[0].tools.trash=0; });
+  app.__orig=app.eval('toolUsedToday'); app.eval('toolUsedToday=()=>true');
+  try{ igual(ids(app,/trash/).length,0,'lata de lixo no lugar da enxada'); }
+  finally{ app.eval('toolUsedToday=window.__orig'); }
+});
+teste('receita de loja com artigo certo', async app=>{
+  fimDeJogo(app,{owned:{dehydrator:'want'}});
+  const t=tarefa(app,'build-dehydrator-recipe'); ok(t&&/no Armazém do Pierre/.test(t.t),'título: '+(t&&t.t));
+});
+teste('títulos em minúsculas', async app=>{
+  fimDeJogo(app,{owned:{solar:'recipe'}});
+  const t=tarefa(app,'build-solar'); ok(t&&/Fazer painel solar/.test(t.t),'título: '+(t&&t.t));
+});
+teste('recompensa da Forragem marca o aquecedor', async app=>{
+  fimDeJogo(app,{owned:{heater:'want'}});
+  igual(app.eval('st').owned.heater,'have','aquecedor não marcado');
+});
+
+// ---------- Rodar ----------
+(async function rodar(){
+  const lista=document.getElementById('lista'); let pass=0, run=0, pul=0;
+  let app=await abrirApp();
+  for(const t of TESTES){
+    const li=document.createElement('li'); lista.appendChild(li);
+    if(t.opts.soPC && !NO_PC){ pul++; li.className='pulado'; li.textContent=`pulado (só no computador): ${t.nome}`; continue; }
+    run++;
+    try{ await t.fn(app); pass++; li.className='ok'; li.textContent='ok: '+t.nome; }
+    catch(e){ li.className='falha'; li.textContent=`FALHA: ${t.nome} — ${e.message}`; }
+    if(t.opts.soPC) app=await abrirApp();
+  }
+  const el=document.getElementById('total');
+  el.textContent=`TOTAL: ${pass} de ${run}${pul?` (${pul} pulados)`:''} — ${pass===run?'tudo ok':'FALHAS'}`;
+  el.className=pass===run?'ok':'falha';
+})();
+</script>
+</body>
+</html>

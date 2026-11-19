@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Conferidor do catálogo</title>
+<style>
+  :root{--ok:#2e7d32;--erro:#c62828;--aviso:#a15c00;--linha:#8884}
+  body{font:15px/1.45 system-ui,sans-serif;margin:16px;background:#fff;color:#1b1b1b;max-width:900px}
+  @media (prefers-color-scheme:dark){body{background:#151515;color:#eee}:root{--ok:#7bc67e;--erro:#ff8a80;--aviso:#ffb74d}}
+  h2{margin:24px 0 6px;font-size:1.1rem}
+  .faixa{padding:8px 10px;border-radius:6px;margin:6px 0;font-weight:600}
+  .faixa.erro{background:#c628281a;color:var(--erro);border:1px solid var(--erro)}
+  .faixa.ok{background:#2e7d321a;color:var(--ok);border:1px solid var(--ok)}
+  .grupo{margin:4px 0}.grupo b{display:inline-block;min-width:9em}
+  .falta{color:var(--erro)}.so{color:var(--aviso)}
+  table{border-collapse:collapse;margin:6px 0;font-size:.9rem;width:100%}
+  td,th{border-bottom:1px solid var(--linha);padding:3px 6px;text-align:left;vertical-align:top}
+  .muted{opacity:.7;font-size:.9rem}
+  iframe{display:none}
+</style>
+</head>
+<body>
+<h1>Conferidor do catálogo</h1>
+<p class="muted">Compara as listas do app com a Stardew Valley Wiki (versão 1.6). Esta página não faz parte do app. Ela abre o app em modo teste, sem salvar nada.</p>
+<div id="geral" class="faixa">Conferindo…</div>
+<div id="saida"></div>
+<p class="muted" id="rodape"></p>
+<iframe id="app" title="App em modo teste"></iframe>
+<script>
+// ---------- Configuração ----------
+const API='https://stardewvalleywiki.com/mediawiki/api.php';
+const SIMULAR=new URLSearchParams(location.search).get('simular')||'';
+const SIMULAR_VAZIO=SIMULAR==='vazio';
+// ?simular=parcial: só a página da Robin volta vazia (testa leitura parcial)
+const VAZIA_PARCIAL=SIMULAR==='parcial'?["Carpenter's_Shop"]:[];
+// Itens da wiki que ficam fora do catálogo de propósito (com o motivo)
+const IGNORADOS={
+  'Cabin':'cabana de jogador não é meta de coleção',
+  'Shipping Bin':'caixa de envio: todo jogo começa com uma',
+  'Training Rod':'vara de treino não é degrau da escada de varas',
+  'Furnace':'fornalha conta pela caixa "Temos fornalha" da aba Fazenda',
+  'Farm Obelisk':'Obelisco da Fazenda fica fora do catálogo (decisão do projeto)',
+  'White Cow':'cores de vaca: só muda a aparência','Brown Cow':'cores de vaca: só muda a aparência'
+};
+// Itens do app que a wiki não lista em tabela (estão só no texto), com o motivo
+const SO_NO_SITE_OK={
+  'Blue Chicken':'variante descrita no texto da página Animals, sem linha própria na tabela; a wiki pt redireciona para Galinha'
+};
+// Nomes da wiki que equivalem a um item do app
+const ALIAS={'White Chicken':'Chicken','Brown Chicken':'Chicken','Backpack':'Backpack','Large Pack':'Large Pack','Deluxe Pack':'Deluxe Pack'};
+const limpa=s=>String(s||'').replace(/\[[^\]]*\]/g,'').replace(/\s*\([^)]*\)\s*$/,'').replace(/\s+/g,' ').trim();
+
+// ---------- Busca na wiki ----------
+async function pagina(titulo){
+  if(SIMULAR_VAZIO||VAZIA_PARCIAL.includes(titulo)) return new DOMParser().parseFromString('<div></div>','text/html');
+  let r;
+  try{ r=await fetch(`${API}?action=parse&page=${encodeURIComponent(titulo)}&prop=text&format=json&redirects=1&origin=*`); }
+  catch(e){ throw new Error(`não deu para acessar a wiki (${e.message})`); }
+  const txt=await r.text();
+  let j; try{ j=JSON.parse(txt); }catch(e){ throw new Error(`a wiki não devolveu dados (resposta ${r.status}; pode ser bloqueio de verificação do navegador)`); }
+  if(!j.parse) throw new Error(`a página "${titulo}" não existe ou mudou de nome`);
+  return new DOMParser().parseFromString(j.parse.text['*'],'text/html');
+}
+// Tabelas que ficam sob um título (até o próximo título)
+function tabelasDaSecao(doc,titulo){
+  const h=[...doc.querySelectorAll('h2,h3,h4')].find(x=>limpa(x.textContent)===titulo);
+  if(!h) return [];
+  const ini=h.closest('.mw-heading')||h, out=[];
+  for(let e=ini.nextElementSibling;e;e=e.nextElementSibling){
+    if(/^H[234]$/.test(e.tagName)||e.classList.contains('mw-heading')) break;
+    if(e.tagName==='TABLE') out.push(e); else out.push(...e.querySelectorAll('table'));
+  }
+  return out;
+}
+// Cada página/seção precisa trazer um mínimo de itens; abaixo disso é sinal de que a wiki mudou de formato
+function exige(lista,min,onde){ if(lista.length<min) throw new Error(`"${onde}" voltou com ${lista.length} item(ns), esperado pelo menos ${min}: a página pode ter mudado de formato`); return lista; }
+// Segunda coluna de cada linha (a primeira costuma ser a imagem)
+function nomes(tabelas,minCel=3){
+  const out=[];
+  tabelas.forEach(t=>t.querySelectorAll('tr').forEach(r=>{ const c=r.children; if(c.length<minCel) return; const n=limpa(c[1]&&c[1].textContent); if(n&&n!=='Name'&&n.length<40) out.push(n); }));
+  return [...new Set(out)];
+}
+
+// ---------- Fontes por categoria ----------
+const FONTES={
+  'Construções':{fonte:"Carpenter's Shop e Wizard's Tower",async lerWiki(){
+    const a=await pagina("Carpenter's_Shop");
+    const t=[...a.querySelectorAll('table')].find(x=>/Construction Time/.test(x.querySelector('tr')?.textContent||''));
+    const robin=exige(t?nomes([t]):[],10,"Carpenter's Shop");
+    const b=await pagina("Wizard's_Tower");
+    const wiz=[...b.querySelectorAll('table tr')].filter(r=>r.children.length>=3).map(r=>limpa(r.children[1]&&r.children[1].textContent)).filter(n=>/Obelisk|Junimo Hut|Gold Clock/.test(n));
+    return [...robin,...exige([...new Set(wiz)],6,"Wizard's Tower")];
+  },doApp(A){ return [...A.BUILD.filter(b=>b.robin||b.wizard).map(b=>b.en),...A.LEVELED.flatMap(L=>L.en||[])]; }},
+  'Máquinas':{fonte:'Crafting (Artisan Equipment e Refining Equipment)',async lerWiki(){
+    const d=await pagina('Crafting');
+    return [...exige(nomes(tabelasDaSecao(d,'Artisan Equipment'),4),8,'Crafting: Artisan Equipment'),...exige(nomes(tabelasDaSecao(d,'Refining Equipment'),4),12,'Crafting: Refining Equipment')];
+  },doApp(A){ return A.BUILD.filter(b=>!b.robin&&!b.wizard&&!b.shop).map(b=>b.en); }},
+  'Ferramentas e itens':{fonte:'Tools (seções de cada ferramenta e Other Tools)',async lerWiki(){
+    const d=await pagina('Tools');
+    return ['Hoes','Pickaxes','Axes','Watering Cans','Trash Cans','Fishing Poles','Pans','Other Tools'].flatMap(s=>exige(nomes(tabelasDaSecao(d,s),2),s==='Other Tools'?5:3,'Tools: '+s));
+  },doApp(A){ return [...A.TOOLS.flatMap(t=>(t[3]||[]).filter(Boolean)),...A.BUILD.filter(b=>b.shop).map(b=>b.en)]; }},
+  'Animais':{fonte:'Animals (Chickens a Ostriches)',async lerWiki(){
+    const d=await pagina('Animals');
+    return ['Chickens','Ducks','Rabbits','Dinosaurs','Cows','Goats','Sheep','Pigs','Ostriches'].flatMap(s=>exige(nomes(tabelasDaSecao(d,s)),1,'Animals: '+s));
+  },doApp(A){ return A.ANIMALS.map(a=>a.en); }},
+  'Árvores frutíferas':{fonte:'Fruit Trees',async lerWiki(){
+    const d=await pagina('Fruit_Trees');
+    return exige([...new Set([...d.querySelectorAll('table td, table th')].map(c=>limpa(c.textContent)).filter(n=>/^[A-Z][a-z]+ Sapling$/.test(n)).map(n=>n.replace(/ Sapling$/,'')))],6,'Fruit Trees');
+  },doApp(A){ return A.TREES.map(t=>t.en); }}
+};
+
+// ---------- Nomes em português (langlinks da wiki em inglês) ----------
+async function nomesPt(ens){
+  const out={};
+  for(let i=0;i<ens.length;i+=50){
+    const lote=ens.slice(i,i+50);
+    const r=await fetch(`${API}?action=query&redirects=1&prop=langlinks&lllang=pt&lllimit=500&format=json&origin=*&titles=${encodeURIComponent(lote.join('|'))}`);
+    const j=JSON.parse(await r.text());
+    const norm={},red={},por={}; (j.query.normalized||[]).forEach(x=>norm[x.from]=x.to); (j.query.redirects||[]).forEach(x=>red[x.from]=x.to);
+    Object.values(j.query.pages).forEach(p=>por[p.title]=(p.langlinks||[])[0]?.['*']||null);
+    lote.forEach(en=>{ let t=norm[en]||en; t=red[t]||t; out[en]=por[t]??null; });
+  }
+  return out;
+}
+
+// ---------- Execução ----------
+function abrirApp(){ return new Promise(res=>{ const f=document.getElementById('app'); f.onload=()=>res(f.contentWindow); f.src='index.html?teste=1&r='+Date.now(); }); }
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+(async function conferir(){
+  const saida=document.getElementById('saida'), geral=document.getElementById('geral');
+  let app; try{ app=await abrirApp(); }catch(e){ geral.className='faixa erro'; geral.textContent='Erro: não deu para abrir o app.'; return; }
+  const A={}; ['BUILD','LEVELED','ANIMALS','TREES','TOOLS'].forEach(k=>A[k]=app.eval(k));
+  let erros=0, faltas=0, sobras=0, difPt=0;
+  for(const [cat,F] of Object.entries(FONTES)){
+    let html=`<h2>${esc(cat)}</h2><div class="muted">Fonte: ${esc(F.fonte)}</div>`;
+    try{
+      const wiki=(await F.lerWiki()).map(n=>ALIAS[n]||n);
+      if(wiki.length<3) throw new Error(`a fonte "${F.fonte}" voltou sem dados`);
+      const site=new Set(F.doApp(A).filter(Boolean));
+      const wikiSet=new Set(wiki);
+      const falta=[...wikiSet].filter(n=>!site.has(n)&&!IGNORADOS[n]);
+      const so=[...site].filter(n=>!wikiSet.has(n)&&!SO_NO_SITE_OK[n]);
+      const soOk=[...site].filter(n=>!wikiSet.has(n)&&SO_NO_SITE_OK[n]);
+      const ign=[...wikiSet].filter(n=>IGNORADOS[n]);
+      const okN=[...site].filter(n=>wikiSet.has(n)).length;
+      faltas+=falta.length; sobras+=so.length;
+      html+=`<div class="grupo falta"><b>Falta no site (${falta.length}):</b> ${falta.map(esc).join(', ')||'nada'}</div>`;
+      html+=`<div class="grupo so"><b>Só no site (${so.length}):</b> ${so.map(esc).join(', ')||'nada'}</div>`;
+      html+=`<div class="grupo"><b>Ok:</b> ${okN}</div>`;
+      if(soOk.length) html+=`<div class="muted">No site de propósito, sem linha na wiki: ${soOk.map(n=>`${esc(n)} (${esc(SO_NO_SITE_OK[n])})`).join('; ')}</div>`;
+      if(ign.length) html+=`<div class="muted">Ignorados de propósito: ${ign.map(n=>`${esc(n)} (${esc(IGNORADOS[n])})`).join('; ')}</div>`;
+    }catch(e){ erros++; html+=`<div class="faixa erro">Erro: ${esc(e.message)}</div>`; }
+    saida.insertAdjacentHTML('beforeend',html);
+  }
+  // Nomes em português: site × wiki pt
+  let htmlPt='<h2>Nomes em português (site × jogo)</h2>';
+  try{
+    if(SIMULAR_VAZIO) throw new Error('modo de simulação: nomes não conferidos');
+    const itens=[...A.BUILD.map(b=>({en:b.en,n:b.n})),...A.ANIMALS.map(a=>({en:a.en,n:a.n})),...A.TREES.map(t=>({en:t.en,n:t.n}))].filter(x=>x.en);
+    const pt=await nomesPt([...new Set(itens.map(x=>x.en))]);
+    const dif=itens.filter(x=>pt[x.en]&&!SO_NO_SITE_OK[x.en]&&pt[x.en].toLowerCase()!==x.n.toLowerCase());
+    const sem=itens.filter(x=>!pt[x.en]);
+    difPt=dif.length;
+    htmlPt+=dif.length?`<table><tr><th>Inglês</th><th>No site</th><th>No jogo (wiki pt)</th></tr>${dif.map(x=>`<tr><td>${esc(x.en)}</td><td>${esc(x.n)}</td><td>${esc(pt[x.en])}</td></tr>`).join('')}</table>`:'<div class="grupo">Todos iguais (sem contar maiúsculas).</div>';
+    if(sem.length) htmlPt+=`<div class="muted">Sem página na wiki pt (não conferidos): ${sem.map(x=>esc(x.n)).join(', ')}</div>`;
+  }catch(e){ erros++; htmlPt+=`<div class="faixa erro">Erro: ${esc(e.message)}</div>`; }
+  saida.insertAdjacentHTML('beforeend',htmlPt);
+  if(erros){ geral.className='faixa erro'; geral.textContent=`Erro: ${erros} fonte(s) não puderam ser conferidas. O resultado está incompleto.`; }
+  else if(faltas||sobras||difPt){ geral.className='faixa erro'; geral.textContent=[faltas&&`Faltam ${faltas} item(ns) no site.`,sobras&&`${sobras} item(ns) do site não aparecem na wiki (nome errado, item removido ou leitura incompleta).`,difPt&&`${difPt} nome(s) em português diferente(s) do jogo.`].filter(Boolean).join(' '); }
+  else { geral.className='faixa ok'; geral.textContent='Tudo certo: nada da wiki falta no site.'; }
+  document.getElementById('rodape').textContent=`Conferido em ${new Date().toLocaleString('pt-BR')}. Fonte: ${API.replace('/mediawiki/api.php','')}`;
+})();
+</script>
+</body>
+</html>

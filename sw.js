@@ -24,6 +24,9 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
 
+  // Páginas de apoio (testes e conferidor) não fazem parte do app: nunca entram no cache
+  if (/\/(testes|conferir)\.html$/.test(url.pathname) || url.searchParams.has('teste')) return;
+
   // Página: rede primeiro, cópia guardada se cair
   if (req.mode === 'navigate') {
     e.respondWith(
