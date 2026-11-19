@@ -379,6 +379,59 @@ teste('recompensa da Forragem marca o aquecedor', async app=>{
   igual(app.eval('st').owned.heater,'have','aquecedor não marcado');
 });
 
+// ---------- Desbloqueáveis: recompensas dos Pedidos Especiais ----------
+teste('todo desbloqueável tem categoria', async app=>{
+  const cats=app.eval('CATS').map(c=>c[0]);
+  app.eval('BUILD').filter(b=>b.id!=='coop'&&b.id!=='barn').forEach(b=>ok(cats.includes(b.cat),'sem categoria: '+b.id));
+});
+teste('recompensas dos pedidos especiais no catálogo', async app=>{
+  const en=new Set(app.eval('BUILD').map(b=>b.en));
+  ['Stone Chest','Deluxe Red Double Bed','Farm Computer','Sewing Machine','Coffee Maker','Mini-Fridge','Mini-Shipping Bin','Fiber Seeds','Quality Bobber','Deluxe Fish Tank','Mini-Obelisk','Monster Musk','F.I.B.S. TV Channel'].forEach(n=>ok(en.has(n),'falta '+n));
+});
+teste('item pronto nunca vira tarefa de fazer', async app=>{
+  fimDeJogo(app,{owned:{coffeeMaker:'want',miniFridge:'want',fishTank:'want',bedRed:'want',fibs:'want',sewing:'want',miniBin:'want'}});
+  igual(ids(app,/^(build|col)-(coffeeMaker|miniFridge|fishTank|bedRed|fibs|sewing|miniBin)/).length,0,'apareceu');
+});
+teste('receita de uso conta como temos', async app=>{
+  fimDeJogo(app,{owned:{musk:'recipe'}});
+  ok(app.eval('own')('musk'),'own falso'); igual(ids(app,/musk/).length,0,'virou tarefa');
+});
+teste('baú de pedra: com a receita, fazer', async app=>{
+  fimDeJogo(app,{owned:{stoneChest:'recipe'}});
+  const t=tarefa(app,'build-stoneChest'); ok(t&&/Fazer baú de pedra/.test(t.t)&&/50 pedra/.test(t.d),'tarefa: '+(t&&t.t+' '+t.d));
+});
+teste('quadro cita o baú de pedra', async app=>{
+  fimDeJogo(app,{year:1,season:2,day:8,soSeen:-1,owned:{stoneChest:'want'}});
+  const t=tarefa(app,'so-board'); ok(t,'sem so-board');
+  ok(/Corrida de Recursos/.test(t.d)&&/receita de Baú de Pedra/.test(t.d),t.d);
+});
+teste('quadro: pedidos de primavera só na primavera', async app=>{
+  fimDeJogo(app,{year:2,season:1,day:1,soSeen:-1,owned:{coffeeMaker:'want',fibs:'want',stoneChest:'want'}});
+  ok(!/Presentes para o George|Coisa Forte/.test(tarefa(app,'so-board').d),'apareceu no verão');
+  ajusta(app,s=>{s.season=0;s.day=8;});
+  const d=tarefa(app,'so-board').d;
+  ok(/Presentes para o George/.test(d)&&/Recompensa: Cafeteira/.test(d)&&/Coisa Forte/.test(d),'faltou na primavera: '+d);
+});
+teste('quadro: mini-caixa no inverno só pelo Pierre', async app=>{
+  fimDeJogo(app,{year:2,season:3,day:1,soSeen:-1,owned:{miniBin:'want'}});
+  const d=tarefa(app,'so-board').d; ok(/Produtos de Primeira/.test(d)&&!/Pedido de Colheita/.test(d),d);
+});
+teste('quadro: computador vem de dois pedidos', async app=>{
+  fimDeJogo(app,{year:2,season:1,day:1,soSeen:-1,owned:{farmComputer:'want'}});
+  const d=tarefa(app,'so-board').d; ok(/Superpopulação Aquática/.test(d)&&/Equilíbrio do Bioma/.test(d),d);
+});
+teste('seção desbloqueáveis com categorias', async app=>{
+  fimDeJogo(app); app.eval('render')();
+  const s=app.document.querySelector('[data-sec="build"]'); ok(s&&/Desbloqueáveis/.test(s.querySelector('summary').textContent),'título');
+  app.eval('CATS').forEach(([,t])=>ok(s.textContent.includes(t),'falta categoria '+t));
+});
+teste('opções por tipo', async app=>{
+  fimDeJogo(app,{owned:{coffeeMaker:'want',musk:'recipe',stoneChest:'want'}}); app.eval('render')();
+  const v=id=>[...app.document.getElementById('b-'+id).options].map(o=>o.value).join(',');
+  igual(v('coffeeMaker'),'want,have,no'); igual(v('musk'),'want,recipe,no'); igual(v('stoneChest'),'want,recipe,have,no');
+  igual(app.document.getElementById('b-musk').value,'recipe','valor salvo');
+});
+
 // ---------- Rodar ----------
 (async function rodar(){
   const lista=document.getElementById('lista'); let pass=0, run=0, pul=0;
