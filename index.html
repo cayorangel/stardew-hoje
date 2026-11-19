@@ -1993,7 +1993,7 @@ function renderForm(){
      <div class="field"><label for="f-weather">Clima hoje</label>${sel('weather',Object.entries(WEATHER),st.weather,'f-weather')}</div>
      <div class="field"><label for="f-forecast">Previsão amanhã</label>${sel('forecast',[['','Não vimos'],...Object.entries(WEATHER)],st.forecast,'f-forecast')}</div>
      <div class="field"><label for="f-luck">Sorte (TV)</label>${sel('luck',Object.entries(LUCK),st.luck,'f-luck')}</div>
-     <div class="field" style="grid-column:1 / -1"><label for="f-books">Dias do livreiro nesta estação</label><input type="text" id="f-books" data-k="bookDays" value="${esc(st.bookDays)}" placeholder="ex.: ${BOOK_DAYS[st.season].slice(0,2).join(' e ')}" inputmode="numeric"></div>
+     <div class="field" style="grid-column:1 / -1"><span class="flabel" id="l-books">Dias do livreiro nesta estação</span><span class="small muted">Toquem nos 2 dias com balão no calendário do jogo.</span><div class="items" role="group" aria-labelledby="l-books">${(()=>{ const mk=(st.bookDays.match(/\d+/g)||[]).map(Number); return [...new Set([...BOOK_DAYS[st.season],...mk])].sort((a,b)=>a-b).map(d=>`<button type="button" class="it" data-bk="${d}" aria-pressed="${mk.includes(d)}">${d}</button>`).join(''); })()}</div></div>
     </div>
     <p class="small muted" style="margin:0">A previsão e a sorte aparecem na TV da casa. Sorte é a cartomante: "os espíritos estão muito felizes" é muito boa.</p>`);
   let pl='';
@@ -2149,6 +2149,8 @@ document.addEventListener('click',e=>{
     commit(); return; }
   const qb=e.target.closest('[data-q]');
   if(qb){ const q=QUESTS.find(x=>x.id===qb.dataset.q); st.quests=st.quests||{}; const on=!questDone(q); if(on) st.quests[q.id]=true; else { delete st.quests[q.id]; (q.set||[]).forEach(([path])=>setByPath(path,false)); } commit(); return; }
+  const bkb=e.target.closest('[data-bk]');
+  if(bkb){ const d=+bkb.dataset.bk; let mk=(st.bookDays.match(/\d+/g)||[]).map(Number); mk=mk.includes(d)?mk.filter(x=>x!==d):[...mk,d]; st.bookDays=mk.sort((a,b)=>a-b).join(' '); commit(); const nb=document.querySelector(`[data-bk="${d}"]`); if(nb) nb.focus(); return; }
   const spb=e.target.closest('[data-sp]');
   if(spb){ const id=spb.dataset.sp; if(st.special[id]) delete st.special[id]; else st.special[id]=true; commit(); return; }
   const sid=e.target.closest&&e.target.closest('#copyData,#shareData,#loadData,#createSync,#joinSync,#copyCode,#shareCode,#stopSync');
