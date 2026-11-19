@@ -362,6 +362,8 @@ const BIRTHDAYS={
  3:{1:'Krobus',3:'Linus',7:'Caroline',10:'Sebastian',14:'Harvey',17:'Feiticeiro',20:'Evelyn',23:'Leah',26:'Clint'}
 };
 // [estação, dia inicial, dia final, nome, horário, dica]
+// Eventos em que o relógio continua andando (não é festival de entrar e esperar acabar)
+const TIME_RUNS=new Set(['Festival do Deserto','Competição de Truta','Festival da Lula','Mercado Noturno']);
 // Festivais que ocupam o dia: casas e lojas ficam fechadas e o dia acaba ao sair (às 22h)
 const FULLDAY=new Set(['Festival do Ovo','Dança das Flores','Luau','Feira do Vale do Orvalho','Festival do Gelo','Festival da Estrela Invernal']);
 // O que só dá para fazer ou conseguir em cada evento (Stardew Valley Wiki)
@@ -1862,7 +1864,7 @@ function renderPlan(){
       const locked=f[3]==='Festival do Deserto'&&!st.unl.bus;
       h+=`<section class="card fest-card" data-view="hoje"><div class="card-h"><h2>Hoje: ${esc(f[3])}</h2><span class="small">${esc(f[4])}</span></div>
       <p style="margin:0">${locked?'Vocês ainda não têm o ônibus, então podem ignorar este evento.':esc(f[5])}</p>
-      ${!locked?'<p class="small muted" style="margin:0">Façam as tarefas da fazenda antes. Durante o festival o tempo para, e vocês voltam para casa no fim.</p>':''}</section>`;
+      ${locked?'':TIME_RUNS.has(f[3])?'<p class="small muted" style="margin:0">Durante este evento o relógio continua andando: dá para ir e voltar quando quiserem.</p>':'<p class="small muted" style="margin:0">Façam as tarefas da fazenda antes. Durante o festival o tempo para, e vocês voltam para casa no fim.</p>'}</section>`;
     });
   }
 
