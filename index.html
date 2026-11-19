@@ -1961,6 +1961,14 @@ function socialMission(p,c,bday){
 const $=s=>document.querySelector(s);
 function seasonVar(s){return `var(--s${s})`}
 
+// Previsão e sorte só pedem atenção enquanto mudam o plano.
+// Com aspersores na plantação ninguém precisa saber se chove amanhã; depois do andar 120 a sorte quase não pesa.
+// Se já anotaram, continua aparecendo. Os dois campos ficam sempre na aba Fazenda.
+function showForecast(){ return st.forecast!=='' || (!st.farm.sprinklers && st.farm.crops!=='nenhuma'); }
+function showLuck(){ return st.luck!=='' || (st.mine||0)<120; }
+
+function tvHint(){ const f=showForecast(), l=showLuck(); return f&&l?' Confiram a previsão e a sorte na TV.':f?' Confiram a previsão na TV.':l?' Confiram a sorte na TV.':''; }
+
 function renderHeader(plan){
   const c=plan.c;
   document.documentElement.style.setProperty('--season',seasonVar(c.S));
@@ -1973,8 +1981,8 @@ function renderHeader(plan){
    </div>
    <div class="daypick">
      <label class="pick ${c.rain?'rain':''}" for="h-weather" title="Clima de hoje"><span>Clima</span>${sel('weather',Object.entries(WEATHER_S),st.weather,'h-weather')}</label>
-     <label class="pick ${st.forecast===''?'todo':''}" for="h-forecast" title="Previsão de amanhã (TV)"><span>Amanhã</span>${sel('forecast',[['','Não vi'],...Object.entries(WEATHER_S)],st.forecast,'h-forecast')}</label>
-     <label class="pick ${luckCls} ${st.luck===''?'todo':''}" for="h-luck" title="Sorte do dia (TV)"><span>Sorte</span>${sel('luck',Object.entries(LUCK_S),st.luck,'h-luck')}</label>
+     ${showForecast()?`<label class="pick ${st.forecast===''?'todo':''}" for="h-forecast" title="Previsão de amanhã (TV)"><span>Amanhã</span>${sel('forecast',[['','Não vi'],...Object.entries(WEATHER_S)],st.forecast,'h-forecast')}</label>`:''}
+     ${showLuck()?`<label class="pick ${luckCls} ${st.luck===''?'todo':''}" for="h-luck" title="Sorte do dia (TV)"><span>Sorte</span>${sel('luck',Object.entries(LUCK_S),st.luck,'h-luck')}</label>`:''}
    </div>
    ${plan.fests.length?`<div class="chips">${plan.fests.map(f=>`<span class="chip fest">${esc(f[3])}</span>`).join('')}</div>`:''}
    <div class="actions">
@@ -1990,7 +1998,7 @@ function renderMinibar(plan,me){
   const luckCls=c.luck===null?'':c.luck>=1?'luckg':c.luck<=-1?'luckb':'';
   $('#minibar').innerHTML=`<span class="mb-date">${SEASONS[c.S]} ${c.D}</span>
    <span class="mb-w ${c.rain?'rain':''}">${WEATHER_S[st.weather]||''}</span>
-   <span class="mb-l ${luckCls}">Sorte ${(LUCK_S[st.luck]||'').toLowerCase()}</span>
+   ${showLuck()?`<span class="mb-l ${luckCls}">Sorte ${(LUCK_S[st.luck]||'').toLowerCase()}</span>`:''}
    <span class="mb-p">${done} de ${list.length}</span>
    <span class="mb-bar" style="width:${list.length?Math.round(done/list.length*100):0}%"></span>`;
 }
@@ -2006,7 +2014,7 @@ function setMe(v){ try{ localStorage.setItem(LS_KEY+'-me',v); }catch(_){} render
 const openTasks=new Set(), openDone=new Set();
 function taskHTML(t){
   const done=!!st.done[t.id], open=openTasks.has(t.id);
-  const badge=t.prio===3?`<span class="prio p3">Se der</span>`:'';
+  const badge='';
   const long=!!t.d && String(t.d).replace(/<[^>]*>/g,'').length>90;
   return `<li class="task ${done?'done':''} ${open?'open':''}"><input type="checkbox" id="t-${t.id}" data-done="${t.id}" ${done?'checked':''} aria-label="${esc(String(t.t).replace(/<[^>]*>/g,''))}">
    <label for="t-${t.id}"><div class="t">${t.t}${badge}</div>${t.d?`<div class="d ${long?'long':''}" id="d-${t.id}">${t.d}</div>`:''}</label>${long?`<button type="button" class="more" data-more="${t.id}" aria-expanded="${open}" aria-controls="d-${t.id}" aria-label="${open?'Esconder detalhes':'Mostrar detalhes'}"></button>`:''}</li>`;
@@ -2413,8 +2421,8 @@ function nextDay(){
   if(d.season===3&&st.weather==='chuva') st.weather='neve';
   st.forecast=''; st.luck=''; st.done={}; st.frozen=null; openTasks.clear(); openDone.clear();
   aiText='';
-  if(d.day===1) showToast(`Bem-vindos ao ${SEASONS[d.season]}! Confiram o clima e a sorte na TV.`,'Desfazer',()=>{st=undoState;commit()});
-  else showToast(`${SEASONS[d.season]} ${d.day}. Confiram o clima e a sorte na TV.`,'Desfazer',()=>{st=undoState;commit()});
+  if(d.day===1) showToast(`Bem-vindos ao ${SEASONS[d.season]}!${tvHint()}`,'Desfazer',()=>{st=undoState;commit()});
+  else showToast(`${SEASONS[d.season]} ${d.day}.${tvHint()}`,'Desfazer',()=>{st=undoState;commit()});
   commit();
   window.scrollTo({top:0,behavior:'smooth'});
 }
