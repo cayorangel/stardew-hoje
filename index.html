@@ -687,57 +687,75 @@ ROOMS.forEach(r=>r.bundles.forEach(b=>b.items.forEach(it=>{
 })));
 // Construções (Robin) e máquinas (receitas). ok(): já dá para fazer; need(): só faz sentido se...
 const BUILD=[
- {id:'silo',n:'Silo',en:'Silo',robin:1,g:100,set:[['owned.silo','have'],['farm.silo',true]],mat:'100 pedra, 10 argila (sai cavando a terra com a enxada) e 5 barras de cobre',ok:()=>st.farm.furnace,need:()=>st.farm.coop||st.farm.barn,why:'Guarda a palha do capim cortado com a foice, assim não precisam comprar palha.'},
- {id:'stable',n:'Estábulo',en:'Stable',robin:1,g:10000,mat:'100 madeira de lei e 5 barras de ferro',ok:()=>maxTool('axe')>=1&&st.mine>=40,why:'Vem com um cavalo: andam muito mais rápido.'},
- {id:'pond',n:'Lago de peixes',en:'Fish Pond',robin:1,g:5000,mat:'200 pedra, 5 algas marinhas e 5 algas verdes',why:'Cria peixes e dá ovas.'},
- {id:'mayo',n:'Máquina de maionese',en:'Mayonnaise Machine',sk:['farming',2],mat:'15 madeira, 15 pedra, 1 cristal de terra (minas, andares 1–39) e 1 barra de cobre',ok:()=>st.farm.furnace,need:()=>st.farm.coop,why:'Ovo vira maionese, que vende bem melhor.'},
- {id:'tapper',n:'Torneirinha',en:'Tapper',sk:['foraging',4],mat:'40 madeira e 2 barras de cobre',ok:()=>st.farm.furnace,why:'Colocada numa árvore: ácer dá xarope, carvalho dá resina e pinheiro dá alcatrão (conjuntos Cozinheiro, Recursos Exóticos e Encantador).',cc:1},
- {id:'bee',n:'Apiário',en:'Bee House',sk:['farming',3],mat:'40 madeira, 8 carvão, 1 barra de ferro e 1 xarope de ácer (torneirinha num ácer, 9 dias)',ok:()=>st.mine>=40&&own('tapper'),why:'Dá mel (conjunto Artesão). Rende mais perto de flores.',cc:1},
- {id:'jar',n:'Jarra de conserva',en:'Preserves Jar',sk:['farming',4],mat:'50 madeira, 40 pedra e 8 carvão',ok:()=>st.mine>=1||own('kiln'),why:'Fruta vira geleia (conjunto Artesão) e legume vira picles.',cc:1},
- {id:'recycler',n:'Máquina de reciclagem',en:'Recycling Machine',sk:['fishing',4],mat:'25 madeira, 25 pedra e 1 barra de ferro',ok:()=>st.mine>=40,why:'Lixo da pesca vira pedra, carvão, minério de ferro e outras coisas úteis.'},
- {id:'kiln',n:'Carvoaria',en:'Charcoal Kiln',sk:['foraging',2],mat:'20 madeira e 2 barras de cobre',ok:()=>st.farm.furnace,why:'Madeira vira carvão.'},
- {id:'cheese',n:'Prensa de queijo',en:'Cheese Press',sk:['farming',6],mat:'45 madeira, 45 pedra, 10 madeira de lei e 1 barra de cobre',ok:()=>st.farm.furnace&&maxTool('axe')>=1,need:()=>st.farm.barn,why:'Leite vira queijo (conjunto Artesão).',cc:1},
- {id:'lrod',n:'Para-raios',en:'Lightning Rod',sk:['foraging',6],mat:'1 barra de ferro, 1 quartzo refinado (quartzo na fornalha) e 5 asas de morcego (morcegos, andares 30+)',ok:()=>st.mine>=40,why:'Protege das tempestades e dá conjuntos de pilhas.'},
- {id:'loom',n:'Tear',en:'Loom',sk:['farming',7],mat:'60 madeira, 30 fibra e 1 alcatrão de pinho (torneirinha num pinheiro, 5 dias)',ok:()=>own('tapper'),need:()=>st.farm.barn,why:'Lã vira tecido (conjunto Artesão).',cc:1},
- {id:'keg',n:'Barril',en:'Keg',sk:['farming',8],mat:'30 madeira, 1 barra de cobre, 1 barra de ferro e 1 resina de carvalho (torneirinha num carvalho, 7 dias)',ok:()=>st.mine>=40&&own('tapper'),why:'Fruta vira vinho (conjuntos Encantador e Artesão).',cc:1},
- {id:'oil',n:'Gerador de óleo',en:'Oil Maker',sk:['farming',8],mat:'50 gosma, 20 madeira de lei e 1 barra de ouro (minério dos andares 80+)',ok:()=>st.mine>=80&&maxTool('axe')>=1,need:()=>st.farm.barn,why:'Trufa vira óleo de trufas (conjunto Artesão).',cc:1},
- {id:'seedmaker',n:'Gerador de sementes',en:'Seed Maker',sk:['farming',9],mat:'25 madeira, 10 carvão e 1 barra de ouro',ok:()=>st.mine>=80,why:'Uma colheita vira várias sementes.'},
- {id:'crystal',n:'Cristalário',en:'Crystalarium',sk:['mining',9],mat:'99 pedra, 5 barras de ouro, 2 barras de irídio e 1 conjunto de pilhas',ok:()=>st.unl.skull&&own('lrod'),why:'Copia joias e minerais sem parar.'},
+ {id:'silo',cat:'constr',n:'Silo',en:'Silo',robin:1,g:100,set:[['owned.silo','have'],['farm.silo',true]],mat:'100 pedra, 10 argila (sai cavando a terra com a enxada) e 5 barras de cobre',ok:()=>st.farm.furnace,need:()=>st.farm.coop||st.farm.barn,why:'Guarda a palha do capim cortado com a foice, assim não precisam comprar palha.'},
+ {id:'stable',cat:'constr',n:'Estábulo',en:'Stable',robin:1,g:10000,mat:'100 madeira de lei e 5 barras de ferro',ok:()=>maxTool('axe')>=1&&st.mine>=40,why:'Vem com um cavalo: andam muito mais rápido.'},
+ {id:'pond',cat:'constr',n:'Lago de peixes',en:'Fish Pond',robin:1,g:5000,mat:'200 pedra, 5 algas marinhas e 5 algas verdes',why:'Cria peixes e dá ovas.'},
+ {id:'mayo',cat:'maq',n:'Máquina de maionese',en:'Mayonnaise Machine',sk:['farming',2],mat:'15 madeira, 15 pedra, 1 cristal de terra (minas, andares 1–39) e 1 barra de cobre',ok:()=>st.farm.furnace,need:()=>st.farm.coop,why:'Ovo vira maionese, que vende bem melhor.'},
+ {id:'tapper',cat:'maq',n:'Torneirinha',en:'Tapper',sk:['foraging',4],mat:'40 madeira e 2 barras de cobre',ok:()=>st.farm.furnace,why:'Colocada numa árvore: ácer dá xarope, carvalho dá resina e pinheiro dá alcatrão (conjuntos Cozinheiro, Recursos Exóticos e Encantador).',cc:1},
+ {id:'bee',cat:'maq',n:'Apiário',en:'Bee House',sk:['farming',3],mat:'40 madeira, 8 carvão, 1 barra de ferro e 1 xarope de ácer (torneirinha num ácer, 9 dias)',ok:()=>st.mine>=40&&own('tapper'),why:'Dá mel (conjunto Artesão). Rende mais perto de flores.',cc:1},
+ {id:'jar',cat:'maq',n:'Jarra de conserva',en:'Preserves Jar',sk:['farming',4],mat:'50 madeira, 40 pedra e 8 carvão',ok:()=>st.mine>=1||own('kiln'),why:'Fruta vira geleia (conjunto Artesão) e legume vira picles.',cc:1},
+ {id:'recycler',cat:'maq',n:'Máquina de reciclagem',en:'Recycling Machine',sk:['fishing',4],mat:'25 madeira, 25 pedra e 1 barra de ferro',ok:()=>st.mine>=40,why:'Lixo da pesca vira pedra, carvão, minério de ferro e outras coisas úteis.'},
+ {id:'kiln',cat:'maq',n:'Carvoaria',en:'Charcoal Kiln',sk:['foraging',2],mat:'20 madeira e 2 barras de cobre',ok:()=>st.farm.furnace,why:'Madeira vira carvão.'},
+ {id:'cheese',cat:'maq',n:'Prensa de queijo',en:'Cheese Press',sk:['farming',6],mat:'45 madeira, 45 pedra, 10 madeira de lei e 1 barra de cobre',ok:()=>st.farm.furnace&&maxTool('axe')>=1,need:()=>st.farm.barn,why:'Leite vira queijo (conjunto Artesão).',cc:1},
+ {id:'lrod',cat:'util',n:'Para-raios',en:'Lightning Rod',sk:['foraging',6],mat:'1 barra de ferro, 1 quartzo refinado (quartzo na fornalha) e 5 asas de morcego (morcegos, andares 30+)',ok:()=>st.mine>=40,why:'Protege das tempestades e dá conjuntos de pilhas.'},
+ {id:'loom',cat:'maq',n:'Tear',en:'Loom',sk:['farming',7],mat:'60 madeira, 30 fibra e 1 alcatrão de pinho (torneirinha num pinheiro, 5 dias)',ok:()=>own('tapper'),need:()=>st.farm.barn,why:'Lã vira tecido (conjunto Artesão).',cc:1},
+ {id:'keg',cat:'maq',n:'Barril',en:'Keg',sk:['farming',8],mat:'30 madeira, 1 barra de cobre, 1 barra de ferro e 1 resina de carvalho (torneirinha num carvalho, 7 dias)',ok:()=>st.mine>=40&&own('tapper'),why:'Fruta vira vinho (conjuntos Encantador e Artesão).',cc:1},
+ {id:'oil',cat:'maq',n:'Gerador de óleo',en:'Oil Maker',sk:['farming',8],mat:'50 gosma, 20 madeira de lei e 1 barra de ouro (minério dos andares 80+)',ok:()=>st.mine>=80&&maxTool('axe')>=1,need:()=>st.farm.barn,why:'Trufa vira óleo de trufas (conjunto Artesão).',cc:1},
+ {id:'seedmaker',cat:'maq',n:'Gerador de sementes',en:'Seed Maker',sk:['farming',9],mat:'25 madeira, 10 carvão e 1 barra de ouro',ok:()=>st.mine>=80,why:'Uma colheita vira várias sementes.'},
+ {id:'crystal',cat:'maq',n:'Cristalário',en:'Crystalarium',sk:['mining',9],mat:'99 pedra, 5 barras de ouro, 2 barras de irídio e 1 conjunto de pilhas',ok:()=>st.unl.skull&&own('lrod'),why:'Copia joias e minerais sem parar.'},
  // Construções da Robin que faltavam (wiki 1.6, Carpenter's Shop)
- {id:'mill',n:'Moinho',en:'Mill',robin:1,g:2500,mat:'150 madeira, 50 pedra e 4 tecidos',why:'Trigo vira farinha, beterraba vira açúcar e arroz vira arroz beneficiado: ingredientes para cozinhar.'},
- {id:'well',n:'Poço',en:'Well',robin:1,g:1000,mat:'75 pedra',col:1,why:'Lugar para encher o regador perto da plantação.'},
- {id:'hutch',n:'Casa de Gosmas',en:'Slime Hutch',robin:1,g:10000,mat:'500 pedra, 10 quartzos refinados e 1 barra de irídio',col:1,ok:()=>st.mine>=120,why:'Cria até 20 gosmas, que deixam bolas de gosma.'},
- {id:'petbowl',n:'Tigela para Animal',en:'Pet Bowl',robin:1,g:5000,mat:'25 madeira de lei',col:1,why:'Casa para mais um animal de estimação.'},
+ {id:'mill',cat:'constr',n:'Moinho',en:'Mill',robin:1,g:2500,mat:'150 madeira, 50 pedra e 4 tecidos',why:'Trigo vira farinha, beterraba vira açúcar e arroz vira arroz beneficiado: ingredientes para cozinhar.'},
+ {id:'well',cat:'constr',n:'Poço',en:'Well',robin:1,g:1000,mat:'75 pedra',col:1,why:'Lugar para encher o regador perto da plantação.'},
+ {id:'hutch',cat:'constr',n:'Casa de Gosmas',en:'Slime Hutch',robin:1,g:10000,mat:'500 pedra, 10 quartzos refinados e 1 barra de irídio',col:1,ok:()=>st.mine>=120,why:'Cria até 20 gosmas, que deixam bolas de gosma.'},
+ {id:'petbowl',cat:'constr',n:'Tigela para Animal',en:'Pet Bowl',robin:1,g:5000,mat:'25 madeira de lei',col:1,why:'Casa para mais um animal de estimação.'},
  // Construções do Feiticeiro (wiki 1.6, Wizard's Tower): liberadas pela missão Caminho bloqueado
- {id:'obEarth',n:'Obelisco da Terra',en:'Earth Obelisk',wizard:1,g:500000,mat:'10 barras de irídio e 10 cristais de terra',col:1,ok:()=>goblinOk(),step:()=>goblinStep(),why:'Teletransporte para a montanha.'},
- {id:'obWater',n:'Obelisco da Água',en:'Water Obelisk',wizard:1,g:500000,mat:'5 barras de irídio, 10 amêijoas e 10 corais',col:1,ok:()=>goblinOk(),step:()=>goblinStep(),why:'Teletransporte para a praia.'},
- {id:'obDesert',n:'Obelisco do Deserto',en:'Desert Obelisk',wizard:1,g:1000000,mat:'20 barras de irídio, 10 cocos e 10 frutos do cacto',col:1,ok:()=>goblinOk()&&st.unl.bus,step:()=>goblinStep(),why:'Teletransporte para o deserto.'},
- {id:'obIsland',n:'Obelisco da Ilha',en:'Island Obelisk',wizard:1,g:1000000,mat:'10 barras de irídio, 10 dentes de dragão e 10 bananas',col:1,ok:()=>goblinOk()&&st.unl.island,step:()=>goblinStep(),why:'Teletransporte para a Ilha Gengibre.'},
- {id:'junimo',n:'Cabana dos Junimos',en:'Junimo Hut',wizard:1,g:20000,mat:'200 pedra, 9 carambolas e 100 fibras',ok:()=>goblinOk(),step:()=>goblinStep(),why:'Os Junimos colhem as plantações em volta da cabana.'},
- {id:'clock',n:'Relógio Dourado',en:'Gold Clock',wizard:1,g:10000000,mat:'',col:1,ok:()=>goblinOk(),step:()=>goblinStep(),why:'Impede que apareça entulho na fazenda e que as cercas estraguem.'},
+ {id:'obEarth',cat:'constr',n:'Obelisco da Terra',en:'Earth Obelisk',wizard:1,g:500000,mat:'10 barras de irídio e 10 cristais de terra',col:1,ok:()=>goblinOk(),step:()=>goblinStep(),why:'Teletransporte para a montanha.'},
+ {id:'obWater',cat:'constr',n:'Obelisco da Água',en:'Water Obelisk',wizard:1,g:500000,mat:'5 barras de irídio, 10 amêijoas e 10 corais',col:1,ok:()=>goblinOk(),step:()=>goblinStep(),why:'Teletransporte para a praia.'},
+ {id:'obDesert',cat:'constr',n:'Obelisco do Deserto',en:'Desert Obelisk',wizard:1,g:1000000,mat:'20 barras de irídio, 10 cocos e 10 frutos do cacto',col:1,ok:()=>goblinOk()&&st.unl.bus,step:()=>goblinStep(),why:'Teletransporte para o deserto.'},
+ {id:'obIsland',cat:'constr',n:'Obelisco da Ilha',en:'Island Obelisk',wizard:1,g:1000000,mat:'10 barras de irídio, 10 dentes de dragão e 10 bananas',col:1,ok:()=>goblinOk()&&st.unl.island,step:()=>goblinStep(),why:'Teletransporte para a Ilha Gengibre.'},
+ {id:'junimo',cat:'constr',n:'Cabana dos Junimos',en:'Junimo Hut',wizard:1,g:20000,mat:'200 pedra, 9 carambolas e 100 fibras',ok:()=>goblinOk(),step:()=>goblinStep(),why:'Os Junimos colhem as plantações em volta da cabana.'},
+ {id:'clock',cat:'constr',n:'Relógio Dourado',en:'Gold Clock',wizard:1,g:10000000,mat:'',col:1,ok:()=>goblinOk(),step:()=>goblinStep(),why:'Impede que apareça entulho na fazenda e que as cercas estraguem.'},
  // Itens para os animais (wiki 1.6, Tools: Other Tools)
- {id:'pail',n:'Balde de Leite',en:'Milk Pail',shop:{key:'marnie',loja:'na Marnie',g:1000},mat:'',need:()=>hasAnimal('cow')||hasAnimal('goat'),why:'Tira o leite da vaca e da cabra.'},
- {id:'shears',n:'Tesoura',en:'Shears',shop:{key:'marnie',loja:'na Marnie',g:1000},mat:'',need:()=>hasAnimal('sheep'),why:'Tosquia a lã da ovelha.'},
- {id:'heater',n:'Aquecedor',en:'Heater',shop:{key:'marnie',loja:'na Marnie',g:2000},mat:'',col:1,need:()=>own('coop')||own('barn'),why:'Deixa os animais mais felizes no inverno. Também é a recompensa do conjunto Forragem.'},
- {id:'autoGrab',n:'Auto-Recolhedora',en:'Auto-Grabber',shop:{key:'marnie',loja:'na Marnie',g:25000},mat:'',sk:['farming',10],need:()=>own('coop')||own('barn'),why:'Recolhe sozinha os produtos dos animais toda manhã.'},
- {id:'autoPet',n:'Auto-Acariciador',en:'Auto-Petter',shop:{key:'joja',loja:'no Mercado Joja',g:50000},mat:'',col:1,listOnly:1,why:'Faz carinho nos animais sozinho. O Mercado Joja só vende depois de concluir o Armazém Joja (o caminho contrário ao do Centro Comunitário); fora isso, aparece por sorte nas salas de tesouro da Caverna da Caveira e nas minas.'},
+ {id:'pail',cat:'anim',n:'Balde de Leite',en:'Milk Pail',shop:{key:'marnie',loja:'na Marnie',g:1000},mat:'',need:()=>hasAnimal('cow')||hasAnimal('goat'),why:'Tira o leite da vaca e da cabra.'},
+ {id:'shears',cat:'anim',n:'Tesoura',en:'Shears',shop:{key:'marnie',loja:'na Marnie',g:1000},mat:'',need:()=>hasAnimal('sheep'),why:'Tosquia a lã da ovelha.'},
+ {id:'heater',cat:'anim',n:'Aquecedor',en:'Heater',shop:{key:'marnie',loja:'na Marnie',g:2000},mat:'',col:1,need:()=>own('coop')||own('barn'),why:'Deixa os animais mais felizes no inverno. Também é a recompensa do conjunto Forragem.'},
+ {id:'autoGrab',cat:'anim',n:'Auto-Recolhedora',en:'Auto-Grabber',shop:{key:'marnie',loja:'na Marnie',g:25000},mat:'',sk:['farming',10],need:()=>own('coop')||own('barn'),why:'Recolhe sozinha os produtos dos animais toda manhã.'},
+ {id:'autoPet',cat:'anim',n:'Auto-Acariciador',en:'Auto-Petter',shop:{key:'joja',loja:'no Mercado Joja',g:50000},mat:'',col:1,listOnly:1,why:'Faz carinho nos animais sozinho. O Mercado Joja só vende depois de concluir o Armazém Joja (o caminho contrário ao do Centro Comunitário); fora isso, aparece por sorte nas salas de tesouro da Caverna da Caveira e nas minas.'},
  // Máquinas de produção que faltavam (wiki 1.6, Crafting)
- {id:'cask',n:'Barril de Madeira',en:'Cask',mat:'20 madeira e 1 madeira de lei',ok:()=>(st.farm.houseLv||0)>=3,why:'No porão da casa, envelhece vinho, queijo e outros produtos, que passam a valer bem mais.'},
- {id:'smoker',n:'Defumador de Peixes',en:'Fish Smoker',shopRecipe:{shop:'willy',loja:'na Peixaria do Willy',g:10000},mat:'10 madeira de lei, 1 geléia do mar, 1 geléia do rio e 1 geléia da caverna',why:'Peixe defumado vale o dobro do peixe.'},
- {id:'dehydrator',n:'Desidratador',en:'Dehydrator',shopRecipe:{shop:'pierre',loja:'no Armazém do Pierre',g:10000},mat:'30 madeira, 2 argila e 1 quartzo de fogo',why:'Frutas e cogumelos viram secos, que valem mais.'},
- {id:'heavyFurnace',n:'Alto-forno',en:'Heavy Furnace',col:1,mat:'2 fornalhas, 3 barras de ferro e 50 pedra',ok:()=>st.players.some(p=>(p.pw||{}).masteryMining),step:()=>masteryStep('mining','Mineração'),why:'Funde mais minério de uma vez. A receita vem da maestria de Mineração.'},
- {id:'solar',n:'Painel Solar',en:'Solar Panel',so:{pedido:'Ingredientes da Ilha',quem:'Caroline',o:'embarcar 100 de inhame-taro, gengibre ou abacaxi',dias:28,req:()=>st.unl.island},mat:'10 quartzos refinados, 5 barras de ferro e 5 barras de ouro',why:'Gera conjuntos de pilhas com o sol.'},
- {id:'slimeInc',n:'Incubador de Gosmas',en:'Slime Incubator',sk:['combat',8],col:1,ok:()=>own('hutch'),mat:'2 barras de irídio e 100 gosmas',why:'Choca ovos de gosma na Casa de Gosmas.'},
- {id:'ostrichInc',n:'Incubadora de Avestruzes',en:'Ostrich Incubator',listOnly:1,mat:'',why:'Choca ovos de avestruz. A receita vem da coleção do Escritório de Campo da Ilha Gengibre.'},
- {id:'slimePress',n:'Prensa de Gosmas',en:'Slime Egg-Press',sk:['combat',6],col:1,ok:()=>own('hutch'),mat:'25 carvão, 1 quartzo de fogo e 1 conjunto de pilhas',why:'Bolas de gosma viram ovos de gosma.'},
- {id:'heavyTapper',n:'Torneirinha Pesada',en:'Heavy Tapper',listOnly:1,mat:'',why:'Torneirinha duas vezes mais rápida. A receita é vendida pelo Sr. Qi por 20 gemas do Qi.'},
- {id:'wormBin',n:'Cesto de Minhocas',en:'Worm Bin',sk:['fishing',4],mat:'15 madeira de lei, 1 barra de ouro, 1 barra de ferro e 50 fibras',why:'Produz isca sozinho todo dia.'},
- {id:'wormBin2',n:'Cesto de Minhocas de Luxo',en:'Deluxe Worm Bin',sk:['fishing',8],ok:()=>own('wormBin'),mat:'1 cesto de minhocas e 30 musgos',why:'Produz mais isca por dia.'},
- {id:'boneMill',n:'Moedor de Ossos',en:'Bone Mill',so:{pedido:'Fragmentos do Passado',quem:'Gunther',o:'entregar 100 itens de osso no museu',dias:7},mat:'10 fragmentos de osso, 3 argila e 20 pedra',why:'Ossos viram fertilizante.'},
- {id:'geodeCrusher',n:'Esmagador de Geodos',en:'Geode Crusher',so:{pedido:'Patrulha da Caverna',quem:'Clint',o:'derrotar 50 de um tipo de monstro',dias:7},mat:'2 barras de ouro, 50 pedra e 1 diamante',why:'Abre geodos sem pagar o Clint.'},
- {id:'mushLog',n:'Tronco de Cogumelo',en:'Mushroom Log',sk:['foraging',4],mat:'10 madeira de lei e 10 musgos',why:'Produz cogumelos perto de árvores.'},
- {id:'baitMaker',n:'Máquina de Iscas',en:'Bait Maker',sk:['fishing',6],mat:'3 barras de ferro, 3 corais e 1 ouriço-do-mar',why:'Faz isca para um peixe específico.'}
+ {id:'cask',cat:'maq',n:'Barril de Madeira',en:'Cask',mat:'20 madeira e 1 madeira de lei',ok:()=>(st.farm.houseLv||0)>=3,why:'No porão da casa, envelhece vinho, queijo e outros produtos, que passam a valer bem mais.'},
+ {id:'smoker',cat:'pesca',n:'Defumador de Peixes',en:'Fish Smoker',shopRecipe:{shop:'willy',loja:'na Peixaria do Willy',g:10000},mat:'10 madeira de lei, 1 geléia do mar, 1 geléia do rio e 1 geléia da caverna',why:'Peixe defumado vale o dobro do peixe.'},
+ {id:'dehydrator',cat:'maq',n:'Desidratador',en:'Dehydrator',shopRecipe:{shop:'pierre',loja:'no Armazém do Pierre',g:10000},mat:'30 madeira, 2 argila e 1 quartzo de fogo',why:'Frutas e cogumelos viram secos, que valem mais.'},
+ {id:'heavyFurnace',cat:'maq',n:'Alto-forno',en:'Heavy Furnace',col:1,mat:'2 fornalhas, 3 barras de ferro e 50 pedra',ok:()=>st.players.some(p=>(p.pw||{}).masteryMining),step:()=>masteryStep('mining','Mineração'),why:'Funde mais minério de uma vez. A receita vem da maestria de Mineração.'},
+ {id:'solar',cat:'maq',n:'Painel Solar',en:'Solar Panel',so:{pedido:'Ingredientes da Ilha',quem:'Caroline',o:'embarcar 100 de inhame-taro, gengibre ou abacaxi',dias:28,req:()=>st.unl.island},mat:'10 quartzos refinados, 5 barras de ferro e 5 barras de ouro',why:'Gera conjuntos de pilhas com o sol.'},
+ {id:'slimeInc',cat:'anim',n:'Incubador de Gosmas',en:'Slime Incubator',sk:['combat',8],col:1,ok:()=>own('hutch'),mat:'2 barras de irídio e 100 gosmas',why:'Choca ovos de gosma na Casa de Gosmas.'},
+ {id:'ostrichInc',cat:'anim',n:'Incubadora de Avestruzes',en:'Ostrich Incubator',listOnly:1,mat:'',why:'Choca ovos de avestruz. A receita vem da coleção do Escritório de Campo da Ilha Gengibre.'},
+ {id:'slimePress',cat:'anim',n:'Prensa de Gosmas',en:'Slime Egg-Press',sk:['combat',6],col:1,ok:()=>own('hutch'),mat:'25 carvão, 1 quartzo de fogo e 1 conjunto de pilhas',why:'Bolas de gosma viram ovos de gosma.'},
+ {id:'heavyTapper',cat:'maq',n:'Torneirinha Pesada',en:'Heavy Tapper',listOnly:1,mat:'',why:'Torneirinha duas vezes mais rápida. A receita é vendida pelo Sr. Qi por 20 gemas do Qi.'},
+ {id:'wormBin',cat:'pesca',n:'Cesto de Minhocas',en:'Worm Bin',sk:['fishing',4],mat:'15 madeira de lei, 1 barra de ouro, 1 barra de ferro e 50 fibras',why:'Produz isca sozinho todo dia.'},
+ {id:'wormBin2',cat:'pesca',n:'Cesto de Minhocas de Luxo',en:'Deluxe Worm Bin',sk:['fishing',8],ok:()=>own('wormBin'),mat:'1 cesto de minhocas e 30 musgos',why:'Produz mais isca por dia.'},
+ {id:'boneMill',cat:'maq',n:'Moedor de Ossos',en:'Bone Mill',so:{pedido:'Fragmentos do Passado',quem:'Gunther',o:'entregar 100 itens de osso no museu',dias:7},mat:'10 fragmentos de osso, 3 argila e 20 pedra',why:'Ossos viram fertilizante.'},
+ {id:'geodeCrusher',cat:'maq',n:'Esmagador de Geodos',en:'Geode Crusher',so:{pedido:'Patrulha da Caverna',quem:'Clint',o:'derrotar 50 de um tipo de monstro',dias:7},mat:'2 barras de ouro, 50 pedra e 1 diamante',why:'Abre geodos sem pagar o Clint.'},
+ {id:'mushLog',cat:'maq',n:'Tronco de Cogumelo',en:'Mushroom Log',sk:['foraging',4],mat:'10 madeira de lei e 10 musgos',why:'Produz cogumelos perto de árvores.'},
+ {id:'baitMaker',cat:'pesca',n:'Máquina de Iscas',en:'Bait Maker',sk:['fishing',6],mat:'3 barras de ferro, 3 corais e 1 ouriço-do-mar',why:'Faz isca para um peixe específico.'},
+ // Recompensas únicas do quadro de Pedidos Especiais (wiki 1.6, Quests). item:1 = chega pronto; uso:1 = ter a receita já basta
+ {id:'stoneChest',cat:'util',n:'Baú de Pedra',en:'Stone Chest',so:{pedido:'Corrida de Recursos',quem:'Robin',o:'juntar 1.000 de madeira ou de pedra em uma semana',dias:7},mat:'50 pedra',why:'Baú para guardar as coisas, feito só de pedra.'},
+ {id:'farmComputer',cat:'util',n:'Computador da Fazenda',en:'Farm Computer',so:[{pedido:'Superpopulação Aquática',quem:'Demetrius',o:'pescar 10 de um peixe da estação',dias:7},{pedido:'Equilíbrio do Bioma',quem:'Demetrius',o:'pescar 20 peixes de rio, de mar ou de lago',dias:7}],mat:'1 engenhoca anã, 1 conjunto de pilhas e 10 quartzos refinados',why:'Mostra o que falta regar e colher na fazenda.'},
+ {id:'miniObelisk',cat:'util',n:'Mini-Obelisco',en:'Mini-Obelisk',so:{pedido:'Uma Substância Curiosa',quem:'Feiticeiro',o:'levar 1 ectoplasma',dias:7},mat:'30 madeiras de lei, 20 essências solares e 3 barras de ouro',why:'Dois na fazenda viram um teletransporte entre eles.'},
+ {id:'miniFridge',cat:'util',item:1,n:'Mini-Geladeira',en:'Mini-Fridge',so:{pedido:'Omelete Famosa do Gus',quem:'Gus',o:'colocar 24 ovos na geladeira do Saloon',dias:14},mat:'',why:'Geladeira extra para a casa.'},
+ {id:'miniBin',cat:'util',item:1,n:'Mini-Caixa de Envio',en:'Mini-Shipping Bin',so:[{pedido:'Pedido de Colheita',quem:'Lewis',o:'embarcar 100 de uma plantação da estação',dias:28,req:c=>c.S!==3},{pedido:'Produtos de Primeira',quem:'Pierre',o:'entregar 25 legumes de qualidade ouro no Armazém do Pierre',dias:28}],mat:'',why:'Caixa de envio pequena para pôr em qualquer lugar.'},
+ {id:'sewing',cat:'util',item:1,n:'Máquina de Costura',en:'Sewing Machine',so:{pedido:'Rejuvenescimento das Pedras',quem:'Emily',o:'entregar 1 rubi, 1 topázio, 1 esmeralda, 1 jade e 1 ametista (dá para juntar antes)',dias:7},mat:'',why:'Máquina de costura em casa. O pedido só aparece depois que vocês já podem usar a máquina da Emily.'},
+ {id:'coffeeMaker',cat:'util',item:1,n:'Cafeteira',en:'Coffee Maker',so:{pedido:'Presentes para o George',quem:'Evelyn',o:'colocar 12 alhos-porós no fogão da Evelyn',dias:28,req:c=>c.S===0},mat:'',why:'Faz um café por dia.'},
+ {id:'bobber',cat:'pesca',uso:1,n:'Boia de Qualidade',en:'Quality Bobber',so:{pedido:'Os Insetos Suculentos',quem:'Willy',o:'entregar 100 carnes de inseto',dias:7},mat:'1 barra de cobre, 20 seivas e 5 essências solares',why:'Acessório da vara que melhora a qualidade dos peixes.'},
+ {id:'bedRed',cat:'deco',item:1,n:'Cama de casal vermelha de luxo',en:'Deluxe Red Double Bed',so:{pedido:'O Projeto da Robin',quem:'Robin',o:'juntar 80 madeiras de lei',dias:7},mat:'',why:'Depois do pedido, a cama fica à venda na Robin.'},
+ {id:'fishTank',cat:'deco',item:1,n:'Aquário de luxo',en:'Deluxe Fish Tank',so:{pedido:'Peixes Tropicais',quem:'Willy',o:'pegar 5 arraias, 5 acarás-disco e 5 peixes-leão',dias:7,req:()=>st.unl.island},mat:'',why:'Aquário grande. O pedido só aparece depois que o Resort da Ilha Gengibre for construído.'},
+ {id:'fibs',cat:'outros',item:1,n:'Canal de TV F.I.B.S.',en:'F.I.B.S. TV Channel',so:{pedido:'Coisa Forte',quem:'Pam',o:'colocar 12 sucos de batata na cozinha da Pam',dias:14,req:c=>c.S===0},mat:'',why:'Canal novo na TV.'},
+ {id:'fiberSeeds',cat:'outros',uso:1,n:'Sementes de Fibra',en:'Fiber Seeds',so:{pedido:'Limpeza Comunitária',quem:'Linus',o:'jogar 20 lixos na lixeira da estação de trem',dias:7},mat:'1 semente mista, 5 seivas e 1 argila',why:'Crescem em qualquer estação, sem regar, e dão fibra.'},
+ {id:'musk',cat:'outros',uso:1,n:'Almíscar de Monstro',en:'Monster Musk',so:{pedido:'Geleia Prismática',quem:'Feiticeiro',o:'levar 1 geleia prismática',dias:7},mat:'30 asas de morcego e 30 gosmas',why:'Atrai mais monstros.'}
 ];
+// Categorias da seção Desbloqueáveis, na ordem em que aparecem
+const CATS=[['constr','Construções'],['maq','Máquinas'],['anim','Animais'],['pesca','Pesca'],['util','Utilidades'],['deco','Decoração'],['outros','Outros']];
+// Pedidos Especiais de um item, sempre como lista
+function soList(b){ return !b.so?[]:Array.isArray(b.so)?b.so:[b.so]; }
 // Construções do Feiticeiro: a missão Caminho bloqueado (goblin) libera
 function goblinOk(){ return questDone(QUESTS.find(q=>q.id==='goblin')); }
 function goblinStep(){ const g=QUESTS.find(q=>q.id==='goblin'); if(questDone(g)||!questsSoFar().some(q=>q.id==='goblin')) return null; return {id:'col-step-goblin',t:'Fazer a missão Caminho bloqueado',d:'Ela libera as construções do Feiticeiro (obeliscos, Cabana dos Junimos e Relógio Dourado). '+g.d,fx:{set:[['quests.goblin',true]]}}; }
@@ -931,7 +949,8 @@ function leveledNext(){
     return {id:L.id+'-'+(lv+1),n:L.names[lv],robin:1,days:((lv===0&&L.id!=='shed')||L.id==='house')?3:2,g,mat:mat==='só ouro'?'sem materiais':mat,why:L.why[lv],cc:levelHelpsCC(L.id,lv),up:lv>0,set:[['farm.'+L.key,lv+1]]}; }).filter(Boolean);
 }
 const SKILL_PT={farming:'Cultivo',mining:'Mineração',foraging:'Coleta',fishing:'Pesca',combat:'Combate'};
-function own(id){ if(id==='silo'&&st.farm.silo) return true; if(id==='coop') return (st.farm.coopLv||0)>=1; if(id==='barn') return (st.farm.barnLv||0)>=1; return (st.owned||{})[id]==='have'; }
+function own(id){ if(id==='silo'&&st.farm.silo) return true; if(id==='coop') return (st.farm.coopLv||0)>=1; if(id==='barn') return (st.farm.barnLv||0)>=1; const v=(st.owned||{})[id]; return v==='have'||(v==='recipe'&&USO.has(id)); }
+const USO=new Set(BUILD.filter(b=>b.uso).map(b=>b.id)); // receita de uso: ter a receita já conta como "temos"
 function wants(id){ if(own(id)) return false; const v=(st.owned||{})[id]||'want'; return v==='want'||v==='recipe'; }
 function maxTool(k){ return Math.max(tl(0,k),tl(1,k)); }
 // Nível da ferramenta que a pessoa tem na mão hoje: a que está no Clint não conta
@@ -1538,7 +1557,7 @@ function buildPlan(){
   }
   // O caminho até a lixeira dourada tem um tronco grande e uma pedra grande: precisa de machado e picareta de aço (wiki)
   if(maxToolNow('axe')>=2 && maxToolNow('pick')>=2) [0,1].forEach(i=>{ if(!hasPw(i,'alley')) tasks.push(T('alley-'+i,3,'Pegar o livro O Bufê do Beco na lixeira dourada','De graça: há uma abertura escondida na cerca leste da cidade, logo ao norte dos trilhos do carrinho de mina perto do Ferreiro. No caminho tem um tronco grande e uma pedra grande: quem tiver machado e picareta de aço abre a passagem. A lixeira fica atrás de uma árvore no fim do caminho. Dá mais chance de achar coisas no lixo.',i,{set:[[`players.${i}.pw.alley`,true]]})); });
-  // Construções e máquinas que vocês querem e ainda não têm
+  // Desbloqueáveis que vocês querem e ainda não têm
   { let n=0, robinUsed=false; const steps=new Set();
     const list=[...leveledNext(),...BUILD.filter(b=>!b.listOnly&&wants(b.id)&&(!b.need||b.need()))];
     list.sort((a,b)=>(b.cc?1:0)-(a.cc?1:0));
@@ -1551,6 +1570,7 @@ function buildPlan(){
       if(b.robin && (SHOPS.robin.closed(c) || (st.robinUntil||0)>now)) continue;
       if(b.shop && SHOPS[b.shop.key] && SHOPS[b.shop.key].closed(c)) continue;
       const hasRecipe=(st.owned||{})[b.id]==='recipe';
+      if(b.item||b.uso) continue; // chega pronto, ou a receita já basta: não há o que fazer
       if(b.so && !hasRecipe) continue; // receita só vem do Pedido Especial (lembrete de segunda)
       if(b.shopRecipe && !hasRecipe){
         const sr=b.shopRecipe; if(b.col||n>=2||SHOPS[sr.shop].closed(c)) continue; n++;
@@ -1567,10 +1587,11 @@ function buildPlan(){
   }
   // Pedidos Especiais: toda segunda (a partir do outono 2 do ano 1), até alguém marcar como visto
   { const mon=now-c.wd, start=absDay({year:1,season:2,day:2});
-    const pend=BUILD.filter(b=>b.so&&((st.owned||{})[b.id]||'want')==='want'&&(!b.so.req||b.so.req()));
+    // um par [item, pedido] por pedido possível hoje, só dos itens em "Queremos"
+    const pend=BUILD.filter(b=>((st.owned||{})[b.id]||'want')==='want').flatMap(b=>soList(b).filter(p=>!p.req||p.req(c)).map(p=>[b,p]));
     if(now>=start && (typeof st.soSeen==='number'?st.soSeen:-1)<mon && pend.length)
       tasks.push(T('so-board',2,'Olhar o quadro de Pedidos Especiais (em frente à Mansão do Prefeito)',
-        'Se aparecer um destes, aceitem: '+pend.map(b=>`${b.so.pedido} (${b.so.quem}): ${b.so.o}, prazo de ${b.so.dias} dias. Dá a receita de ${b.n}`).join('; ')+'. O quadro muda toda segunda e o prazo começa a contar na segunda. Quando ganharem uma receita, marquem "Temos a receita" em Construções e máquinas.',
+        'Se aparecer um destes, aceitem: '+pend.map(([b,p])=>`${p.pedido} (${p.quem}): ${p.o}, prazo de ${p.dias} dias. Recompensa: ${b.item?b.n:'receita de '+b.n}`).join('; ')+'. O quadro muda toda segunda e o prazo começa a contar na segunda. Quando ganharem a recompensa, marquem em Desbloqueáveis ("Temos a receita" ou "Já temos").',
         'bal',{set:[['soSeen',mon]]}));
   }
   if(!SHOPS.pierre.closed(c) && tl(0,'pack')>=1 && tl(1,'pack')>=1){ const n2=[0,1].filter(i=>tl(i,'pack')===1); if(n2.length) packLater.push(T('pack2',3,'Comprar a mochila de luxo no Pierre','10.000g, mais 12 espaços.',n2[0],{set:[[`players.${n2[0]}.tools.pack`,2]],money:-10000})); }
@@ -2204,9 +2225,15 @@ function renderForm(){
   }
   {
     const opts=[['want','Queremos'],['have','Já temos'],['no','Não queremos']];
-    const rows=BUILD.filter(b=>b.id!=='coop'&&b.id!=='barn').map(b=>`<div class="field"><label for="b-${b.id}">${esc(b.n)} <span class="en" style="text-transform:none;letter-spacing:0">${esc(b.en)}</span></label>${sel('owned.'+b.id,(b.so||b.shopRecipe)?[...opts.slice(0,1),['recipe','Temos a receita'],...opts.slice(1)]:opts,(st.owned||{})[b.id]||'want','b-'+b.id)}</div>`).join('');
+    const rec=['recipe','Temos a receita'];
+    // item pronto: sem receita; receita de uso: a receita já é o fim; receita de pedido ou loja: receita e depois o item
+    const optsOf=b=>b.item?opts:b.uso?[opts[0],rec,opts[2]]:(b.so||b.shopRecipe)?[opts[0],rec,...opts.slice(1)]:opts;
+    const row=b=>`<div class="field"><label for="b-${b.id}">${esc(b.n)} <span class="en" style="text-transform:none;letter-spacing:0">${esc(b.en)}</span></label>${sel('owned.'+b.id,optsOf(b),(st.owned||{})[b.id]||'want','b-'+b.id)}</div>`;
+    const L=BUILD.filter(b=>b.id!=='coop'&&b.id!=='barn');
+    const rows=CATS.map(([k,t])=>{ const g=L.filter(b=>b.cat===k); if(!g.length) return '';
+      return `<span class="flabel" style="grid-column:1 / -1;margin-top:8px">${t} <span class="muted" style="text-transform:none;letter-spacing:0">${g.filter(b=>own(b.id)).length} de ${g.length}</span></span>${g.map(row).join('')}`; }).join('');
     const bc=BUILD_COUNT();
-    h+=sec('build','Construções e máquinas',`${bc.have} de ${bc.total}`,`<p class="small muted" style="margin:0">Marquem o que já têm e o que não querem. O que estiver em "Queremos" aparece como tarefa quando já der para fazer (nível de habilidade, materiais e ouro). Galinheiro, celeiro, casa e galpão (com os níveis) ficam na seção Fazenda.</p><div class="fields">${rows}</div>`);
+    h+=sec('build','Desbloqueáveis',`${bc.have} de ${bc.total}`,`<p class="small muted" style="margin:0">Marquem o que já têm e o que não querem. O que estiver em "Queremos" aparece como tarefa quando já der para fazer (nível de habilidade, materiais e ouro). As recompensas dos Pedidos Especiais entram no lembrete de segunda do quadro. Galinheiro, celeiro, casa e galpão (com os níveis) ficam na seção Fazenda.</p><div class="fields">${rows}</div>`);
   }
   {
     const chip=(attr,key,on,label,title)=>`<button type="button" class="it" ${attr}="${key}" aria-pressed="${!!on}" title="${esc(title)}">${esc(label)}</button>`;
