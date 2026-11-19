@@ -392,7 +392,7 @@ function festTasks(f,c){
   }
   if(n==='Véspera dos Espíritos') out.push(T('maze',2,'Fazer o labirinto da Véspera dos Espíritos (22h–23h50)',st.year%2?'Neste ano o baú do fim tem a Abóbora Dourada. A passagem secreta começa embaixo e à esquerda da placa "?".':'Neste ano o baú do fim tem um Ticket de Prêmio (vale na Máquina de Recompensa da Mansão do Prefeito).','both'));
   if(n==='Festival do Gelo') out.push(T('icefish',1,'Ganhar o concurso de pesca no gelo','Precisa pegar pelo menos 5 peixes. Fiquem bem perto do buraco e lancem curto. A primeira vitória dá dois apetrechos de pesca, um ímã e um boné; depois disso, um Ticket de Prêmio.','both'));
-  if(n==='Festival da Lula') out.push(T('squid',1,`Pescar lulas na praia (meta de hoje: ${c.D===12?8:10})`,(c.D===12?'Prêmios de hoje por lulas pescadas: 1 → 20 iscas de luxo; 3 → Prato do Mar; 5 → Pérola e 3 cafés; 8 → o livro A Arte dos Covos (se ainda não ganharam).':'Prêmios de hoje por lulas pescadas: 2 → boia armadilha; 5 → Prato do Mar; 7 → baú do tesouro e 2 expressos triplos; 10 → o livro A Arte dos Covos (se ainda não ganharam).')+' A contagem zera de um dia para o outro.','both'));
+  if(n==='Festival da Lula') out.push(T('squid',1,`Pescar lulas na praia (meta de hoje: ${c.D===12?8:10})`,(c.D===12?'Prêmios de hoje por lulas pescadas: 1 → 20 iscas de luxo; 3 → Prato do Mar; 5 → Pérola e 3 cafés; 8 → o livro A Arte dos Covos (se ainda não ganharam).':'Prêmios de hoje por lulas pescadas: 2 → boia armadilha; 5 → Prato do Mar; 7 → baú do tesouro e 3 expressos triplos; 10 → o livro A Arte dos Covos (se ainda não ganharam).')+' A contagem zera de um dia para o outro.','both'));
   if(n==='Mercado Noturno'){
     out.push(T('sub',2,'Pescar no submarino do Mercado Noturno','1.000g, entrada das 17h às 23h. Lula da Meia-noite, Peixe Assustador e Peixe-bolha só saem lá; às vezes vem até uma Pérola.',pickFor('fishing')));
     out.push(T('mermaid',2,'Ganhar a Pérola no barco da sereia','Depois do show, toquem nas conchas na ordem 1-5-4-2-3 (da esquerda para a direita). O barco fecha às 0h30.'));
@@ -706,7 +706,7 @@ const BOOKS=[
  {id:'woody',n:'O Segredo da Floresta',eff:'Árvores cortadas às vezes dão o dobro de madeira.',shop:20000,y3:1,pri:8,how:'Também sai cortando árvores.'},
  {id:'jack',n:'Jack seja ágil, Jack seja parrudo',eff:'+1 de defesa.',shop:20000,y3:1,pri:9,how:'Também sai em pontos de artefato (minhocas no chão).'},
  {id:'jewels',n:'Joias do Mar',eff:'Baús de tesouro da pesca podem dar ovas.',shop:20000,y3:1,pri:10,how:'Também sai em baús de tesouro da pesca.'},
- {id:'crab',n:'A Arte dos Covos',eff:'Covos às vezes pegam o dobro.',shop:20000,y3:1,pri:11,how:'Também é prêmio da Festival da Lula.'},
+ {id:'crab',n:'A Arte dos Covos',eff:'Covos às vezes pegam o dobro.',shop:20000,y3:1,pri:11,how:'Também é prêmio do Festival da Lula.'},
  {id:'raccoon',n:'Diário de Guaxinim',eff:'Ervas daninhas dão mais sementes mistas.',shop:20000,y3:1,pri:12,how:'Também é recompensa do segundo pedido dos guaxinins.'},
  {id:'alley',n:'O Bufê do Beco',eff:'Mais chance de achar coisas no lixo.',shop:20000,y3:1,pri:13,how:'De graça: na lixeira dourada no leste da cidade, por uma abertura escondida na cerca ao norte dos trilhos perto do Ferreiro. O caminho precisa de machado e picareta de aço.'},
  {id:'treasure',n:'Tesouros Antigos: Guia de Avaliação',eff:'Artefatos vendem por mais.',shop:20000,y3:1,pri:14,how:'Também sai em Tesouros de Artefatos.'},
@@ -791,7 +791,7 @@ const QUESTS=[
  {id:'qi',n:'O misterioso Qi',who:'Sr. Qi',at:[1,0,1],t:'Seguir os bilhetes do Sr. Qi até o Cartão do Clube',d:'1) Ponham um Conjunto de pilhas na caixa do túnel (oeste do ponto de ônibus); 2) uma Concha arco-íris na caixa da estação de trem; 3) 10 Beterrabas na geladeira do Lewis; 4) uma Essência solar na boca do dragão de areia, no deserto; 5) examinem a pilha de madeira ao lado da casa da fazenda.',r:'Cartão do Clube (Cassino)',get:()=>st.unl.bus&&own('lrod'),auto:()=>!!st.special.club,set:[['special.club',true]],prio:3},
  {id:'qiChallenge',n:'O desafio do Qi',who:'Sr. Qi',at:[1,0,1],t:'Chegar ao andar 25 da Caverna da Caveira',d:'A carta chega no dia seguinte à primeira entrada na caverna. Levem comida e escadas.',r:'10.000g',get:()=>st.unl.skull,prio:3},
  {id:'talisman',n:'Talismã Sombrio',who:'Krobus',at:[1,0,1],t:'Buscar o Talismã Sombrio para abrir a ferrovia',d:'Falem com o Krobus no esgoto e atravessem o Covil do Inseto Mutante até o talismã. Depois voltem à caverna bloqueada da ferrovia.',r:'acesso ao Pântano da Bruxa',get:()=>countRoomsDone()===6&&!!st.special.rusty,prio:2},
- {id:'goblin',n:'Problema com o goblin',who:'Capanga',at:[1,0,1],after:'talisman',t:'Dar Maionese nula para o capanga e levar a Tinta Mágica ao Feiticeiro',d:'Maionese nula: Ovo nulo (Krobus vende aos sábados) na máquina de maionese.',r:'construções do Feiticeiro',get:()=>own('mayo'),prio:2}
+ {id:'goblin',n:'Problema com o goblin',who:'Capanga',at:[1,0,1],after:'talisman',t:'Dar Maionese nula para o capanga e levar a Tinta Mágica ao Feiticeiro',d:'Maionese nula: Ovo nulo (o Krobus vende todo dia, 5.000g) na máquina de maionese.',r:'construções do Feiticeiro',get:()=>own('mayo'),prio:2}
 ];
 function questAbs(q){ return (q.at[0]-1)*112+q.at[1]*28+q.at[2]; }
 function questDone(q){ return !!(st.quests||{})[q.id] || (q.auto?q.auto():false); }
@@ -871,7 +871,7 @@ function leveledNext(){
   return LEVELED.map(L=>{ const lv=st.farm[L.key]||0; if(lv>=L.names.length||(L.ok&&!L.ok(lv))) return null;
     if((st.owned||{})['lv-'+L.id]==='no') return null;
     const [g,mat]=L.costs[lv];
-    return {id:L.id+'-'+(lv+1),n:L.names[lv],robin:1,days:(lv===0||L.id==='house')?3:2,g,mat:mat==='só ouro'?'sem materiais':mat,why:L.why[lv],cc:levelHelpsCC(L.id,lv),up:lv>0,set:[['farm.'+L.key,lv+1]]}; }).filter(Boolean);
+    return {id:L.id+'-'+(lv+1),n:L.names[lv],robin:1,days:((lv===0&&L.id!=='shed')||L.id==='house')?3:2,g,mat:mat==='só ouro'?'sem materiais':mat,why:L.why[lv],cc:levelHelpsCC(L.id,lv),up:lv>0,set:[['farm.'+L.key,lv+1]]}; }).filter(Boolean);
 }
 const SKILL_PT={farming:'Cultivo',mining:'Mineração',foraging:'Coleta',fishing:'Pesca',combat:'Combate'};
 function own(id){ if(id==='silo'&&st.farm.silo) return true; if(id==='coop') return (st.farm.coopLv||0)>=1; if(id==='barn') return (st.farm.barnLv||0)>=1; return (st.owned||{})[id]==='have'; }
@@ -904,7 +904,7 @@ function whereText(name,c){
   switch(name){
    case 'Maru': day=(wd===1||wd===3)?'Hoje (terça ou quinta) ela trabalha na clínica do Harvey, das 9h às 16h.':'Hoje ela costuma ficar em casa ou pela montanha.'; break;
    case 'Harvey': day=wd<5?'Durante o dia atende na clínica.':''; break;
-   case 'Pierre': day=wd===2?'Hoje (quarta) a loja fecha e ele sai pela cidade.':'Fica no balcão da loja das 9h às 17h.'; break;
+   case 'Pierre': day=SHOPS.pierre.closed(c)?'Hoje (quarta) a loja fecha e ele sai pela cidade.':'Fica no balcão da loja das 9h às 17h.'; break;
    case 'Gus': day='Fica no Saloon Fruta Estrelar do meio-dia à meia-noite.'; break;
    case 'Emily': day='À noite trabalha no Saloon Fruta Estrelar, a partir das 16h.'; break;
    case 'Clint': day='Fica no balcão do Ferreiro durante o dia.'; break;
@@ -925,7 +925,7 @@ const CROPS={
  0:[['Chirívia','Parsnip',4,0,20,35],['Batata','Potato',6,0,50,80],['Couve-flor','Cauliflower',12,0,80,175],['Vagem','Green Bean',10,3,60,40,'treliça'],
     ['Couve','Kale',6,0,70,110],['Alho','Garlic',4,0,40,60,'y2'],['Morango','Strawberry',8,4,100,120,'fest'],['Tulipa','Tulip',6,0,20,30],['Jasmim-azul','Blue Jazz',7,0,30,50],['Ruibarbo','Rhubarb',13,0,100,220,'oasis']],
  1:[['Mirtilo','Blueberry',13,4,80,150],['Melão','Melon',12,0,80,250],['Pimenta Picante','Hot Pepper',5,3,40,40],['Tomate','Tomato',11,4,50,60],['Rabanete','Radish',6,0,40,90],
-    ['Trigo','Wheat',4,0,10,25,'multi'],['Papoula','Poppy',7,0,100,140],['Milho','Corn',14,4,150,50,'multi'],['Lúpulo','Hops',11,1,60,25,'treliça'],['Girassol','Sunflower',8,0,200,80,'multi'],['Papoula','Poppy',7,0,100,140],
+    ['Trigo','Wheat',4,0,10,25,'multi'],['Papoula','Poppy',7,0,100,140],['Milho','Corn',14,4,150,50,'multi'],['Lúpulo','Hops',11,1,60,25,'treliça'],['Girassol','Sunflower',8,0,200,80,'multi'],
     ['Repolho roxo','Red Cabbage',9,0,100,260,'y2'],['Carambola','Starfruit',13,0,400,750,'oasis']],
  2:[['Oxicoco','Cranberries',7,5,240,150],['Abóbora','Pumpkin',13,0,100,320],['Berinjela','Eggplant',5,5,20,60],['Inhame','Yam',10,0,60,160],['Acelga chinesa','Bok Choy',4,0,50,80],
     ['Amaranto','Amaranth',7,0,70,150],['Uva','Grape',10,3,60,80,'treliça'],['Alcachofra','Artichoke',8,0,30,160,'y2'],['Milho','Corn',14,4,150,50],['Trigo','Wheat',4,0,10,25],
@@ -1144,7 +1144,7 @@ function placeOf(txt){ txt=String(txt||''); if(/deserto|Oásis/i.test(txt)) retu
 // Lojas: horário de atendimento e dia de folga (Stardew Valley Wiki). wd: 0=segunda … 6=domingo.
 // Tarefas de loja vão para as 9h: a loja fecha à tarde, a mina e a coleta dá para fazer o dia todo.
 const SHOPS={
-  pierre:{h:'9h–17h',at:9,   closed:c=>c.wd===2},                         // fecha às quartas
+  pierre:{h:'9h–17h',at:9,   closed:c=>c.wd===2&&countRoomsDone()<6&&!st.special.townkey}, // fecha às quartas até o Centro ser restaurado (ou com a Chave da Vila)
   clint: {h:'9h–16h',at:9.1, closed:c=>c.wd===4&&countRoomsDone()===6},   // fecha às sextas depois do Centro restaurado
   robin: {h:'9h–17h',at:9.2, closed:c=>c.wd===1||(c.S===1&&c.D===18)},  // fecha às terças (aeróbica) e no verão 18 (clínica)
   marnie:{h:'9h–16h',at:9.15, closed:c=>c.wd===0||c.wd===1||(c.D===18&&(c.S===2||c.S===3))}, // segunda, terça e dias de clínica
@@ -1157,7 +1157,7 @@ function shopOf(t){
   const core=String(t.id||'').replace(/^m\d-/,'');
   if(/^animal-/.test(core)) return 'marnie';
   if(/^pack/.test(core)) return 'pierre';
-  if(/^(upg|pickup)-|^furnace(-\d)?$/.test(core)) return 'clint';
+  if(/^(upg|pickup)-/.test(core)) return 'clint';
   if(/^rod[23]$/.test(core)) return 'willy';
   if(/^build-/.test(core) && /na Robin/.test(t.t||'')) return 'robin';
   return null;
@@ -1184,7 +1184,7 @@ function baseEn(en){return isQual(en)?en.slice(5):en}
 function giftOk(req){return !req||(req==='bus'?st.unl.bus:req==='island'?st.unl.island:req==='m40'?st.mine>=40:req==='m50'?st.mine>=50:req==='m80'?st.mine>=80:true)}
 function giftText(name){
   const g=(GIFTS[name]||[]).filter(x=>giftOk(x[2]));
-  const plan='Se não tiverem nada disso, vale um presente de que quase todo mundo gosta: fruta de árvore, geleia, queijo, vinho ou um prato cozido (legumes também, menos para Sam, Penny e Abigail). Nunca deem lixo.';
+  const plan='Se não tiverem nada disso, vale um presente de que quase todo mundo gosta: fruta de árvore, geleia, queijo, vinho ou um prato cozido (legumes também, menos para Abigail, Haley, Jas, Sam e Vincent). Nunca deem lixo.';
   const kit=(st.farm.houseLv||0)>=1?'':' Pratos cozidos precisam da cozinha (primeira melhoria da casa, na Robin).';
   if(!g.length) return 'Presente que a pessoa ama no aniversário vale 8× mais amizade. '+plan;
   return 'Ama: '+g.map(([n,h])=>`${n} (${h})`).join('; ')+'. No aniversário, um presente amado vale 8× mais amizade. '+plan+(g.some(x=>/receita|cozinha/.test(x[1]))?kit:'')+(g.some(x=>/na TV/.test(x[1]))?' Receitas da TV saem no programa A Rainha do Molho, aos domingos; às quartas ele reprisa uma receita antiga.':'');
@@ -1278,7 +1278,7 @@ function cropBundle(en){
 function shopFor(c,x){
   if(x==='oasis') return 'no Oásis (deserto)';
   if(x==='fest') return 'na barraca do Pierre no festival';
-  return c.wd===2?'no Mercado Joja (o Pierre fecha às quartas; lá custa um pouco mais)':'no Pierre';
+  return SHOPS.pierre.closed(c)?'no Mercado Joja (o Pierre fecha às quartas; lá custa um pouco mais)':'no Pierre';
 }
 function qualityPlan(perPlant){
   const fi=st.players[0].farming>=st.players[1].farming?0:1, lv=st.players[fi].farming;
@@ -1384,9 +1384,9 @@ function buildPlan(){
   { const fl=Math.max(P[0].farming,P[1].farming), fi=pickFor('farming');
     if(!st.farm.sprinklers && st.farm.crops!=='nenhuma' && ((fl>=9&&st.unl.skull)||(fl>=6&&st.mine>=80))) tasks.push(T('sprink',2,fl>=9&&st.unl.skull?'Fazer aspersores de irídio':'Fazer aspersores de qualidade',
       fl>=9&&st.unl.skull?'Receita de Cultivo 9: 1 barra de ouro + 1 de irídio + 1 conjunto de pilhas. Rega 24 quadrados em volta.':'Receita de Cultivo 6: 1 barra de ferro + 1 de ouro + 1 quartzo refinado (quartzo na fornalha). Rega os 8 quadrados em volta.',fi,{set:[['farm.sprinklers',true]]})); }
-  if(!st.farm.furnace && c.minesOpen && !SHOPS.clint.closed(c)) tasks.push(T('furnace',2,'Levar minério de cobre para o Clint','Entrem no Ferreiro com minério de cobre na mochila: o Clint ensina a fazer a fornalha, que transforma minério em barras. Para fazer a fornalha: 20 minérios de cobre + 25 pedras (o cobre sai nos andares 1–39 das minas).','act:mines',{set:[['farm.furnace',true]]}));
+  if(!st.farm.furnace && c.minesOpen) tasks.push(T('furnace',2,'Pegar minério de cobre para ganhar a receita da fornalha','Basta 1 minério de cobre (sai nos andares 1–39 das minas). Na manhã seguinte, saiam de casa entre 6h e 11h30: o Clint vem até a fazenda e ensina a fazer a fornalha, que transforma minério em barras. Para fazer a fornalha: 20 minérios de cobre + 25 pedras.','act:mines',{set:[['farm.furnace',true]]}));
   const packLater=[];
-  if(c.wd!==2) [0,1].filter(i=>tl(i,'pack')===0).forEach(i=>{ packLater.push(T('pack-'+i,3,'Comprar a mochila grande no Pierre','2.000g. São 12 espaços a mais, menos viagens para casa.',i,{set:[[`players.${i}.tools.pack`,1]],money:-2000})); });
+  if(!SHOPS.pierre.closed(c)) [0,1].filter(i=>tl(i,'pack')===0).forEach(i=>{ packLater.push(T('pack-'+i,3,'Comprar a mochila grande no Pierre','2.000g. São 12 espaços a mais, menos viagens para casa.',i,{set:[[`players.${i}.tools.pack`,1]],money:-2000})); });
   // Covos: recolher todo dia e mudar de lugar quando o conjunto precisar
   if(st.farm.crabWhere && !bundleDone(bundleById('cp')) && !(c.beachClosed && st.farm.crabWhere==='mar')){
     const cp=bundleById('cp'), SEA=[0,2,3,4,5,8,9], FRESH=[1,6,7];
@@ -1428,8 +1428,17 @@ function buildPlan(){
     const bookToday=marked.includes(c.D);
     if(!marked.length && BOOK_DAYS[c.S].includes(c.D)) tasks.push(T('bookcheck',3,'Ver se o livreiro está na cidade','Ele vem 2 vezes por estação, em dias marcados com um balão no calendário do jogo (perto da porta do Pierre). Marquem os dias em Nossa fazenda → Dia de hoje.'));
     if(bookToday){
-      const list=BOOKS.filter(b=>b.shop&&(!b.y3||st.year>=3)&&(!b.need||b.need())).sort((a,b)=>a.pri-b.pri);
+      // Os livros que ele sempre vende; os de 20.000g (ano 3+) vêm só 1 por visita, sorteado
+      const list=BOOKS.filter(b=>b.shop&&!b.y3&&(!b.need||b.need())).sort((a,b)=>a.pri-b.pri);
       let any=false;
+      if(st.year>=3){
+        const miss=[0,1].map(i=>BOOKS.filter(b=>b.y3&&!hasPw(i,b.id)).map(b=>b.n));
+        if(miss[0].length||miss[1].length){
+          any=true;
+          const who=[0,1].filter(i=>miss[i].length).map(i=>`${esc(P[i].name)}: ${miss[i].join(', ')}`).join('. ');
+          tasks.push(T('book-y3',2,'Ver qual livro de 20.000g o livreiro trouxe hoje','A cada visita ele traz só 1 livro de 20.000g, sorteado. Se for um destes que ainda faltam, vale comprar: '+who+'. O Manual de Segurança dos Anões também pode aparecer, mas o Anão das minas vende por 4.000g.'));
+        }
+      }
       list.forEach(b=>[0,1].forEach(i=>{
         if(hasPw(i,b.id) || (b.after && !hasPw(i,b.after))) return;
         if(tasks.filter(t=>t.id.startsWith('book-')&&t.id.endsWith('-'+i)).length>=3) return;
@@ -1457,7 +1466,7 @@ function buildPlan(){
         {set:[...(b.set||[['owned.'+b.id,'have']]),...(b.robin?[['robinUntil',now+(b.days||2)]]:[])],money:b.robin?-b.g:0}));
     }
   }
-  if(c.wd!==2 && tl(0,'pack')>=1 && tl(1,'pack')>=1){ const n2=[0,1].filter(i=>tl(i,'pack')===1); if(n2.length) packLater.push(T('pack2',3,'Comprar a mochila de luxo no Pierre','10.000g, mais 12 espaços.',n2[0],{set:[[`players.${n2[0]}.tools.pack`,2]],money:-10000})); }
+  if(!SHOPS.pierre.closed(c) && tl(0,'pack')>=1 && tl(1,'pack')>=1){ const n2=[0,1].filter(i=>tl(i,'pack')===1); if(n2.length) packLater.push(T('pack2',3,'Comprar a mochila de luxo no Pierre','10.000g, mais 12 espaços.',n2[0],{set:[[`players.${n2[0]}.tools.pack`,2]],money:-10000})); }
   if(c.wd===4||c.wd===6){
     const want=missingNames(['long','crop'],3);
     tasks.push(T('cart',3,'Passar no Carrinho de Viagem (floresta, 6h–20h)',want.length?`Procurem itens que faltam nos conjuntos, como ${want.join(', ')}.`:'Às vezes ela vende sementes e itens raros.','act:forage'));
@@ -1679,7 +1688,7 @@ function longTasks(c,now,T){
     out.push({...T('cc-'+y.keys[0],2,'Comprar 10 feno na Marnie e entregar no Centro Comunitário','50g cada (500g no total). Com silo, também dá para cortar capim com a foice.','bal',{cc:y.keys,money:-500}),shop:'marnie'}); }
   // Árvores frutíferas: colher as que já têm; comprar muda das que faltam (maçã e romã servem para vários conjuntos)
   TREES.forEach(tr=>{ if(hasTree(tr.id) && c.S===tr.s) add(tr.en,`Colher ${tr.n} da árvore e entregar no Centro Comunitário`,`A árvore dá 1 fruta por dia na estação dela`); });
-  if(c.wd!==2){
+  if(!SHOPS.pierre.closed(c)){
     const ar=bundleById('ar'), arLeft=bundleDone(ar)?0:ar.need-bundleCount(ar);
     const arDoable=ar.items.filter((it,i)=>!st.cc[itemKey('ar',i)] && !missing.has(it.en)).length; // já têm caminho hoje
     const treesOwned=TREES.filter(tr=>hasTree(tr.id)).length;
