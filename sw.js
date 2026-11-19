@@ -1,7 +1,7 @@
 // Guarda a página no aparelho para abrir sem internet.
 // A página busca primeiro na rede (para receber atualizações) e usa a cópia guardada se estiver sem sinal.
 // Ícones e manifesto: usa a cópia guardada e atualiza em segundo plano.
-const CACHE = 'stardew-hoje-v1';
+const CACHE = 'stardew-hoje-v2';
 const CORE = ['./', 'index.html', 'manifest.json', 'icon.png', 'icon-192.png', 'icon-512.png', 'icon-maskable.png'];
 
 self.addEventListener('install', e => {
